@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef RMW_COREDDS_SHARED_CPP__RMW_COMMON_HPP_
 #define RMW_COREDDS_SHARED_CPP__RMW_COMMON_HPP_
 
@@ -21,7 +7,6 @@
 #include "rmw/rmw.h"
 #include "rmw/types.h"
 #include "rmw/names_and_types.h"
-#include "rmw/event.h"
 
 RMW_COREDDS_SHARED_CPP_PUBLIC
 rmw_guard_condition_t *
@@ -101,7 +86,6 @@ RMW_COREDDS_SHARED_CPP_PUBLIC
 rmw_wait_set_t *
 shared__rmw_create_wait_set(
   const char * implementation_identifier,
-  rmw_context_t * context,
   size_t max_conditions);
 
 RMW_COREDDS_SHARED_CPP_PUBLIC
@@ -178,19 +162,5 @@ shared__rmw_get_topic_names_and_types(
 RMW_COREDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_set_log_severity(rmw_log_severity_t severity);
-
-RMW_COREDDS_SHARED_CPP_PUBLIC
-rmw_ret_t
-shared__rmw_take_event(
-  const char * implementation_identifier,
-  const rmw_event_t * event_handle,
-  void * event_info,
-  bool * taken);
-
-RMW_COREDDS_SHARED_CPP_PUBLIC
-rmw_ret_t
-shared__rmw_node_assert_liveliness(
-  const char * implementation_identifier,
-  const rmw_node_t * node);
 
 #endif  // RMW_COREDDS_SHARED_CPP__RMW_COMMON_HPP_

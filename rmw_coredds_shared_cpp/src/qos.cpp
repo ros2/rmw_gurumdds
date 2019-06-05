@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <limits>
 #include "rmw_coredds_shared_cpp/qos.hpp"
 
@@ -81,33 +67,8 @@ set_entity_qos_from_profile_generic(
     entity_qos->history.depth = static_cast<int32_t>(qos_profile->depth);
   }
 
-  if (!is_time_default(qos_profile->deadline)) {
-    entity_qos->deadline.period = rmw_time_to_dds(qos_profile->deadline);
-  }
-
-  switch (qos_profile->liveliness) {
-    case RMW_QOS_POLICY_LIVELINESS_AUTOMATIC:
-      entity_qos->liveliness.kind = dds_AUTOMATIC_LIVELINESS_QOS;
-      break;
-    case RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE:
-      entity_qos->liveliness.kind = dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS;
-      break;
-    case RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC:
-      entity_qos->liveliness.kind = dds_MANUAL_BY_TOPIC_LIVELINESS_QOS;
-      break;
-    case RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT:
-      break;
-    default:
-      RMW_SET_ERROR_MSG("unknown qos liveliness policy");
-      return false;
-  }
-
-  if (!is_time_default(qos_profile->liveliness_lease_duration)) {
-    entity_qos->liveliness.lease_duration = rmw_time_to_dds(qos_profile->liveliness_lease_duration);
-  }
-
   // ensure the history depth is at least the requested queue size
-  assert(entity_qos->history.depth >= 0 || entity_qos->history.depth == dds_LENGTH_UNLIMITED);
+  assert(entity_qos->history.depth >= 0);
   if (
     entity_qos->history.kind == dds_KEEP_LAST_HISTORY_QOS &&
     static_cast<size_t>(entity_qos->history.depth) < qos_profile->depth)
@@ -133,10 +94,6 @@ get_datawriter_qos(
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to get default datawriter qos");
     return false;
-  }
-
-  if (!is_time_default(qos_profile->lifespan)) {
-    datawriter_qos->lifespan.duration = rmw_time_to_dds(qos_profile->lifespan);
   }
 
   set_entity_qos_from_profile_generic(qos_profile, datawriter_qos);

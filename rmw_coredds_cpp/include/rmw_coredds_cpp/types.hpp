@@ -16,21 +16,15 @@
 #define RMW_COREDDS_CPP__TYPES_HPP_
 
 #include "rmw/rmw.h"
-#include "rmw_coredds_shared_cpp/types.hpp"
 #include "rosidl_typesupport_coredds_cpp/message_type_support.h"
-#include "rosidl_typesupport_coredds_cpp/service_type_support.h"
 
-typedef struct _CoreddsPublisherInfo : CoreddsEventInfo
+typedef struct _CoreddsPublisherInfo
 {
   dds_Publisher * publisher;
   rmw_gid_t publisher_gid;
   dds_DataWriter * topic_writer;
   const message_type_support_callbacks_t * callbacks;
   const char * implementation_identifier;
-
-  rmw_ret_t get_status(dds_StatusMask mask, void * event) override;
-  dds_StatusCondition * get_statuscondition() override;
-  dds_StatusMask get_status_changes() override;
 } CoreddsPublisherInfo;
 
 typedef struct _CoreddsPublisherGID
@@ -38,7 +32,7 @@ typedef struct _CoreddsPublisherGID
   dds_InstanceHandle_t publication_handle;
 } CoreddsPublisherGID;
 
-typedef struct _CoreddsSubscriberInfo : CoreddsEventInfo
+typedef struct _CoreddsSubscriberInfo
 {
   dds_Subscriber * subscriber;
   dds_DataReader * topic_reader;
@@ -46,15 +40,12 @@ typedef struct _CoreddsSubscriberInfo : CoreddsEventInfo
   bool ignore_local_publications;
   const message_type_support_callbacks_t * callbacks;
   const char * implementation_identifier;
-
-  rmw_ret_t get_status(dds_StatusMask mask, void * event) override;
-  dds_StatusCondition * get_statuscondition() override;
-  dds_StatusMask get_status_changes() override;
 } CoreddsSubscriberInfo;
 
 typedef struct _CoreddsServiceInfo
 {
-  const service_type_support_callbacks_t * callbacks;
+  const message_type_support_callbacks_t * request_callbacks;
+  const message_type_support_callbacks_t * response_callbacks;
   dds_Subscriber * dds_subscriber;
   dds_DataReader * request_reader;
   dds_Publisher * dds_publisher;
@@ -66,7 +57,8 @@ typedef struct _CoreddsServiceInfo
 
 typedef struct _CoreddsClientInfo
 {
-  const service_type_support_callbacks_t * callbacks;
+  const message_type_support_callbacks_t * response_callbacks;
+  const message_type_support_callbacks_t * request_callbacks;
   dds_Publisher * dds_publisher;
   dds_DataWriter * request_writer;
   dds_Subscriber * dds_subscriber;

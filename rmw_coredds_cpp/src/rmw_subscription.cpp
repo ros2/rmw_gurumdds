@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <utility>
 #include <string>
 
@@ -34,29 +20,6 @@
 
 extern "C"
 {
-rmw_ret_t
-rmw_init_subscription_allocation(
-  const rosidl_message_type_support_t * type_support,
-  const rosidl_message_bounds_t * message_bounds,
-  rmw_subscription_allocation_t * allocation)
-{
-  // Unused in current implementation.
-  (void)type_support;
-  (void)message_bounds;
-  (void)allocation;
-  RMW_SET_ERROR_MSG("unimplemented");
-  return RMW_RET_ERROR;
-}
-
-rmw_ret_t
-rmw_fini_subscription_allocation(rmw_subscription_allocation_t * allocation)
-{
-  // Unused in current implementation.
-  (void)allocation;
-  RMW_SET_ERROR_MSG("unimplemented");
-  return RMW_RET_ERROR;
-}
-
 rmw_subscription_t *
 rmw_create_subscription(
   const rmw_node_t * node,
@@ -124,7 +87,7 @@ rmw_create_subscription(
   dds_TopicDescription * topic_desc = nullptr;
   dds_ReadCondition * read_condition = nullptr;
   dds_ReturnCode_t ret = dds_RETCODE_OK;
-  std::string type_name = _create_type_name(callbacks);
+  std::string type_name = _create_type_name(callbacks, "msg");
   rmw_ret_t rmw_ret = RMW_RET_OK;
 
   std::string processed_topic_name;
@@ -409,10 +372,8 @@ _take(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info,
-  rmw_subscription_allocation_t * allocation)
+  rmw_message_info_t * message_info)
 {
-  (void)allocation;
   *taken = false;
 
   if (subscription->implementation_identifier != identifier) {
@@ -466,7 +427,7 @@ _take(
     void * sample = dds_DataSeq_get(data_values, 0);
     // Some types such as string need to be converted
     if (!info->callbacks->convert_dds_to_ros(sample, ros_message)) {
-      RMW_SET_ERROR_MSG("failed to convert message");
+      RMW_SET_ERROR_MSG("failed to convert string");
       dds_DataReader_return_loan(topic_reader, data_values, sample_infos);
       return RMW_RET_ERROR;
     }
@@ -493,8 +454,7 @@ rmw_ret_t
 rmw_take(
   const rmw_subscription_t * subscription,
   void * ros_message,
-  bool * taken,
-  rmw_subscription_allocation_t * allocation)
+  bool * taken)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -503,7 +463,7 @@ rmw_take(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
-  return _take(gurum_coredds_identifier, subscription, ros_message, taken, nullptr, allocation);
+  return _take(gurum_coredds_identifier, subscription, ros_message, taken, nullptr);
 }
 
 rmw_ret_t
@@ -511,8 +471,7 @@ rmw_take_with_info(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info,
-  rmw_subscription_allocation_t * allocation)
+  rmw_message_info_t * message_info)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -524,7 +483,7 @@ rmw_take_with_info(
     message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take(
-    gurum_coredds_identifier, subscription, ros_message, taken, message_info, allocation);
+    gurum_coredds_identifier, subscription, ros_message, taken, message_info);
 }
 
 rmw_ret_t
@@ -533,10 +492,8 @@ _take_serialized(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info,
-  rmw_subscription_allocation_t * allocation)
+  rmw_message_info_t * message_info)
 {
-  (void)allocation;
   *taken = false;
 
   if (subscription->implementation_identifier != identifier) {
@@ -635,8 +592,7 @@ rmw_ret_t
 rmw_take_serialized_message(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
-  bool * taken,
-  rmw_subscription_allocation_t * allocation)
+  bool * taken)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -646,7 +602,7 @@ rmw_take_serialized_message(
     taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
   return _take_serialized(
-    gurum_coredds_identifier, subscription, serialized_message, taken, nullptr, allocation);
+    gurum_coredds_identifier, subscription, serialized_message, taken, nullptr);
 }
 
 rmw_ret_t
@@ -654,8 +610,7 @@ rmw_take_serialized_message_with_info(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info,
-  rmw_subscription_allocation_t * allocation)
+  rmw_message_info_t * message_info)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -667,6 +622,6 @@ rmw_take_serialized_message_with_info(
     message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take_serialized(
-    gurum_coredds_identifier, subscription, serialized_message, taken, message_info, allocation);
+    gurum_coredds_identifier, subscription, serialized_message, taken, message_info);
 }
 }  // extern "C"

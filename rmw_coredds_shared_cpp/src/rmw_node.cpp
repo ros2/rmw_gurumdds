@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <array>
 #include <utility>
 #include <set>
@@ -386,7 +372,7 @@ shared__rmw_get_node_names(
   }
 
   // Get discovered participants
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   dds_ReturnCode_t ret = dds_DomainParticipant_get_discovered_participants(participant, handle_seq);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("unable to fetch discovered participants.");
@@ -396,23 +382,18 @@ shared__rmw_get_node_names(
   uint32_t length = dds_InstanceHandleSeq_length(handle_seq);
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  rcutils_string_array_t node_list = rcutils_get_zero_initialized_string_array();
-  rcutils_ret_t rcutils_ret = rcutils_string_array_init(&node_list, length, &allocator);
+  rcutils_ret_t rcutils_ret = rcutils_string_array_init(node_names, length, &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-    rcutils_reset_error();
     return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
   }
 
-  rcutils_string_array_t ns_list = rcutils_get_zero_initialized_string_array();
-  rcutils_ret = rcutils_string_array_init(&ns_list, length, &allocator);
+  rcutils_ret = rcutils_string_array_init(node_namespaces, length, &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-    rcutils_reset_error();
     return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
   }
 
-  int n = 0;
   for (uint32_t i = 0; i < length; ++i) {
     dds_ParticipantBuiltinTopicData pbtd;
     dds_InstanceHandle_t handle = dds_InstanceHandleSeq_get(handle_seq, i);
@@ -437,70 +418,30 @@ shared__rmw_get_node_names(
     }
 
     if (name.empty()) {  // Ignore discovered participants without a name
+      node_names->data[i] = nullptr;
+      node_namespaces->data[i] = nullptr;
       continue;
     }
 
-    node_list.data[n] = rcutils_strdup(name.c_str(), allocator);
-    if (node_list.data[n] == nullptr) {
+    node_names->data[i] = rcutils_strdup(name.c_str(), allocator);
+    if (node_names->data[i] == nullptr) {
       RMW_SET_ERROR_MSG("could not allocate memory for node name");
       goto fail;
     }
 
-    ns_list.data[n] = rcutils_strdup(namespace_.c_str(), allocator);
-    if (ns_list.data[n] == nullptr) {
+    node_namespaces->data[i] = rcutils_strdup(namespace_.c_str(), allocator);
+    if (node_namespaces->data[i] == nullptr) {
       RMW_SET_ERROR_MSG("could not allocate memory for node namspace");
       goto fail;
     }
 
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_coredds_cpp", "node found: %s %s", namespace_.c_str(), name.c_str());
-
-    n++;
-  }
-
-  rcutils_ret = rcutils_string_array_init(node_names, n, &allocator);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-    rcutils_reset_error();
-    goto fail;
-  }
-
-  rcutils_ret = rcutils_string_array_init(node_namespaces, n, &allocator);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-    rcutils_reset_error();
-    goto fail;
-  }
-
-  for (int i = 0; i < n; ++i) {
-    node_names->data[i] = node_list.data[i];
-    node_list.data[i] = nullptr;
-  }
-
-  for (int i = 0; i < n; ++i) {
-    node_namespaces->data[i] = ns_list.data[i];
-    ns_list.data[i] = nullptr;
   }
 
   return RMW_RET_OK;
 
 fail:
-  rcutils_ret = rcutils_string_array_fini(&ns_list);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rmw_coredds_cpp",
-      "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
-    rcutils_reset_error();
-  }
-
-  rcutils_ret = rcutils_string_array_fini(&node_list);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rmw_coredds_cpp",
-      "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
-    rcutils_reset_error();
-  }
-
   if (node_names != nullptr) {
     rcutils_ret = rcutils_string_array_fini(node_names);
     if (rcutils_ret != RCUTILS_RET_OK) {

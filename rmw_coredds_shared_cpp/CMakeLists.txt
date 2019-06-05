@@ -38,8 +38,6 @@ link_directories(${CoreDDS_LIBRARY_DIRS})
 add_library(
   rmw_coredds_shared_cpp
   SHARED
-  src/event_converter.cpp
-  src/rmw_event.cpp
   src/rmw_node.cpp
   src/rmw_guard_condition.cpp
   src/rmw_wait.cpp

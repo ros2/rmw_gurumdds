@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -24,16 +10,8 @@
 rmw_wait_set_t *
 shared__rmw_create_wait_set(
   const char * implementation_identifier,
-  rmw_context_t * context,
   size_t max_conditions)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    init context,
-    context->implementation_identifier,
-    implementation_identifier,
-    return nullptr);
-
   (void)max_conditions;
   rmw_wait_set_t * wait_set = rmw_wait_set_allocate();
 

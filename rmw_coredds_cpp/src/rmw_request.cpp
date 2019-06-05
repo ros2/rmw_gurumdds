@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/types.h"
@@ -20,8 +6,8 @@
 #include "rmw_coredds_shared_cpp/rmw_common.hpp"
 #include "rmw_coredds_shared_cpp/types.hpp"
 
-#include "rmw_coredds_cpp/identifier.hpp"
 #include "rmw_coredds_cpp/types.hpp"
+#include "rmw_coredds_cpp/identifier.hpp"
 
 extern "C"
 {
@@ -58,23 +44,15 @@ rmw_send_request(
     return RMW_RET_ERROR;
   }
 
-  const service_type_support_callbacks_t * callbacks = client_info->callbacks;
+  const message_type_support_callbacks_t * callbacks = client_info->request_callbacks;
   if (callbacks == nullptr) {
     RMW_SET_ERROR_MSG("callbacks handle is null");
     return RMW_RET_ERROR;
   }
 
-  const message_type_support_callbacks_t * request_callbacks =
-    static_cast<const message_type_support_callbacks_t *>(
-    callbacks->request_callbacks->data);
-  if (request_callbacks == nullptr) {
-    RMW_SET_ERROR_MSG("callbacks handle is null");
-    return RMW_RET_ERROR;
-  }
-
   // Some types such as string need to be converted
-  void * dds_request = request_callbacks->alloc();
-  if (!request_callbacks->convert_ros_to_dds(ros_request, dds_request)) {
+  void * dds_request = callbacks->alloc();
+  if (!callbacks->convert_ros_to_dds(ros_request, dds_request)) {
     RMW_SET_ERROR_MSG("failed to convert message");
     return RMW_RET_ERROR;
   }
@@ -86,17 +64,17 @@ rmw_send_request(
     &client_info->writer_guid_1, sizeof(client_info->writer_guid_1));
 
   // Sequence number and guid are needed to match responses and requests
-  callbacks->request_set_sequence_number(dds_request, ++(client_info->sequence_number));
-  callbacks->request_set_guid(dds_request, temp_guid);
+  callbacks->set_sequence_number(dds_request, ++(client_info->sequence_number));
+  callbacks->set_guid(dds_request, temp_guid);
 
   if (dds_DataWriter_write(request_writer, dds_request, dds_HANDLE_NIL) != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to publish data");
-    request_callbacks->free(dds_request);
+    callbacks->free(dds_request);
     return RMW_RET_ERROR;
   }
 
   *sequence_id = client_info->sequence_number;
-  request_callbacks->free(dds_request);
+  callbacks->free(dds_request);
 
   return RMW_RET_OK;
 }
@@ -142,16 +120,8 @@ rmw_take_request(
     return RMW_RET_ERROR;
   }
 
-  const service_type_support_callbacks_t * callbacks = service_info->callbacks;
+  const message_type_support_callbacks_t * callbacks = service_info->request_callbacks;
   if (callbacks == nullptr) {
-    RMW_SET_ERROR_MSG("callbacks handle is null");
-    return RMW_RET_ERROR;
-  }
-
-  const message_type_support_callbacks_t * request_callbacks =
-    static_cast<const message_type_support_callbacks_t *>(
-    callbacks->request_callbacks->data);
-  if (request_callbacks == nullptr) {
     RMW_SET_ERROR_MSG("callbacks handle is null");
     return RMW_RET_ERROR;
   }
@@ -191,8 +161,8 @@ rmw_take_request(
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
   if (sample_info->valid_data) {
     void * sample = dds_DataSeq_get(data_values, 0);
-    int64_t sequence_number = callbacks->request_get_sequence_number(sample);
-    if (!request_callbacks->convert_dds_to_ros(sample, ros_request)) {
+    int64_t sequence_number = callbacks->get_sequence_number(sample);
+    if (!callbacks->convert_dds_to_ros(sample, ros_request)) {
       RMW_SET_ERROR_MSG("failed to convert message");
       dds_DataReader_return_loan(request_reader, data_values, sample_infos);
       return RMW_RET_ERROR;
@@ -200,7 +170,7 @@ rmw_take_request(
 
     // Sequence number and guid are needed to match responses and requests
     request_header->sequence_number = sequence_number;
-    callbacks->request_get_guid(sample, request_header->writer_guid);
+    callbacks->get_guid(sample, request_header->writer_guid);
 
     *taken = true;
   }

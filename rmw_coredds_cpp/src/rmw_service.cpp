@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -151,11 +137,12 @@ rmw_create_service(
 
   service_info->participant = participant;
   service_info->implementation_identifier = gurum_coredds_identifier;
-  service_info->callbacks = service_callbacks;
+  service_info->request_callbacks = request_callbacks;
+  service_info->response_callbacks = response_callbacks;
 
   // Create topic and type name strings
-  request_type_name = _create_type_name(request_callbacks);
-  response_type_name = _create_type_name(response_callbacks);
+  request_type_name = _create_type_name(request_callbacks, "srv");
+  response_type_name = _create_type_name(response_callbacks, "srv");
   if (!qos_policies->avoid_ros_namespace_conventions) {
     request_topic_name = std::string(ros_service_requester_prefix) + service_name;
     response_topic_name = std::string(ros_service_response_prefix) + service_name;

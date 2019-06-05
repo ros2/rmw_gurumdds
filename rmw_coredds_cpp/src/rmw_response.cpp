@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/types.h"
@@ -66,16 +52,8 @@ rmw_take_response(
     return RMW_RET_ERROR;
   }
 
-  const service_type_support_callbacks_t * callbacks = client_info->callbacks;
+  const message_type_support_callbacks_t * callbacks = client_info->response_callbacks;
   if (callbacks == nullptr) {
-    RMW_SET_ERROR_MSG("callbacks handle is null");
-    return RMW_RET_ERROR;
-  }
-
-  const message_type_support_callbacks_t * response_callbacks =
-    static_cast<const message_type_support_callbacks_t *>(
-    callbacks->response_callbacks->data);
-  if (response_callbacks == nullptr) {
     RMW_SET_ERROR_MSG("callbacks handle is null");
     return RMW_RET_ERROR;
   }
@@ -115,24 +93,17 @@ rmw_take_response(
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
   if (sample_info->valid_data) {
     void * sample = dds_DataSeq_get(data_values, 0);
-    int8_t wguid[16];
-    callbacks->response_get_guid(sample, wguid);
-
-    if (client_info->writer_guid_0 == *reinterpret_cast<int64_t *>(wguid) &&
-      client_info->writer_guid_1 == *reinterpret_cast<int64_t *>(wguid + sizeof(uint64_t)))
-    {
-      int64_t sequence_number = callbacks->response_get_sequence_number(sample);
-      if (!response_callbacks->convert_dds_to_ros(sample, ros_response)) {
-        RMW_SET_ERROR_MSG("failed to convert message");
-        dds_DataReader_return_loan(response_reader, data_values, sample_infos);
-        return RMW_RET_ERROR;
-      }
-
-      request_header->sequence_number = sequence_number;
-      callbacks->response_get_guid(sample, request_header->writer_guid);
-
-      *taken = true;
+    int64_t sequence_number = callbacks->get_sequence_number(sample);
+    if (!callbacks->convert_dds_to_ros(sample, ros_response)) {
+      RMW_SET_ERROR_MSG("failed to convert message");
+      dds_DataReader_return_loan(response_reader, data_values, sample_infos);
+      return RMW_RET_ERROR;
     }
+
+    request_header->sequence_number = sequence_number;
+    callbacks->get_guid(sample, request_header->writer_guid);
+
+    *taken = true;
   }
 
   dds_DataReader_return_loan(response_reader, data_values, sample_infos);
@@ -175,37 +146,29 @@ rmw_send_response(
     return RMW_RET_ERROR;
   }
 
-  const service_type_support_callbacks_t * callbacks = service_info->callbacks;
+  const message_type_support_callbacks_t * callbacks = service_info->response_callbacks;
   if (callbacks == nullptr) {
     RMW_SET_ERROR_MSG("callbacks handle is null");
     return RMW_RET_ERROR;
   }
 
-  const message_type_support_callbacks_t * response_callbacks =
-    static_cast<const message_type_support_callbacks_t *>(
-    callbacks->response_callbacks->data);
-  if (response_callbacks == nullptr) {
-    RMW_SET_ERROR_MSG("callbacks handle is null");
-    return RMW_RET_ERROR;
-  }
-
   // Some types such as string needs to be converted
-  void * dds_response = response_callbacks->alloc();
-  if (!response_callbacks->convert_ros_to_dds(ros_response, dds_response)) {
+  void * dds_response = callbacks->alloc();
+  if (!callbacks->convert_ros_to_dds(ros_response, dds_response)) {
     RMW_SET_ERROR_MSG("failed to convert message");
     return RMW_RET_ERROR;
   }
 
-  callbacks->response_set_sequence_number(dds_response, request_header->sequence_number);
-  callbacks->response_set_guid(dds_response, request_header->writer_guid);
+  callbacks->set_sequence_number(dds_response, request_header->sequence_number);
+  callbacks->set_guid(dds_response, request_header->writer_guid);
 
   if (dds_DataWriter_write(response_writer, dds_response, dds_HANDLE_NIL) != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to publish data");
-    response_callbacks->free(dds_response);
+    callbacks->free(dds_response);
     return RMW_RET_ERROR;
   }
 
-  response_callbacks->free(dds_response);
+  callbacks->free(dds_response);
 
   return RMW_RET_OK;
 }

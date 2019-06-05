@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(rmw_coredds_cpp)
+project(rmw_coredds_cpp) 
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -8,6 +8,10 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 find_package(ament_cmake_ros REQUIRED)
@@ -56,7 +60,6 @@ add_library(rmw_coredds_cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
-  src/rmw_event.cpp
   src/rmw_get_implementation_identifier.cpp
   src/rmw_get_serialization_format.cpp
   src/rmw_guard_condition.cpp
@@ -74,7 +77,6 @@ add_library(rmw_coredds_cpp
   src/rmw_topic_names_and_types.cpp
   src/rmw_wait.cpp
   src/type_support_common.hpp
-  src/types.cpp
   src/get_entities.cpp
 )
 

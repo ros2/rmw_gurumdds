@@ -32,15 +32,12 @@
 #define RMW_COREDDS_CPP_TYPESUPPORT_CPP rosidl_typesupport_coredds_cpp::typesupport_identifier
 
 inline std::string
-_create_type_name(const message_type_support_callbacks_t * callbacks)
+_create_type_name(
+  const message_type_support_callbacks_t * callbacks,
+  const std::string & sep)
 {
-  std::ostringstream ss;
-  std::string message_namespace(callbacks->message_namespace);
-  if (!message_namespace.empty()) {
-    ss << message_namespace << "::";
-  }
-  ss << "dds_::" << callbacks->message_name << "_";
-  return ss.str();
+  return std::string(callbacks->package_name) +
+    "::" + sep + "::dds_::" + callbacks->message_name + "_";
 }
 
 #endif  // TYPE_SUPPORT_COMMON_HPP_

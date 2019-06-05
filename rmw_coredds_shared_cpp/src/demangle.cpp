@@ -1,17 +1,3 @@
-// Copyright 2019 GurumNetworks, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <algorithm>
 #include <cstring>
 #include <map>
@@ -93,7 +79,7 @@ _demangle_service_from_topic(const std::string & topic_name)
 std::string
 _demangle_service_type_only(const std::string & dds_type_name)
 {
-  std::string ns_substring = "dds_::";
+  std::string ns_substring = "::srv::dds_::";
   size_t ns_substring_position = dds_type_name.find(ns_substring);
   if (ns_substring_position == std::string::npos) {
     return "";
@@ -110,7 +96,7 @@ _demangle_service_type_only(const std::string & dds_type_name)
     if (suffix_position != std::string::npos) {
       if (dds_type_name.length() - suffix_position - suffix.length() != 0) {
         RCUTILS_LOG_WARN_NAMED("rmw_coredds_shared_cpp",
-          "service type contains 'dds_::' and a suffix, but not at the end"
+          "service type contains '::srv::dds_::' and a suffix, but not at the end"
           ", report this: '%s'", dds_type_name.c_str());
         continue;
       }
@@ -121,16 +107,14 @@ _demangle_service_type_only(const std::string & dds_type_name)
 
   if (suffix_position == std::string::npos) {
     RCUTILS_LOG_WARN_NAMED("rmw_coredds_shared_cpp",
-      "service type contains 'dds_::' but does not have a suffix"
+      "service type contains '::srv::dds_::' but does not have a suffix"
       ", report this: '%s'", dds_type_name.c_str());
     return "";
   }
 
-  // everything checks out, reformat it from '<pkg>::srv::dds_::<type><suffix>'
-  // to '<namespace>/<type>'
-  std::string type_namespace = dds_type_name.substr(0, ns_substring_position);
-  type_namespace = std::regex_replace(type_namespace, std::regex("::"), "/");
+  // everything checks out, reformatit from '<pkg>::srv::dds_::<type><suffix>' to '<pkg>/<type>'
+  std::string pkg = dds_type_name.substr(0, ns_substring_position);
   size_t start = ns_substring_position + ns_substring.length();
   std::string type_name = dds_type_name.substr(start, suffix_position - start);
-  return type_namespace + type_name;
+  return pkg + "/" + type_name;
 }
