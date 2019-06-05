@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(rmw_coredds_cpp) 
+project(rmw_coredds_cpp)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)

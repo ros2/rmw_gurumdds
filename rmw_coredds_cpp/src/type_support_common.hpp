@@ -37,7 +37,7 @@ _create_type_name(
   const std::string & sep)
 {
   return std::string(callbacks->package_name) +
-    "::" + sep + "::dds_::" + callbacks->message_name + "_";
+         "::" + sep + "::dds_::" + callbacks->message_name + "_";
 }
 
 #endif  // TYPE_SUPPORT_COMMON_HPP_
