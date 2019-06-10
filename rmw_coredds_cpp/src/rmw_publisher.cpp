@@ -589,7 +589,48 @@ rmw_publisher_get_actual_qos(
       qos->reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
       break;
   }
+
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
+
+  if (dds_qos.deadline.period.sec == dds_DURATION_INFINITE_SEC) {
+    qos->deadline.sec = std::numeric_limits<uint64_t>::max();
+    qos->deadline.nsec = std::numeric_limits<uint64_t>::max();
+  } else {
+    qos->deadline.sec = static_cast<uint64_t>(dds_qos.deadline.period.sec);
+    qos->deadline.nsec = static_cast<uint64_t>(dds_qos.deadline.period.nanosec);
+  }
+
+  if (dds_qos.lifespan.duration.sec == dds_DURATION_INFINITE_SEC) {
+    qos->lifespan.sec = std::numeric_limits<uint64_t>::max();
+    qos->lifespan.nsec = std::numeric_limits<uint64_t>::max();
+  } else {
+    qos->lifespan.sec = dds_qos.lifespan.duration.sec;
+    qos->lifespan.nsec = dds_qos.lifespan.duration.nanosec;
+  }
+
+  switch (dds_qos.liveliness.kind) {
+    case dds_AUTOMATIC_LIVELINESS_QOS:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+      break;
+    case dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+      break;
+    case dds_MANUAL_BY_TOPIC_LIVELINESS_QOS:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+      break;
+    default:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
+      break;
+  }
+
+  if (dds_qos.liveliness.lease_duration.sec == dds_DURATION_INFINITE_SEC) {
+    qos->liveliness_lease_duration.sec = std::numeric_limits<uint64_t>::max();
+    qos->liveliness_lease_duration.nsec = std::numeric_limits<uint64_t>::max();
+  } else {
+    qos->liveliness_lease_duration.sec = static_cast<uint64_t>(dds_qos.liveliness.lease_duration.sec);
+    qos->liveliness_lease_duration.nsec = static_cast<uint64_t>(dds_qos.liveliness.lease_duration.nanosec);
+  }
+
 
   return RMW_RET_OK;
 }
