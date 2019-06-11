@@ -34,7 +34,7 @@ ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 
 include_directories(${CoreDDS_INCLUDE_DIR})
-link_directories(${CoreDDS_LIBRARY_DIRS})
+link_directories(${CoreDDS_LIBRARY_DIR})
 add_library(
   rmw_coredds_shared_cpp
   SHARED
