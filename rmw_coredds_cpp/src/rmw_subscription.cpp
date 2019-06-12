@@ -598,6 +598,7 @@ _take_serialized(
   dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
   dds_DataSeq_delete(data_values);
   dds_SampleInfoSeq_delete(sample_infos);
+  dds_UnsignedLongSeq_delete(sample_sizes);
 
   return RMW_RET_OK;
 }
