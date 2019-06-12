@@ -435,14 +435,15 @@ rmw_publish(
 
   dds_ReturnCode_t ret = dds_DataWriter_write(topic_writer, dds_message, dds_HANDLE_NIL);
   const char * errstr;
-  if (ret == dds_RETCODE_OK)
+  if (ret == dds_RETCODE_OK) {
     errstr = "dds_RETCODE_OK";
-  else if (ret == dds_RETCODE_TIMEOUT)
+  } else if (ret == dds_RETCODE_TIMEOUT) {
     errstr = "dds_RETCODE_TIMEOUT";
-  else if (ret == dds_RETCODE_OUT_OF_RESOURCES)
+  } else if (ret == dds_RETCODE_OUT_OF_RESOURCES) {
     errstr = "dds_RETCODE_OUT_OF_RESOURCES";
-  else
+  } else {
     errstr = "dds_RETCODE_ERROR";
+  }
 
   if (ret != dds_RETCODE_OK) {
     std::stringstream errmsg;
@@ -478,14 +479,15 @@ rmw_publish_serialized_message(
     topic_writer, serialized_message->buffer,
     static_cast<uint32_t>(serialized_message->buffer_length));
   const char * errstr;
-  if (ret == dds_RETCODE_OK)
+  if (ret == dds_RETCODE_OK) {
     errstr = "dds_RETCODE_OK";
-  else if (ret == dds_RETCODE_TIMEOUT)
+  } else if (ret == dds_RETCODE_TIMEOUT) {
     errstr = "dds_RETCODE_TIMEOUT";
-  else if (ret == dds_RETCODE_OUT_OF_RESOURCES)
+  } else if (ret == dds_RETCODE_OUT_OF_RESOURCES) {
     errstr = "dds_RETCODE_OUT_OF_RESOURCES";
-  else
+  } else {
     errstr = "dds_RETCODE_ERROR";
+  }
 
   if (ret != dds_RETCODE_OK) {
     std::stringstream errmsg;
