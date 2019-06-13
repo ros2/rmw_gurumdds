@@ -321,6 +321,106 @@ rmw_subscription_count_matched_publishers(
 }
 
 rmw_ret_t
+rmw_subscription_get_actual_qos(
+  const rmw_subscription_t * subscription,
+  rmw_qos_profile_t * qos)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+
+  CoreddsSubscriberInfo * info = static_cast<CoreddsSubscriberInfo *>(subscription->data);
+  if (info == nullptr) {
+    RMW_SET_ERROR_MSG("subscription internal data is invalid");
+    return RMW_RET_ERROR;
+  }
+
+  dds_DataReader * data_reader = info->topic_reader;
+  if (data_reader == nullptr) {
+    RMW_SET_ERROR_MSG("subscription internal data writer is invalid");
+    return RMW_RET_ERROR;
+  }
+
+  dds_DataReaderQos dds_qos;
+  dds_ReturnCode_t ret = dds_DataReader_get_qos(data_reader, &dds_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("subscription can't get data reader qos policies");
+    return RMW_RET_ERROR;
+  }
+
+  switch (dds_qos.history.kind) {
+    case dds_KEEP_LAST_HISTORY_QOS:
+      qos->history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+      break;
+    case dds_KEEP_ALL_HISTORY_QOS:
+      qos->history = RMW_QOS_POLICY_HISTORY_KEEP_ALL;
+      break;
+    default:
+      qos->history = RMW_QOS_POLICY_HISTORY_UNKNOWN;
+      break;
+  }
+
+  switch (dds_qos.durability.kind) {
+    case dds_TRANSIENT_LOCAL_DURABILITY_QOS:
+      qos->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+      break;
+    case dds_VOLATILE_DURABILITY_QOS:
+      qos->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+      break;
+    default:
+      qos->durability = RMW_QOS_POLICY_DURABILITY_UNKNOWN;
+      break;
+  }
+
+  switch (dds_qos.reliability.kind) {
+    case dds_BEST_EFFORT_RELIABILITY_QOS:
+      qos->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+      break;
+    case dds_RELIABLE_RELIABILITY_QOS:
+      qos->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+      break;
+    default:
+      qos->reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+      break;
+  }
+
+  qos->depth = static_cast<size_t>(dds_qos.history.depth);
+
+  if (dds_qos.deadline.period.sec == dds_DURATION_INFINITE_SEC) {
+    qos->deadline.sec = std::numeric_limits<uint64_t>::max();
+    qos->deadline.nsec = std::numeric_limits<uint64_t>::max();
+  } else {
+    qos->deadline.sec = static_cast<uint64_t>(dds_qos.deadline.period.sec);
+    qos->deadline.nsec = static_cast<uint64_t>(dds_qos.deadline.period.nanosec);
+  }
+
+  switch (dds_qos.liveliness.kind) {
+    case dds_AUTOMATIC_LIVELINESS_QOS:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+      break;
+    case dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+      break;
+    case dds_MANUAL_BY_TOPIC_LIVELINESS_QOS:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+      break;
+    default:
+      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
+      break;
+  }
+
+  if (dds_qos.liveliness.lease_duration.sec == dds_DURATION_INFINITE_SEC) {
+    qos->liveliness_lease_duration.sec = std::numeric_limits<uint64_t>::max();
+    qos->liveliness_lease_duration.nsec = std::numeric_limits<uint64_t>::max();
+  } else {
+    qos->liveliness_lease_duration.sec = static_cast<uint64_t>(dds_qos.liveliness.lease_duration.sec);
+    qos->liveliness_lease_duration.nsec = static_cast<uint64_t>(dds_qos.liveliness.lease_duration.nanosec);
+  }
+
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
 rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 {
   if (node == nullptr) {
