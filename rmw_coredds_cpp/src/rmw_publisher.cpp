@@ -207,7 +207,7 @@ rmw_create_publisher(
   {
     auto publisher_gid =
       reinterpret_cast<CoreddsPublisherGID *>(publisher_info->publisher_gid.data);
-    publisher_gid->publication_handle = dds_DataWriter_get_instance_handle(topic_writer);
+    dds_DataWriter_get_guid(topic_writer, publisher_gid->publication_handle);
   }
 
   rmw_publisher = rmw_publisher_allocate();

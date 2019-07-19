@@ -35,7 +35,7 @@ typedef struct _CoreddsPublisherInfo : CoreddsEventInfo
 
 typedef struct _CoreddsPublisherGID
 {
-  dds_InstanceHandle_t publication_handle;
+  uint8_t publication_handle[16];
 } CoreddsPublisherGID;
 
 typedef struct _CoreddsSubscriberInfo : CoreddsEventInfo

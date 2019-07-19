@@ -62,7 +62,7 @@ rmw_compare_gids_equal(const rmw_gid_t * gid1, const rmw_gid_t * gid2, bool * re
     return RMW_RET_ERROR;
   }
 
-  *result = (c_gid1->publication_handle == c_gid2->publication_handle);
+  *result = memcmp(c_gid1->publication_handle, c_gid2->publication_handle, 16) == 0;
   return RMW_RET_OK;
 }
 }  // extern "C"
