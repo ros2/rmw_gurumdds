@@ -305,8 +305,8 @@ shared__rmw_get_service_names_and_types_by_node(
   }
 
   ret = __get_service_names_and_types_by_node(
-      implementation_identifier, node,
-      node_name, node_namespace, services);
+    implementation_identifier, node,
+    node_name, node_namespace, services);
   if (ret != RMW_RET_OK) {
     return ret;
   }
@@ -340,8 +340,8 @@ shared__rmw_get_client_names_and_types_by_node(
   }
 
   ret = __get_service_names_and_types_by_node(
-      implementation_identifier, node,
-      node_name, node_namespace, services);
+    implementation_identifier, node,
+    node_name, node_namespace, services);
 
   if (ret != RMW_RET_OK) {
     return ret;

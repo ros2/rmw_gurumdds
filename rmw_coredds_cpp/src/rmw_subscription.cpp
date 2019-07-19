@@ -584,7 +584,7 @@ _take(
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<CoreddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
-          topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
+        topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         RCUTILS_LOG_WARN_NAMED("rmw_coredds_cpp", "Failed to get publication handle");
       }
@@ -730,7 +730,7 @@ _take_serialized(
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<CoreddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
-          topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
+        topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         RCUTILS_LOG_WARN_NAMED("rmw_coredds_cpp", "Failed to get publication handle");
       }
