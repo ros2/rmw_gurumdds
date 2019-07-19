@@ -249,13 +249,12 @@ shared__rmw_get_publisher_names_and_types_by_node(
 }
 
 rmw_ret_t
-shared__rmw_get_service_names_and_types_by_node(
+__get_service_names_and_types_by_node(
   const char * implementation_identifier,
   const rmw_node_t * node,
-  rcutils_allocator_t * allocator,
   const char * node_name,
   const char * node_namespace,
-  rmw_names_and_types_t * service_names_and_types)
+  std::map<std::string, std::set<std::string>> & services)
 {
   if (node == nullptr) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -267,12 +266,7 @@ shared__rmw_get_service_names_and_types_by_node(
     return RMW_RET_ERROR;
   }
 
-  rmw_ret_t ret = rmw_names_and_types_check_zero(service_names_and_types);
-  if (ret != RMW_RET_OK) {
-    return ret;
-  }
-
-  ret = validate_names_and_namespace(node_name, node_namespace);
+  rmw_ret_t ret = validate_names_and_namespace(node_name, node_namespace);
   if (ret != RMW_RET_OK) {
     return ret;
   }
@@ -289,10 +283,78 @@ shared__rmw_get_service_names_and_types_by_node(
     return rmw_ret;
   }
 
-  std::map<std::string, std::set<std::string>> services;
   node_info->sub_listener->fill_service_names_and_types_by_guid(services, key);
 
-  rmw_ret = copy_services_to_names_and_types(services, allocator, service_names_and_types);
-
   return rmw_ret;
+}
+
+rmw_ret_t
+shared__rmw_get_service_names_and_types_by_node(
+  const char * implementation_identifier,
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rmw_names_and_types_t * service_names_and_types)
+{
+  std::map<std::string, std::set<std::string>> services;
+
+  rmw_ret_t ret = rmw_names_and_types_check_zero(service_names_and_types);
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
+
+  ret = __get_service_names_and_types_by_node(
+      implementation_identifier, node,
+      node_name, node_namespace, services);
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
+
+  for (auto it = services.cbegin(), nxt = it; it != services.cend(); it = nxt) {
+    nxt++;
+    if (it->first.rfind("Request") == std::string::npos) {
+      services.erase(it);
+    }
+  }
+
+  ret = copy_services_to_names_and_types(services, allocator, service_names_and_types);
+
+  return ret;
+}
+
+rmw_ret_t
+shared__rmw_get_client_names_and_types_by_node(
+  const char * implementation_identifier,
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rmw_names_and_types_t * client_names_and_types)
+{
+  std::map<std::string, std::set<std::string>> services;
+
+  rmw_ret_t ret = rmw_names_and_types_check_zero(client_names_and_types);
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
+
+  ret = __get_service_names_and_types_by_node(
+      implementation_identifier, node,
+      node_name, node_namespace, services);
+
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
+
+  for (auto it = services.cbegin(), nxt = it; it != services.cend(); it = nxt) {
+    nxt++;
+    if (it->first.rfind("Reply") == std::string::npos) {
+      services.erase(it);
+    }
+  }
+
+  ret = copy_services_to_names_and_types(services, allocator, client_names_and_types);
+
+  return ret;
 }

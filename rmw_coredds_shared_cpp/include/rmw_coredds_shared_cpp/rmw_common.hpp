@@ -144,6 +144,16 @@ shared__rmw_get_service_names_and_types_by_node(
 
 RMW_COREDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
+shared__rmw_get_client_names_and_types_by_node(
+  const char * implementation_identifier,
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rmw_names_and_types_t * client_names_and_types);
+
+RMW_COREDDS_SHARED_CPP_PUBLIC
+rmw_ret_t
 shared__rmw_count_publishers(
   const char * implementation_identifier,
   const rmw_node_t * node,
