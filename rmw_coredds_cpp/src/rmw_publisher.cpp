@@ -14,6 +14,9 @@
 
 #include <string>
 #include <sstream>
+#include <limits>
+#include <thread>
+#include <chrono>
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
@@ -629,8 +632,10 @@ rmw_publisher_get_actual_qos(
     qos->liveliness_lease_duration.sec = std::numeric_limits<uint64_t>::max();
     qos->liveliness_lease_duration.nsec = std::numeric_limits<uint64_t>::max();
   } else {
-    qos->liveliness_lease_duration.sec = static_cast<uint64_t>(dds_qos.liveliness.lease_duration.sec);
-    qos->liveliness_lease_duration.nsec = static_cast<uint64_t>(dds_qos.liveliness.lease_duration.nanosec);
+    qos->liveliness_lease_duration.sec =
+      static_cast<uint64_t>(dds_qos.liveliness.lease_duration.sec);
+    qos->liveliness_lease_duration.nsec =
+      static_cast<uint64_t>(dds_qos.liveliness.lease_duration.nanosec);
   }
 
 

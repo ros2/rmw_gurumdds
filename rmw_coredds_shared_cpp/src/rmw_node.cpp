@@ -86,7 +86,7 @@ shared__rmw_create_node(
 
   dds_DomainParticipant * participant = nullptr;
 
-  // TODO(junho): Implement security features
+  // TODO(clemjh): Implement security features
 
   participant = dds_DomainParticipantFactory_create_participant(
     factory, domain_id, &participant_qos, nullptr, 0);
