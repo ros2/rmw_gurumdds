@@ -1,4 +1,4 @@
-// Copyright 2014 Open Source Robotics Foundation, Inc.
+// Copyright 2019 GurumNetworks, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 class Listener : public rclcpp::Node
 {
 public:
-  explicit Listener()
+  Listener()
   : Node("listener_native")
   {
     {
@@ -41,7 +41,7 @@ public:
       {
         RCLCPP_INFO(this->get_logger(), "I heard: [%s]", msg->data.c_str());
       };
-    sub_ = create_subscription<std_msgs::msg::String>("chatter", callback);
+    sub_ = create_subscription<std_msgs::msg::String>("chatter", 10, callback);
 
     {
       rcl_subscription_t * rcl_sub = (sub_->get_subscription_handle()).get();
