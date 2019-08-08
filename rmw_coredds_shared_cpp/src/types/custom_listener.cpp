@@ -127,7 +127,8 @@ void CoreddsDataReaderListener::fill_topic_names_and_types_by_guid(
 
 void CoreddsDataReaderListener::fill_service_names_and_types_by_guid(
   std::map<std::string, std::set<std::string>> & services,
-  GuidPrefix_t & participant_guid)
+  GuidPrefix_t & participant_guid,
+  const std::string suffix)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & map = topic_cache.get_topic_types_by_guid(participant_guid);
@@ -139,6 +140,10 @@ void CoreddsDataReaderListener::fill_service_names_and_types_by_guid(
   for (auto & it : map) {
     std::string service_name = _demangle_service_from_topic(it.first);
     if (service_name.length() == 0) {
+      continue;
+    }
+
+    if (it.first.rfind(suffix) == std::string::npos) {
       continue;
     }
 

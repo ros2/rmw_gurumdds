@@ -225,7 +225,8 @@ public:
 
   void fill_service_names_and_types_by_guid(
     std::map<std::string, std::set<std::string>> & services,
-    GuidPrefix_t & participant_guid);
+    GuidPrefix_t & participant_guid,
+    const std::string suffix);
 
   dds_DataReaderListener dds_listener;
   ListenerContext context;
