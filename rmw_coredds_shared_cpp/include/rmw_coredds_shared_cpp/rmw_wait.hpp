@@ -49,18 +49,72 @@ __gather_event_conditions(
   rmw_events_t * events,
   std::unordered_set<dds_StatusCondition *> & status_conditions)
 {
-  (void)events;
-  (void)status_conditions;
-  RMW_SET_ERROR_MSG("entity status is currently not supported");
-  return RMW_RET_UNSUPPORTED;
+  RMW_CHECK_ARGUMENT_FOR_NULL(events, RMW_RET_INVALID_ARGUMENT);
+  std::unordered_map<dds_StatusCondition *, dds_StatusMask> status_map;
+
+  for (size_t i = 0; i < events->event_count; i++) {
+    auto now = static_cast<rmw_event_t *>(events->events[i]);
+    RMW_CHECK_ARGUMENT_FOR_NULL(events, RMW_RET_INVALID_ARGUMENT);
+
+    auto event_info = static_cast<CoreddsEventInfo *>(now->data);
+    if (event_info == nullptr) {
+      RMW_SET_ERROR_MSG("event handle is null");
+      return RMW_RET_ERROR;
+    }
+
+    dds_StatusCondition * status_condition = event_info->get_statuscondition();
+    if (status_condition == nullptr) {
+      RMW_SET_ERROR_MSG("failed to get status condition");
+      return RMW_RET_ERROR;
+    }
+
+    if (is_event_supported(now->event_type)) {
+      auto map_pair = status_map.insert(std::make_pair(status_condition, 0));
+      auto it = map_pair.first;
+      status_map[status_condition] = get_status_kind_from_rmw(now->event_type) | it->second;
+    } else {
+      RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("unsupported event: %d", now->event_type);
+    }
+  }
+
+  for (auto & map_pair : status_map) {
+    dds_StatusCondition_set_enabled_statuses(map_pair.first, map_pair.second);
+    status_conditions.insert(map_pair.first);
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
 __handle_active_event_conditions(rmw_events_t * events)
 {
-  (void)events;
-  RMW_SET_ERROR_MSG("entity status is not currently supported");
-  return RMW_RET_UNSUPPORTED;
+  if (events == nullptr) {
+    return RMW_RET_OK;
+  }
+
+  for (size_t i = 0; i < events->event_count; i++) {
+    auto now = static_cast<rmw_event_t *>(events->events[i]);
+    RMW_CHECK_ARGUMENT_FOR_NULL(events, RMW_RET_INVALID_ARGUMENT);
+
+    auto event_info = static_cast<CoreddsEventInfo *>(now->data);
+    if (event_info == nullptr) {
+      RMW_SET_ERROR_MSG("event handle is null");
+      return RMW_RET_ERROR;
+    }
+
+    dds_StatusMask mask = event_info->get_status_changes();
+    bool is_active = false;
+
+    if (is_event_supported(now->event_type)) {
+      is_active = ((mask & get_status_kind_from_rmw(now->event_type)) != 0);
+    }
+
+    if (!is_active) {
+      events->events[i] = nullptr;
+    }
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t __detach_condition(
@@ -191,17 +245,19 @@ shared__rmw_wait(
     }
   }
 
-  /*std::unordered_set<dds_StatusCondition *> status_conditions;
-  // gather all status conditions with set masks
+  std::unordered_set<dds_StatusCondition *> status_conditions;
+
   rmw_ret_t ret_code = __gather_event_conditions(events, status_conditions);
   if (ret_code != RMW_RET_OK) {
     return ret_code;
   }
-  // enable a status condition for each event
+
   for (auto status_condition : status_conditions) {
-    dds_ReturnCode_t ret = dds_WaitSet_attach_condition(dds_wait_set, (dds_Condition *)status_condition);
+    dds_ReturnCode_t ret =
+      dds_WaitSet_attach_condition(dds_wait_set,
+        reinterpret_cast<dds_Condition *>(status_condition));
     CHECK_ATTACH(ret);
-  }*/
+  }
 
   if (guard_conditions != nullptr) {
     for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
@@ -487,12 +543,12 @@ shared__rmw_wait(
     }
   }
 
-  /*{
+  {
     rmw_ret_t rmw_ret_code = __handle_active_event_conditions(events);
     if (rmw_ret_code != RMW_RET_OK) {
       return rmw_ret_code;
     }
-  }*/
+  }
 
   return rret;
 }
