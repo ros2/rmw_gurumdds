@@ -569,7 +569,6 @@ _take(
 
   if (!ignore_sample) {
     void * sample = dds_DataSeq_get(data_values, 0);
-    // Some types such as string need to be converted
     if (!info->callbacks->convert_dds_to_ros(sample, ros_message)) {
       RMW_SET_ERROR_MSG("failed to convert message");
       dds_DataReader_return_loan(topic_reader, data_values, sample_infos);
@@ -586,7 +585,10 @@ _take(
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
         topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
-        RCUTILS_LOG_WARN_NAMED("rmw_coredds_cpp", "Failed to get publication handle");
+        if (ret == dds_RETCODE_ERROR) {
+          RCUTILS_LOG_WARN_NAMED("rmw_coredds_cpp", "Failed to get publication handle");
+        }
+        memset(custom_gid->publication_handle, 0, sizeof(custom_gid->publication_handle));
       }
     }
   }
