@@ -33,4 +33,3 @@ If you want to use this project with ROS2 Dashing Diademata or Crystal Clemmys, 
 ## Implementation Status
 Currently some features are not fully implemented.
 - DDS Security
-- Entity status
