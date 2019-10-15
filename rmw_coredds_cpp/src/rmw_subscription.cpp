@@ -64,7 +64,8 @@ rmw_subscription_t *
 rmw_create_subscription(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies, bool ignore_local_publications)
+  const char * topic_name, const rmw_qos_profile_t * qos_policies,
+  const rmw_subscription_options_t * subscription_options)
 {
   if (node == nullptr) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -83,6 +84,11 @@ rmw_create_subscription(
 
   if (qos_policies == nullptr) {
     RMW_SET_ERROR_MSG("qos_profile is null");
+    return nullptr;
+  }
+
+  if (subscription_options == nullptr) {
+    RMW_SET_ERROR_MSG("subscription_options is null");
     return nullptr;
   }
 
@@ -208,7 +214,6 @@ rmw_create_subscription(
   subscriber_info->subscriber = dds_subscriber;
   subscriber_info->topic_reader = topic_reader;
   subscriber_info->read_condition = read_condition;
-  subscriber_info->ignore_local_publications = ignore_local_publications;
   subscriber_info->callbacks = callbacks;
 
   subscription = rmw_subscription_allocate();
@@ -225,6 +230,7 @@ rmw_create_subscription(
     goto fail;
   }
   memcpy(const_cast<char *>(subscription->topic_name), topic_name, strlen(topic_name) + 1);
+  subscription->options = *subscription_options;
 
   rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
   if (rmw_ret != RMW_RET_OK) {

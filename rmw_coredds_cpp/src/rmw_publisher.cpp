@@ -64,7 +64,8 @@ rmw_publisher_t *
 rmw_create_publisher(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies)
+  const char * topic_name, const rmw_qos_profile_t * qos_policies,
+  const rmw_publisher_options_t * publisher_options)
 {
   if (node == nullptr) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -83,6 +84,11 @@ rmw_create_publisher(
 
   if (qos_policies == nullptr) {
     RMW_SET_ERROR_MSG("qos profile is null");
+    return nullptr;
+  }
+
+  if (publisher_options == nullptr) {
+    RMW_SET_ERROR_MSG("publisher_options is null");
     return nullptr;
   }
 
@@ -224,6 +230,7 @@ rmw_create_publisher(
     goto fail;
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
+  rmw_publisher->options = *publisher_options;
 
   rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
   if (rmw_ret != RMW_RET_OK) {

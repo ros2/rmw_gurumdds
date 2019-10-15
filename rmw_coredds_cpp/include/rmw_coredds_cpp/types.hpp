@@ -43,7 +43,6 @@ typedef struct _CoreddsSubscriberInfo : CoreddsEventInfo
   dds_Subscriber * subscriber;
   dds_DataReader * topic_reader;
   dds_ReadCondition * read_condition;
-  bool ignore_local_publications;
   const message_type_support_callbacks_t * callbacks;
   const char * implementation_identifier;
 
