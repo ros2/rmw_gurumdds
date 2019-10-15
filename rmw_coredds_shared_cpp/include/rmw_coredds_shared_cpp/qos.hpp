@@ -25,12 +25,14 @@
 
 #include "./dds_include.hpp"
 
+RMW_COREDDS_SHARED_CPP_PUBLIC
 bool
 get_datawriter_qos(
   dds_Publisher * publisher,
   const rmw_qos_profile_t * qos_profile,
   dds_DataWriterQos * datawriter_qos);
 
+RMW_COREDDS_SHARED_CPP_PUBLIC
 bool
 get_datareader_qos(
   dds_Subscriber * subscriber,

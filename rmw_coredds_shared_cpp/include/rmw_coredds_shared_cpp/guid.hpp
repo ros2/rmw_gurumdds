@@ -117,7 +117,7 @@ inline void dds_BuiltinTopicKey_to_GUID(
   octet const * keyBuffer = reinterpret_cast<octet *>(btk.value);
   for (uint8_t i = 0; i < 3; ++i) {
     octet * guidElement = &(guid->value[i * 4]);
-    octet * const * keyBufferElement = keyBuffer + (i * 4);
+    octet const * keyBufferElement = keyBuffer + (i * 4);
     guidElement[0] = keyBufferElement[3];
     guidElement[1] = keyBufferElement[2];
     guidElement[2] = keyBufferElement[1];

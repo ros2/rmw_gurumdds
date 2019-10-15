@@ -312,10 +312,11 @@ rmw_subscription_count_matched_publishers(
 
   dds_InstanceHandleSeq * seq = dds_InstanceHandleSeq_create(4);
   if (dds_DataReader_get_matched_publications(topic_reader, seq) != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to get matched subscriptions");
+    RMW_SET_ERROR_MSG("failed to get matched publications");
     dds_InstanceHandleSeq_delete(seq);
     return RMW_RET_ERROR;
   }
+
   *publisher_count = (size_t)dds_InstanceHandleSeq_length(seq);
 
   dds_InstanceHandleSeq_delete(seq);
