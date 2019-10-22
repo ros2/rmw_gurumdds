@@ -43,20 +43,20 @@ rmw_init_subscription_allocation(
   const rosidl_message_bounds_t * message_bounds,
   rmw_subscription_allocation_t * allocation)
 {
-  // Unused in current implementation.
   (void)type_support;
   (void)message_bounds;
   (void)allocation;
-  RMW_SET_ERROR_MSG("unimplemented");
+
+  RMW_SET_ERROR_MSG("rmw_init_subscription_allocation is not supported");
   return RMW_RET_ERROR;
 }
 
 rmw_ret_t
 rmw_fini_subscription_allocation(rmw_subscription_allocation_t * allocation)
 {
-  // Unused in current implementation.
   (void)allocation;
-  RMW_SET_ERROR_MSG("unimplemented");
+
+  RMW_SET_ERROR_MSG("rmw_fini_subscription_allocation is not supported");
   return RMW_RET_ERROR;
 }
 
@@ -231,6 +231,7 @@ rmw_create_subscription(
   }
   memcpy(const_cast<char *>(subscription->topic_name), topic_name, strlen(topic_name) + 1);
   subscription->options = *subscription_options;
+  subscription->can_loan_messages = false;
 
   rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
   if (rmw_ret != RMW_RET_OK) {
@@ -791,5 +792,51 @@ rmw_take_serialized_message_with_info(
 
   return _take_serialized(
     gurum_coredds_identifier, subscription, serialized_message, taken, message_info, allocation);
+}
+
+rmw_ret_t
+rmw_take_loaned_message(
+  const rmw_subscription_t * subscription,
+  void ** loaned_message,
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
+{
+  (void)subscription;
+  (void)loaned_message;
+  (void)taken;
+  (void)allocation;
+
+  RMW_SET_ERROR_MSG("rmw_take_loaned_message is not supported");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_take_loaned_message_with_info(
+  const rmw_subscription_t * subscription,
+  void ** loaned_message,
+  bool * taken,
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
+{
+  (void)subscription;
+  (void)loaned_message;
+  (void)taken;
+  (void)message_info;
+  (void)allocation;
+
+  RMW_SET_ERROR_MSG("rmw_take_loaned_message_with_info is not supported");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_return_loaned_message_from_subscription(
+  const rmw_subscription_t * subscription,
+  void * loaned_message)
+{
+  (void)subscription;
+  (void)loaned_message;
+
+  RMW_SET_ERROR_MSG("rmw_return_loaned_message_from_subscription is not supported");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"
