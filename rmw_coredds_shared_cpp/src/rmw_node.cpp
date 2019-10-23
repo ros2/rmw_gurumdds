@@ -45,8 +45,6 @@ shared__rmw_create_node(
   const rmw_node_security_options_t * security_options,
   bool localhost_only)
 {
-  (void)localhost_only;
-
   if (security_options == nullptr) {
     RMW_SET_ERROR_MSG("security_options is null");
     return nullptr;
@@ -91,8 +89,18 @@ shared__rmw_create_node(
 
   // TODO(clemjh): Implement security features
 
-  participant = dds_DomainParticipantFactory_create_participant(
-    factory, domain_id, &participant_qos, nullptr, 0);
+  if (localhost_only) {
+    dds_StringProperty props[] = {
+      { const_cast<char *>("rtps.interface.ip"),
+        const_cast<void *>(static_cast<const void *>("127.0.0.1")) },
+      { nullptr, nullptr },
+    };
+    participant = dds_DomainParticipantFactory_create_participant_w_props(
+      factory, domain_id, &participant_qos, nullptr, 0, props);
+  } else {
+    participant = dds_DomainParticipantFactory_create_participant(
+      factory, domain_id, &participant_qos, nullptr, 0);
+  }
   graph_guard_condition = shared__rmw_create_guard_condition(identifier);
   if (graph_guard_condition == nullptr) {
     RMW_SET_ERROR_MSG("failed to create graph guard condition");
