@@ -386,7 +386,7 @@ shared__rmw_get_node_names(
   }
 
   // Get discovered participants
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
   dds_ReturnCode_t ret = dds_DomainParticipant_get_discovered_participants(participant, handle_seq);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("unable to fetch discovered participants.");

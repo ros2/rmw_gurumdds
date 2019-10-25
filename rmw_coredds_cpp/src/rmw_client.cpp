@@ -254,7 +254,7 @@ rmw_create_client(
 
   request_writer = dds_Publisher_create_datawriter(
     dds_publisher, request_topic, &datawriter_qos, nullptr, 0);
-  if (dds_publisher == nullptr) {
+  if (request_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
     goto fail;
   }
@@ -282,7 +282,7 @@ rmw_create_client(
 
   response_reader = dds_Subscriber_create_datareader(
     dds_subscriber, response_topic, &datareader_qos, nullptr, 0);
-  if (dds_subscriber == nullptr) {
+  if (response_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
     goto fail;
   }
@@ -543,7 +543,7 @@ rmw_service_server_is_available(
   }
 
   // Look for matching request reader
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
   if (dds_DataWriter_get_matched_subscriptions(request_writer, seq) != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to get matched subscriptions");
     dds_InstanceHandleSeq_delete(seq);
