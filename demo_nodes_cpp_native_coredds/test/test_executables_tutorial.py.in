@@ -1,57 +1,56 @@
 # generated from demo_nodes_cpp_native_coredds/test/test_executables_tutorial.py.in
 # generated code does not contain a copyright notice
 
-from launch.legacy import LaunchDescriptor
-from launch.legacy.exit_handler import ignore_exit_handler
-from launch.legacy.exit_handler import primary_ignore_returncode_exit_handler
-from launch.legacy.launcher import DefaultLauncher
-from launch.legacy.output_handler import ConsoleOutput
-from launch_testing import create_handler
-from launch_testing import get_default_filtered_prefixes
+import unittest
+
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess
+from launch.actions import OpaqueFunction
+
+import launch_testing
+import launch_testing.asserts
+import launch_testing_ros
 
 
-def test_executable():
-    output_handlers = []
+def generate_test_description(ready_fn):
+    launch_description = LaunchDescription()
+    processes_under_test = [
+        ExecuteProcess(cmd=[executable], name='test_executable_' + str(i), output='screen')
+        for i, executable in enumerate('@DEMO_NODES_CPP_EXECUTABLE@'.split(';'))
+    ]
+    for process in processes_under_test:
+        launch_description.add_action(process)
+    launch_description.add_action(
+        OpaqueFunction(function=lambda context: ready_fn())
+    )
+    return launch_description, locals()
 
-    launch_descriptor = LaunchDescriptor()
 
-    rmw_implementation = 'rmw_coredds_cpp'
-    executables = '@DEMO_NODES_CPP_EXECUTABLE@'.split(';')
-    output_files = '@DEMO_NODES_CPP_EXPECTED_OUTPUT@'.split(';')
-    for i, (exe, output_file) in enumerate(zip(executables, output_files)):
-        name = 'test_executable_' + str(i)
-        # The last executable is taken to be the test program (the one whose
-        # output check can make the decision to shut everything down)
-        if i == (len(executables) - 1):
-            exit_handler = primary_ignore_returncode_exit_handler
-            exit_on_match = True
-        else:
-            exit_handler = ignore_exit_handler
-            exit_on_match = False
+class TestExecutablesTutorial(unittest.TestCase):
 
-        handler = create_handler(
-            name, launch_descriptor, output_file,
-            exit_on_match=exit_on_match, filtered_rmw_implementation=rmw_implementation)
-        assert handler, 'Cannot find appropriate handler for %s' % output_file
-        output_handlers.append(handler)
-        launch_descriptor.add_process(
-            cmd=[exe],
-            name=name,
-            exit_handler=exit_handler,
-            output_handlers=[ConsoleOutput(), handler],
+    def test_executables_output(self, proc_output, processes_under_test):
+        """Test all processes output against expectations."""
+        from launch_testing.tools.output import get_default_filtered_prefixes
+        output_filter = launch_testing_ros.tools.basic_output_filter(
+            filtered_prefixes=get_default_filtered_prefixes() + [
+                'service not available, waiting again...'
+            ],
+            filtered_rmw_implementation='rmw_coredds_cpp'
         )
-
-    launcher = DefaultLauncher()
-    launcher.add_launch_descriptor(launch_descriptor)
-    rc = launcher.launch()
-
-    assert rc == 0, \
-        "The launch file failed with exit code '" + str(rc) + "'. " \
-        'Maybe the client did not receive any messages?'
-
-    for handler in output_handlers:
-        handler.check()
+        output_files = '@DEMO_NODES_CPP_EXPECTED_OUTPUT@'.split(';')
+        for process, output_file in zip(processes_under_test, output_files):
+            proc_output.assertWaitFor(
+                expected_output=launch_testing.tools.expected_output_from_file(
+                    path=output_file
+                ), process=process, output_filter=output_filter, timeout=10
+            )
 
 
-if __name__ == '__main__':
-    test_executable()
+@launch_testing.post_shutdown_test()
+class TestExecutablesTutorialAfterShutdown(unittest.TestCase):
+
+    def test_last_executable_exit_code(self, proc_info, processes_under_test):
+        """Test last process exit code."""
+        launch_testing.asserts.assertExitCodes(
+            proc_info, process=processes_under_test[-1]
+        )
