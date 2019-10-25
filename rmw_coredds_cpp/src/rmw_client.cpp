@@ -253,7 +253,7 @@ rmw_create_client(
 
   request_writer = dds_Publisher_create_datawriter(
     dds_publisher, request_topic, &datawriter_qos, nullptr, 0);
-  if (dds_publisher == nullptr) {
+  if (request_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
     goto fail;
   }
@@ -281,7 +281,7 @@ rmw_create_client(
 
   response_reader = dds_Subscriber_create_datareader(
     dds_subscriber, response_topic, &datareader_qos, nullptr, 0);
-  if (dds_subscriber == nullptr) {
+  if (response_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
     goto fail;
   }

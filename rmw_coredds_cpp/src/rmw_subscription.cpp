@@ -580,6 +580,8 @@ _take(
     if (!info->callbacks->convert_dds_to_ros(sample, ros_message)) {
       RMW_SET_ERROR_MSG("failed to convert message");
       dds_DataReader_return_loan(topic_reader, data_values, sample_infos);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
       return RMW_RET_ERROR;
     }
 
@@ -691,6 +693,7 @@ _take_serialized(
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
     *taken = false;
     return RMW_RET_OK;
   }
@@ -700,6 +703,7 @@ _take_serialized(
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
     return RMW_RET_ERROR;
   }
 
@@ -716,6 +720,9 @@ _take_serialized(
     if (sample == nullptr) {
       RMW_SET_ERROR_MSG("failed to take data");
       dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_ERROR;
     }
 
@@ -726,6 +733,9 @@ _take_serialized(
       if (rmw_ret != RMW_RET_OK) {
         // Error message already set
         dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+        dds_DataSeq_delete(data_values);
+        dds_SampleInfoSeq_delete(sample_infos);
+        dds_UnsignedLongSeq_delete(sample_sizes);
         return ret;
       }
     }
