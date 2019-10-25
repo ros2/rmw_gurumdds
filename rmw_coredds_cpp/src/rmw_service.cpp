@@ -251,7 +251,7 @@ rmw_create_service(
 
   request_reader = dds_Subscriber_create_datareader(
     dds_subscriber, request_topic, &datareader_qos, nullptr, 0);
-  if (dds_subscriber == nullptr) {
+  if (request_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
     goto fail;
   }
@@ -273,7 +273,7 @@ rmw_create_service(
   }
 
   dds_publisher = dds_DomainParticipant_create_publisher(participant, &publisher_qos, nullptr, 0);
-  if (dds_subscriber == nullptr) {
+  if (dds_publisher == nullptr) {
     RMW_SET_ERROR_MSG("failed to create subscriber");
     goto fail;
   }
@@ -286,7 +286,7 @@ rmw_create_service(
 
   response_writer = dds_Publisher_create_datawriter(
     dds_publisher, response_topic, &datawriter_qos, nullptr, 0);
-  if (dds_publisher == nullptr) {
+  if (response_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
     goto fail;
   }
