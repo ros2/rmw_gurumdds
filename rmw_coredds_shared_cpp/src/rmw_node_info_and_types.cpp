@@ -129,7 +129,7 @@ __get_key(
   }
   RMW_SET_ERROR_MSG("failed to match node name/namespace with discovered nodes");
   dds_InstanceHandleSeq_delete(handle_seq);
-  return RMW_RET_ERROR;
+  return RMW_RET_NODE_NAME_NON_EXISTENT;
 }
 
 rmw_ret_t
