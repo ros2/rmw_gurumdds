@@ -238,6 +238,7 @@ rmw_create_publisher(
     // Error message already set
     goto fail;
   }
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   return rmw_publisher;
 

@@ -239,6 +239,8 @@ rmw_create_subscription(
     goto fail;
   }
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
   return subscription;
 
 fail:
