@@ -604,6 +604,8 @@ rmw_publish(
     callbacks->free(dds_message);
     return RMW_RET_ERROR;
   }
+  const char * topic_name = dds_Topic_get_name(dds_DataWriter_get_topic(topic_writer));
+  RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp", "Published data on topic %s", topic_name);
 
   callbacks->free(dds_message);
 
@@ -647,6 +649,9 @@ rmw_publish_serialized_message(
     RMW_SET_ERROR_MSG(errmsg.str().c_str());
     return RMW_RET_ERROR;
   }
+  const char * topic_name = dds_Topic_get_name(dds_DataWriter_get_topic(topic_writer));
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_coredds_cpp", "Published serialized data on topic %s", topic_name);
 
   return RMW_RET_OK;
 }

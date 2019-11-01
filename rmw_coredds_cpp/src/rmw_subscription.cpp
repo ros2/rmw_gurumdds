@@ -554,12 +554,20 @@ _take(
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
   if (ret == dds_RETCODE_NO_DATA) {
+    const char * topic_name =
+      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+    RCUTILS_LOG_DEBUG_NAMED(
+      "rmw_coredds_cpp", "No data on topic %s", topic_name);
     dds_DataReader_return_loan(topic_reader, data_values, sample_infos);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
     *taken = false;
     return RMW_RET_OK;
   }
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_coredds_cpp", "Received data on topic %s", topic_name);
 
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to take data");
@@ -692,6 +700,10 @@ _take_serialized(
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
   if (ret == dds_RETCODE_NO_DATA) {
+    const char * topic_name =
+      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+    RCUTILS_LOG_DEBUG_NAMED(
+      "rmw_coredds_cpp", "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
@@ -708,6 +720,10 @@ _take_serialized(
     dds_UnsignedLongSeq_delete(sample_sizes);
     return RMW_RET_ERROR;
   }
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_coredds_cpp", "Received serialized data on topic %s", topic_name);
 
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
