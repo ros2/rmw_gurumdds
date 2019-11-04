@@ -29,12 +29,10 @@ public:
   Listener()
   : Node("listener_native")
   {
-    {
-      rcl_node_t * rcl_node = get_node_base_interface()->get_rcl_node_handle();
-      rmw_node_t * rmw_node = rcl_node_get_rmw_handle(rcl_node);
-      dds_DomainParticipant * dp = rmw_coredds_cpp::get_participant(rmw_node);
-      RCLCPP_INFO(this->get_logger(), "dds_DomainParticipant * %zu", reinterpret_cast<size_t>(dp));
-    }
+    rcl_node_t * rcl_node = get_node_base_interface()->get_rcl_node_handle();
+    rmw_node_t * rmw_node = rcl_node_get_rmw_handle(rcl_node);
+    dds_DomainParticipant * dp = rmw_coredds_cpp::get_participant(rmw_node);
+    RCLCPP_INFO(this->get_logger(), "dds_DomainParticipant * %zu", reinterpret_cast<size_t>(dp));
 
     auto callback =
       [this](const std_msgs::msg::String::SharedPtr msg) -> void
@@ -43,14 +41,12 @@ public:
       };
     sub_ = create_subscription<std_msgs::msg::String>("chatter", 10, callback);
 
-    {
-      rcl_subscription_t * rcl_sub = (sub_->get_subscription_handle()).get();
-      rmw_subscription_t * rmw_sub = rcl_subscription_get_rmw_handle(rcl_sub);
-      dds_Subscriber * s = rmw_coredds_cpp::get_subscriber(rmw_sub);
-      dds_DataReader * dr = rmw_coredds_cpp::get_data_reader(rmw_sub);
-      RCLCPP_INFO(this->get_logger(), "dds_Subscriber * %zu", reinterpret_cast<size_t>(s));
-      RCLCPP_INFO(this->get_logger(), "dds_DataReader * %zu", reinterpret_cast<size_t>(dr));
-    }
+    rcl_subscription_t * rcl_sub = (sub_->get_subscription_handle()).get();
+    rmw_subscription_t * rmw_sub = rcl_subscription_get_rmw_handle(rcl_sub);
+    dds_Subscriber * dds_sub = rmw_coredds_cpp::get_subscriber(rmw_sub);
+    dds_DataReader * dds_dr = rmw_coredds_cpp::get_data_reader(rmw_sub);
+    RCLCPP_INFO(this->get_logger(), "dds_Subscriber * %zu", reinterpret_cast<size_t>(dds_sub));
+    RCLCPP_INFO(this->get_logger(), "dds_DataReader * %zu", reinterpret_cast<size_t>(dds_dr));
   }
 
 private:

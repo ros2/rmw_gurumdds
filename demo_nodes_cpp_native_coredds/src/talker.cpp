@@ -29,17 +29,16 @@ public:
   Talker()
   : Node("talker_native")
   {
-    {
-      rcl_node_t * rcl_node = get_node_base_interface()->get_rcl_node_handle();
-      rmw_node_t * rmw_node = rcl_node_get_rmw_handle(rcl_node);
-      dds_DomainParticipant * dp = rmw_coredds_cpp::get_participant(rmw_node);
-      RCLCPP_INFO(this->get_logger(), "dds_DomainParticipant * %zu", reinterpret_cast<size_t>(dp));
-    }
+    rcl_node_t * rcl_node = get_node_base_interface()->get_rcl_node_handle();
+    rmw_node_t * rmw_node = rcl_node_get_rmw_handle(rcl_node);
+    dds_DomainParticipant * dds_dp = rmw_coredds_cpp::get_participant(rmw_node);
+    RCLCPP_INFO(this->get_logger(), "dds_DomainParticipant * %zu",
+      reinterpret_cast<size_t>(dds_dp));
 
-    msg_ = std::make_unique<std_msgs::msg::String>();
     auto publish =
       [this]() -> void
       {
+        msg_ = std::make_unique<std_msgs::msg::String>();
         msg_->data = "Hello World: " + std::to_string(count_++);
         RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", msg_->data.c_str());
         pub_->publish(std::move(msg_));
@@ -47,14 +46,12 @@ public:
     timer_ = create_wall_timer(500ms, publish);
     pub_ = create_publisher<std_msgs::msg::String>("chatter", 10);
 
-    {
-      rcl_publisher_t * rcl_pub = pub_->get_publisher_handle();
-      rmw_publisher_t * rmw_pub = rcl_publisher_get_rmw_handle(rcl_pub);
-      dds_Publisher * p = rmw_coredds_cpp::get_publisher(rmw_pub);
-      dds_DataWriter * dw = rmw_coredds_cpp::get_data_writer(rmw_pub);
-      RCLCPP_INFO(this->get_logger(), "dds_Publisher * %zu", reinterpret_cast<size_t>(p));
-      RCLCPP_INFO(this->get_logger(), "dds_DataWriter * %zu", reinterpret_cast<size_t>(dw));
-    }
+    rcl_publisher_t * rcl_pub = pub_->get_publisher_handle();
+    rmw_publisher_t * rmw_pub = rcl_publisher_get_rmw_handle(rcl_pub);
+    dds_Publisher * dds_pub = rmw_coredds_cpp::get_publisher(rmw_pub);
+    dds_DataWriter * dds_dw = rmw_coredds_cpp::get_data_writer(rmw_pub);
+    RCLCPP_INFO(this->get_logger(), "dds_Publisher * %zu", reinterpret_cast<size_t>(dds_pub));
+    RCLCPP_INFO(this->get_logger(), "dds_DataWriter * %zu", reinterpret_cast<size_t>(dds_dw));
   }
 
 private:
