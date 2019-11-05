@@ -193,6 +193,8 @@ public:
     implementation_identifier(implementation_identifier)
   {}
 
+  virtual ~CoreddsDataReaderListener() = default;
+
   RMW_COREDDS_SHARED_CPP_PUBLIC
   virtual void add_information(
     const GuidPrefix_t & participant_guid,
@@ -255,6 +257,8 @@ public:
     context.implementation_identifier = this->implementation_identifier;
     dds_listener.on_data_available = pub_on_data_available;
   }
+
+  ~CoreddsPublisherListener() {}
 };
 
 class CoreddsSubscriberListener : public CoreddsDataReaderListener
@@ -270,6 +274,8 @@ public:
     context.implementation_identifier = this->implementation_identifier;
     dds_listener.on_data_available = sub_on_data_available;
   }
+
+  ~CoreddsSubscriberListener() {}
 };
 
 typedef struct _CoreddsNodeInfo

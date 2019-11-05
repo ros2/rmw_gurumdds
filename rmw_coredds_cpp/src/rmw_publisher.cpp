@@ -238,7 +238,13 @@ rmw_create_publisher(
     // Error message already set
     goto fail;
   }
-  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+  RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp",
+    "Created publisher with topic '%s' on node '%s%s%s'",
+    topic_name, node->namespace_,
+    node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
 
   return rmw_publisher;
 
@@ -249,19 +255,9 @@ fail:
 
   if (dds_publisher != nullptr) {
     if (topic_writer != nullptr) {
-      if (dds_Publisher_delete_datawriter(dds_publisher, topic_writer) != dds_RETCODE_OK) {
-        std::stringstream ss;
-        ss << "leaking datawriter while handling failure at " <<
-          __FILE__ << ":" << __LINE__ << '\n';
-        (std::cerr << ss.str()).flush();
-      }
+      dds_Publisher_delete_datawriter(dds_publisher, topic_writer);
     }
-    if (dds_DomainParticipant_delete_publisher(participant, dds_publisher) != dds_RETCODE_OK) {
-      std::stringstream ss;
-      ss << "leaking publisher while handling failure at " <<
-        __FILE__ << ":" << __LINE__ << '\n';
-      (std::cerr << ss.str()).flush();
-    }
+    dds_DomainParticipant_delete_publisher(participant, dds_publisher);
   }
 
   if (publisher_info != nullptr) {
@@ -402,6 +398,11 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
     delete publisher_info;
     publisher->data = nullptr;
     if (publisher->topic_name != nullptr) {
+      RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp",
+        "Deleted publisher with topic '%s' on node '%s%s%s'",
+        publisher->topic_name, node->namespace_,
+        node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
+
       rmw_free(const_cast<char *>(publisher->topic_name));
     }
   }
@@ -578,7 +579,6 @@ rmw_publish(
     return RMW_RET_ERROR;
   }
 
-  // Some types such as string need to be converted
   void * dds_message = callbacks->alloc();
   if (!callbacks->convert_ros_to_dds(ros_message, dds_message)) {
     RMW_SET_ERROR_MSG("failed to convert message");
@@ -645,7 +645,7 @@ rmw_publish_serialized_message(
 
   if (ret != dds_RETCODE_OK) {
     std::stringstream errmsg;
-    errmsg << "failed to publish data: " << errstr << "," << ret;
+    errmsg << "failed to publish serialized data: " << errstr << "," << ret;
     RMW_SET_ERROR_MSG(errmsg.str().c_str());
     return RMW_RET_ERROR;
   }

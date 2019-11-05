@@ -65,22 +65,26 @@ shared__rmw_create_node(
   }
 
   // This is used to get node name from discovered participants
-  size_t size = strlen(name) + strlen("name=;") + strlen(namespace_) + strlen("namespace=;") + 1;
-  participant_qos.user_data.size = size;
-  int written = snprintf(
-    reinterpret_cast<char *>(participant_qos.user_data.value), size,
-    "name=%s;namespace=%s;", name, namespace_);
-  if (written < 0 || written > static_cast<int>(size) - 1) {
-    RMW_SET_ERROR_MSG("failed to populate user_data buffer");
+  std::string node_user_data =
+    std::string("name=") + std::string(name) + std::string(";namespace=") +
+    std::string(namespace_) + std::string(";");
+  if (node_user_data.size() > sizeof(participant_qos.user_data.value)) {
+    RCUTILS_LOG_ERROR_NAMED("rmw_coredds_shared_cpp",
+      "node name and namespace are too long - "
+      "(strlen(name) + strlen(namespace_)) must be less than %zu",
+      sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;"));
     return nullptr;
   }
+
+  participant_qos.user_data.size = node_user_data.size();
+  memset(participant_qos.user_data.value, 0, sizeof(participant_qos.user_data.value));
+  memcpy(participant_qos.user_data.value, node_user_data.c_str(), node_user_data.size());
 
   rmw_node_t * node_handle = nullptr;
   CoreddsNodeInfo * node_info = nullptr;
   rmw_guard_condition_t * graph_guard_condition = nullptr;
   CoreddsPublisherListener * publisher_listener = nullptr;
   CoreddsSubscriberListener * subscriber_listener = nullptr;
-  void * buf = nullptr;
   dds_Subscriber * builtin_subscriber = nullptr;
   dds_DataReader * builtin_publication_datareader = nullptr;
   dds_DataReader * builtin_subscription_datareader = nullptr;
@@ -107,26 +111,19 @@ shared__rmw_create_node(
     goto fail;
   }
 
-  buf = rmw_allocate(sizeof(CoreddsPublisherListener));
-  if (buf == nullptr) {
-    RMW_SET_ERROR_MSG("failed to allocate memory");
-    goto fail;
+  publisher_listener =
+    new(std::nothrow) CoreddsPublisherListener(identifier, graph_guard_condition);
+  if (publisher_listener == nullptr) {
+    RMW_SET_ERROR_MSG("failed to allocate CoreddsPublisherListener");
+    return nullptr;
   }
 
-  RMW_TRY_PLACEMENT_NEW(
-    publisher_listener, buf, goto fail,
-    CoreddsPublisherListener, identifier, graph_guard_condition);
-  buf = nullptr;
-
-  buf = rmw_allocate(sizeof(CoreddsSubscriberListener));
-  if (buf == nullptr) {
-    RMW_SET_ERROR_MSG("failed to allocate memory");
-    goto fail;
+  subscriber_listener =
+    new(std::nothrow) CoreddsSubscriberListener(identifier, graph_guard_condition);
+  if (subscriber_listener == nullptr) {
+    RMW_SET_ERROR_MSG("failed to allocate CoreddsSubscriberListener");
+    return nullptr;
   }
-  RMW_TRY_PLACEMENT_NEW(
-    subscriber_listener, buf, goto fail,
-    CoreddsSubscriberListener, identifier, graph_guard_condition);
-  buf = nullptr;
 
   node_handle = rmw_node_allocate();
   if (node_handle == nullptr) {
@@ -151,14 +148,11 @@ shared__rmw_create_node(
   }
   memcpy(const_cast<char *>(node_handle->namespace_), namespace_, strlen(namespace_) + 1);
 
-  buf = rmw_allocate(sizeof(CoreddsNodeInfo));
-  if (buf == nullptr) {
-    RMW_SET_ERROR_MSG("failed to allocate memory");
+  node_info = new(std::nothrow) CoreddsNodeInfo();
+  if (node_info == nullptr) {
+    RMW_SET_ERROR_MSG("failed to allocate CoreddsNodeInfo");
     goto fail;
   }
-
-  RMW_TRY_PLACEMENT_NEW(node_info, buf, goto fail, CoreddsNodeInfo, )
-  buf = nullptr;
 
   node_info->participant = participant;
   node_info->graph_guard_condition = graph_guard_condition;
@@ -197,24 +191,20 @@ shared__rmw_create_node(
     builtin_subscription_datareader, &node_info->sub_listener->context);
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
+  RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_shared_cpp",
+    "Created node '%s' in namespace '%s'", name, namespace_);
+
   return node_handle;
 
 fail:
-  dds_ReturnCode_t fret = dds_DomainParticipantFactory_delete_participant(factory, participant);
-  if (fret != dds_RETCODE_OK) {
-    std::stringstream ss;
-    ss << "leaking participant while handling failure at " <<
-      __FILE__ << ":" << __LINE__;
-    (std::cerr << ss.str()).flush();
+  if (participant != nullptr) {
+    dds_DomainParticipantFactory_delete_participant(factory, participant);
   }
 
   if (graph_guard_condition != nullptr) {
     rmw_ret_t rmw_ret = shared__rmw_destroy_guard_condition(identifier, graph_guard_condition);
     if (rmw_ret != RMW_RET_OK) {
-      std::stringstream ss;
-      ss << "failed to destroy guard condition while handling failure at " <<
-        __FILE__ << ":" << __LINE__;
-      (std::cerr << ss.str()).flush();
+      RCUTILS_LOG_ERROR_NAMED("rmw_coredds_shared_cpp", "Failed to delete guard condition");
     }
   }
 
@@ -230,12 +220,16 @@ fail:
     rmw_free(node_handle);
   }
 
-  if (node_info != nullptr) {
-    rmw_free(node_info);
+  if (publisher_listener != nullptr) {
+    delete publisher_listener;
   }
 
-  if (buf != nullptr) {
-    rmw_free(buf);
+  if (subscriber_listener != nullptr) {
+    delete subscriber_listener;
+  }
+
+  if (node_info != nullptr) {
+    delete node_info;
   }
 
   return nullptr;
@@ -277,16 +271,12 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
   }
 
   if (node_info->pub_listener != nullptr) {
-    RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-      node_info->pub_listener->~CoreddsPublisherListener(), CoreddsPublisherListener)
-    rmw_free(node_info->pub_listener);
+    delete node_info->pub_listener;
     node_info->pub_listener = nullptr;
   }
 
   if (node_info->sub_listener != nullptr) {
-    RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-      node_info->sub_listener->~CoreddsSubscriberListener(), CoreddsSubscirberListener)
-    rmw_free(node_info->sub_listener);
+    delete node_info->sub_listener;
     node_info->sub_listener = nullptr;
   }
 
@@ -300,8 +290,12 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
     node_info->graph_guard_condition = nullptr;
   }
 
-  rmw_free(node_info);
+  delete node_info;
   node->data = nullptr;
+
+  RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_shared_cpp",
+    "Deleted node '%s' in namespace '%s'", node->name, node->namespace_);
+
   rmw_free(const_cast<char *>(node->name));
   node->name = nullptr;
   rmw_free(const_cast<char *>(node->namespace_));

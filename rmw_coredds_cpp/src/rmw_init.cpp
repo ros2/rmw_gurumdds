@@ -118,8 +118,6 @@ rmw_context_fini(rmw_context_t * context)
     gurum_coredds_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  // context impl is explicitly supposed to be nullptr for now, see rmw_init's code
-  // RCUTILS_CHECK_ARGUMENT_FOR_NULL(context->impl, RMW_RET_INVALID_ARGUMENT);
   *context = rmw_get_zero_initialized_context();
   return RMW_RET_OK;
 }

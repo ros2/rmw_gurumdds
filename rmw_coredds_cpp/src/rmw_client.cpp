@@ -320,7 +320,13 @@ rmw_create_client(
     // Error message already set
     goto fail;
   }
-  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+  RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp",
+    "Created client with service '%s' on node '%s%s%s'",
+    service_name, node->namespace_,
+    node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
 
   return rmw_client;
 
@@ -331,49 +337,19 @@ fail:
 
   if (dds_publisher != nullptr) {
     if (request_writer != nullptr) {
-      ret = dds_Publisher_delete_datawriter(dds_publisher, request_writer);
-      if (ret != dds_RETCODE_OK) {
-        std::stringstream ss;
-        ss << "leaking datareader while handling failure at " <<
-          __FILE__ << ":" << __LINE__ << '\n';
-        (std::cerr << ss.str()).flush();
-      }
+      dds_Publisher_delete_datawriter(dds_publisher, request_writer);
     }
-    ret = dds_DomainParticipant_delete_publisher(participant, dds_publisher);
-    if (ret != dds_RETCODE_OK) {
-      std::stringstream ss;
-      ss << "leaking publisher while handling failure at " <<
-        __FILE__ << ":" << __LINE__ << '\n';
-      (std::cerr << ss.str()).flush();
-    }
+    dds_DomainParticipant_delete_publisher(participant, dds_publisher);
   }
 
   if (dds_subscriber != nullptr) {
     if (response_reader != nullptr) {
       if (read_condition != nullptr) {
-        ret = dds_DataReader_delete_readcondition(response_reader, read_condition);
-        if (ret != dds_RETCODE_OK) {
-          std::stringstream ss;
-          ss << "leaking readcondition while handling failure at " <<
-            __FILE__ << ":" << __LINE__ << '\n';
-          (std::cerr << ss.str()).flush();
-        }
+        dds_DataReader_delete_readcondition(response_reader, read_condition);
       }
-      ret = dds_Subscriber_delete_datareader(dds_subscriber, response_reader);
-      if (ret != dds_RETCODE_OK) {
-        std::stringstream ss;
-        ss << "leaking datareader while handling failure at " <<
-          __FILE__ << ":" << __LINE__ << '\n';
-        (std::cerr << ss.str()).flush();
-      }
+      dds_Subscriber_delete_datareader(dds_subscriber, response_reader);
     }
-    ret = dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
-    if (ret != dds_RETCODE_OK) {
-      std::stringstream ss;
-      ss << "leaking subscriber while handling failure at " <<
-        __FILE__ << ":" << __LINE__ << '\n';
-      (std::cerr << ss.str()).flush();
-    }
+    dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
   }
 
   if (client_info != nullptr) {
@@ -468,6 +444,11 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     delete client_info;
     client->data = nullptr;
     if (client->service_name != nullptr) {
+      RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp",
+        "Deleted client with service '%s' on node '%s%s%s'",
+        client->service_name, node->namespace_,
+        node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
+
       rmw_free(const_cast<char *>(client->service_name));
     }
   }

@@ -239,7 +239,12 @@ rmw_create_subscription(
     goto fail;
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+  RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp",
+    "Created subscription with topic '%s' on node '%s%s%s'",
+    topic_name, node->namespace_,
+    node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
 
   return subscription;
 
@@ -254,29 +259,11 @@ fail:
   if (dds_subscriber != nullptr) {
     if (topic_reader != nullptr) {
       if (read_condition != nullptr) {
-        ret = dds_DataReader_delete_readcondition(topic_reader, read_condition);
-        if (ret != dds_RETCODE_OK) {
-          std::stringstream ss;
-          ss << "leaking readcondition while handling failure at " <<
-            __FILE__ << ":" << __LINE__ << '\n';
-          (std::cerr << ss.str()).flush();
-        }
+        dds_DataReader_delete_readcondition(topic_reader, read_condition);
       }
-      ret = dds_Subscriber_delete_datareader(dds_subscriber, topic_reader);
-      if (ret != dds_RETCODE_OK) {
-        std::stringstream ss;
-        ss << "leaking datareader while handling failure at " <<
-          __FILE__ << ":" << __LINE__ << '\n';
-        (std::cerr << ss.str()).flush();
-      }
+      dds_Subscriber_delete_datareader(dds_subscriber, topic_reader);
     }
-    ret = dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
-    if (ret != dds_RETCODE_OK) {
-      std::stringstream ss;
-      ss << "leaking subscriber while handling failure at " <<
-        __FILE__ << ":" << __LINE__ << '\n';
-      (std::cerr << ss.str()).flush();
-    }
+    dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
   }
 
   if (subscriber_info != nullptr) {
@@ -507,6 +494,11 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     delete subscriber_info;
     subscription->data = nullptr;
     if (subscription->topic_name != nullptr) {
+      RCUTILS_LOG_DEBUG_NAMED("rmw_coredds_cpp",
+        "Deleted subscription with topic '%s' on node '%s%s%s'",
+        subscription->topic_name, node->namespace_,
+        node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
+
       rmw_free(const_cast<char *>(subscription->topic_name));
     }
   }
