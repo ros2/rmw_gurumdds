@@ -16,7 +16,7 @@ find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rmw_coredds_cpp QUIET)
 
-function(custom_executable target)
+function(custom_add_executable target)
   add_executable(${target} src/${target}.cpp)
   ament_target_dependencies(${target}
     "rclcpp"
@@ -28,31 +28,32 @@ endfunction()
 
 if(rmw_coredds_cpp_FOUND)
   find_package(rmw_coredds_cpp REQUIRED)
-  custom_executable(talker)
-  custom_executable(listener)
+  custom_add_executable(talker)
+  custom_add_executable(listener)
 
   if(BUILD_TESTING)
     find_package(ament_lint_auto REQUIRED)
     ament_lint_auto_find_test_dependencies()
 
     find_package(ament_cmake_pytest REQUIRED)
+    find_package(launch_testing_ament_cmake REQUIRED)
 
-    set(tutorial_executables "talker" "listener")
+    set(executables "talker;listener")
 
-    set(DEMO_NODES_CPP_EXPECTED_OUTPUT "")
+    set(RMW_COREDDS_DEMO_EXPECTED_OUTPUT "")
 
-    foreach(executable ${tutorial_executables})
-      list(APPEND DEMO_NODES_CPP_EXPECTED_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/test/${executable}")
+    foreach(executable ${executables})
+      list(APPEND RMW_COREDDS_DEMO_EXPECTED_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/test/${executable}")
     endforeach()
 
-    set(DEMO_NODES_CPP_EXECUTABLE "")
-    foreach(executable ${tutorial_executables})
-      list(APPEND DEMO_NODES_CPP_EXECUTABLE "$<TARGET_FILE:${executable}>")
+    set(RMW_COREDDS_DEMO_EXECUTABLE "")
+    foreach(executable ${executables})
+      list(APPEND RMW_COREDDS_DEMO_EXECUTABLE "$<TARGET_FILE:${executable}>")
     endforeach()
 
-    string(REPLACE ";" "_" exe_list_underscore "${tutorial_executables}")
+    string(REPLACE ";" "_" exe_list_underscore "${executables}")
     configure_file(
-      test/test_executables_tutorial.py.in
+      test/test_executables.py.in
       test_${exe_list_underscore}.py.configured
       @ONLY
     )
@@ -61,15 +62,18 @@ if(rmw_coredds_cpp_FOUND)
       INPUT "${CMAKE_CURRENT_BINARY_DIR}/test_${exe_list_underscore}.py.configured"
     )
 
-    ament_add_pytest_test(test_tutorial_${exe_list_underscore}
+    add_launch_test(
       "${CMAKE_CURRENT_BINARY_DIR}/test_${exe_list_underscore}_$<CONFIG>.py"
+      TARGET test_${exe_list_underscore}
       TIMEOUT 30
       ENV
       RCL_ASSERT_RMW_ID_MATCHES=rmw_coredds_cpp
-      RMW_IMPLEMENTATION=rmw_coredds_cpp)
-    foreach(executable ${tutorial_executables})
+      RMW_IMPLEMENTATION=rmw_coredds_cpp
+    )
+
+    foreach(executable ${executables})
       set_property(
-        TEST test_tutorial_${exe_list_underscore}
+        TEST test_${exe_list_underscore}
         APPEND PROPERTY DEPENDS ${executable})
     endforeach()
   endif()

@@ -16,7 +16,7 @@ def generate_test_description(ready_fn):
     launch_description = LaunchDescription()
     processes_under_test = [
         ExecuteProcess(cmd=[executable], name='test_executable_' + str(i), output='screen')
-        for i, executable in enumerate('@DEMO_NODES_CPP_EXECUTABLE@'.split(';'))
+        for i, executable in enumerate('@RMW_COREDDS_DEMO_EXECUTABLE@'.split(';'))
     ]
     for process in processes_under_test:
         launch_description.add_action(process)
@@ -37,7 +37,7 @@ class TestExecutablesTutorial(unittest.TestCase):
             ],
             filtered_rmw_implementation='rmw_coredds_cpp'
         )
-        output_files = '@DEMO_NODES_CPP_EXPECTED_OUTPUT@'.split(';')
+        output_files = '@RMW_COREDDS_DEMO_EXPECTED_OUTPUT@'.split(';')
         for process, output_file in zip(processes_under_test, output_files):
             proc_output.assertWaitFor(
                 expected_output=launch_testing.tools.expected_output_from_file(
