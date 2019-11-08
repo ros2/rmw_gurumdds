@@ -88,7 +88,6 @@ __get_key(
     return RMW_RET_ERROR;
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   ret = dds_DomainParticipant_get_discovered_participants(participant, handle_seq);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to fetch discovered participants.");

@@ -184,6 +184,7 @@ shared__rmw_create_node(
     &node_info->sub_listener->dds_listener, dds_DATA_AVAILABLE_STATUS);
   dds_DataReader_set_listener_context(
     builtin_subscription_datareader, &node_info->sub_listener->context);
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   return node_handle;
 
@@ -386,7 +387,6 @@ shared__rmw_get_node_names(
   }
 
   // Get discovered participants
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   dds_ReturnCode_t ret = dds_DomainParticipant_get_discovered_participants(participant, handle_seq);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("unable to fetch discovered participants.");

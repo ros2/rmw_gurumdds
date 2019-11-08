@@ -14,6 +14,8 @@
 
 #include <string>
 #include <sstream>
+#include <chrono>
+#include <thread>
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
@@ -227,6 +229,8 @@ rmw_create_publisher(
     // Error message already set
     goto fail;
   }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   return rmw_publisher;
 

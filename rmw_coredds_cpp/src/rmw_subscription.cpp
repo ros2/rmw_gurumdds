@@ -14,6 +14,8 @@
 
 #include <utility>
 #include <string>
+#include <chrono>
+#include <thread>
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
@@ -228,6 +230,8 @@ rmw_create_subscription(
     // Error message already set
     goto fail;
   }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   return subscription;
 
