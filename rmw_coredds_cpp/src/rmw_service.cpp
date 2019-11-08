@@ -24,6 +24,8 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 #include "rcutils/logging_macros.h"
 
@@ -314,6 +316,8 @@ rmw_create_service(
     // Error message already set
     goto fail;
   }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   return rmw_service;
 
