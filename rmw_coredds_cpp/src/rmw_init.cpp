@@ -88,7 +88,15 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
     RMW_SET_ERROR_MSG("failed to get domain participant factory");
   }
 
-  RCUTILS_LOG_INFO_NAMED("rmw_coredds_cpp", "RMW successfully initialized with CoreDDS");
+  const char * env_name = "RMW_COREDDS_INIT_LOG";
+  char * env_value = nullptr;
+
+  env_value = getenv(env_name);
+  if (env_value != nullptr) {
+    if (strcmp(env_value, "1") == 0) {
+      RCUTILS_LOG_INFO_NAMED("rmw_coredds_cpp", "RMW successfully initialized with CoreDDS");
+    }
+  }
 
   return RMW_RET_OK;
 }
