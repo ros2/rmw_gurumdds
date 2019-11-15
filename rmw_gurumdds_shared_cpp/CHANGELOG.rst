@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.1 (2019-11-15)
+------------------
+* CoreDDS is renamed to GurumDDS
+* Contributors: junho
+
 0.8.0 (2019-11-06)
 ------------------
 * added gurumdds dependency to package.xml
