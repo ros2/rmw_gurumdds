@@ -2,7 +2,7 @@
 Implementation of the ROS middleware interface using [GurumNetworks GurumDDS](http://www.gurum.cc).
 
 ## Requirements
-This project requires `rosidl_typesupport_gurumdds` to be built. For more information, see README.md of the [project](https://github.com/gurumnet/rosidl_typesupport_gurumdds).
+This project requires `rosidl_typesupport_gurumdds` to be built. For more information, see README.md of the [project](https://github.com/ros2/rosidl_typesupport_gurumdds).
 
 ## Packages
 This project consists of three packages, `rmw_gurumdds_cpp`, `rmw_gurumdds_shared_cpp` and `demo_nodes_cpp_native_gurumdds`.  
