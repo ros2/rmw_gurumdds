@@ -54,7 +54,7 @@ add_library(
   src/names_and_types_helpers.cpp
   src/rmw_logging.cpp
 )
-#target_link_libraries(rmw_gurumdds_shared_cpp dds)
+#target_link_libraries(rmw_gurumdds_shared_cpp gurumdds)
 ament_target_dependencies(rmw_gurumdds_shared_cpp
   "rcutils"
   "rmw"

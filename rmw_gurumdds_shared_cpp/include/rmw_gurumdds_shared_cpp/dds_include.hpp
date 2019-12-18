@@ -15,6 +15,6 @@
 #ifndef RMW_GURUMDDS_SHARED_CPP__DDS_INCLUDE_HPP_
 #define RMW_GURUMDDS_SHARED_CPP__DDS_INCLUDE_HPP_
 
-#include <dds/dcps.h>
+#include <gurumdds/dcps.h>
 
 #endif  // RMW_GURUMDDS_SHARED_CPP__DDS_INCLUDE_HPP_
