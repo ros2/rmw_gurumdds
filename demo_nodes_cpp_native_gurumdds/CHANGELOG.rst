@@ -2,6 +2,9 @@
 Changelog for package demo_nodes_cpp_native_gurumdds
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.8.1 (2019-11-15)
 ------------------
 * CoreDDS is renamed to GurumDDS

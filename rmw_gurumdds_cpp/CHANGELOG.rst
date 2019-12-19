@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* updated packages to use gurumdds-2.5
+* Contributors: hyeonwoo
+
 0.8.1 (2019-11-15)
 ------------------
 * CoreDDS is renamed to GurumDDS
