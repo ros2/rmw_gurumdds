@@ -2,8 +2,8 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.2 (2019-12-19)
+------------------
 * updated packages to use gurumdds-2.5
 * Contributors: hyeonwoo
 
