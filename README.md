@@ -26,9 +26,9 @@ DATA:
 `demo_nodes_cpp_natvie_gurumdds` is similar to `demo_nodes_cpp_native` from ROS2 `demos`. This demo shows how to access the native handles of `rmw_gurumdds_cpp`.
 
 ## Branches
-There are three branches in this project: master, dashing, and crystal.  
-New changes made in [ROS2 repository](https://github.com/ros2) will be applied to the mater branch, so this branch might be unstable.
-If you want to use this project with ROS2 Dashing Diademata or Crystal Clemmys, please use dashing or crystal branch.
+There are four branches in this project: master, eloquent, dashing, and crystal.  
+New changes made in [ROS2 repository](https://github.com/ros2) will be applied to the master branch, so this branch might be unstable.
+If you want to use this project with ROS2 Eloquent Elusor, Dashing Diademata or Crystal Clemmys, please use eloquent, dashing or crystal branch.
 
 ## Implementation Status
 Currently some features are not fully implemented.
