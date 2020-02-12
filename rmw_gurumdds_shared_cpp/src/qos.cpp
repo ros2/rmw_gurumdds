@@ -15,18 +15,27 @@
 #include <limits>
 #include "rmw_gurumdds_shared_cpp/qos.hpp"
 
-bool is_time_default(const rmw_time_t & time)
+static inline bool is_time_default(const rmw_time_t & time)
 {
   return time.sec == 0 && time.nsec == 0;
 }
 
-dds_Duration_t
+static dds_Duration_t
 rmw_time_to_dds(const rmw_time_t & time)
 {
   dds_Duration_t duration;
   duration.sec = static_cast<int32_t>(time.sec);
   duration.nanosec = static_cast<uint32_t>(time.nsec);
   return duration;
+}
+
+static rmw_time_t
+dds_duration_to_rmw(const dds_Duration_t & duration)
+{
+  rmw_time_t time;
+  time.sec = static_cast<uint64_t>(duration.sec);
+  time.nsec = static_cast<uint64_t>(duration.nanosec);
+  return time;
 }
 
 template<typename dds_EntityQos>
@@ -158,4 +167,69 @@ bool get_datareader_qos(
   set_entity_qos_from_profile_generic(qos_profile, datareader_qos);
 
   return true;
+}
+
+enum rmw_qos_reliability_policy_t
+convert_reliability(
+  dds_ReliabilityQosPolicy policy)
+{
+  switch (policy.kind) {
+    case dds_BEST_EFFORT_RELIABILITY_QOS:
+      return RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    case dds_RELIABLE_RELIABILITY_QOS:
+      return RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+    default:
+      return RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+  }
+}
+
+enum rmw_qos_durability_policy_t
+convert_durability(
+  dds_DurabilityQosPolicy policy)
+{
+  switch (policy.kind) {
+    case dds_VOLATILE_DURABILITY_QOS:
+      return RMW_QOS_POLICY_DURABILITY_VOLATILE;
+    case dds_TRANSIENT_LOCAL_DURABILITY_QOS:
+      return RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+    default:
+      return RMW_QOS_POLICY_DURABILITY_UNKNOWN;
+  }
+}
+
+struct rmw_time_t
+convert_deadline(
+  dds_DeadlineQosPolicy policy)
+{
+  return dds_duration_to_rmw(policy.period);
+}
+
+struct rmw_time_t
+convert_lifespan(
+  dds_LifespanQosPolicy policy)
+{
+  return dds_duration_to_rmw(policy.duration);
+}
+
+enum rmw_qos_liveliness_policy_t
+convert_liveliness(
+  dds_LivelinessQosPolicy policy)
+{
+  switch (policy.kind) {
+    case dds_AUTOMATIC_LIVELINESS_QOS:
+      return RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+    case dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS:
+      return RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+    case dds_MANUAL_BY_TOPIC_LIVELINESS_QOS:
+      return RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+    default:
+      return RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
+  }
+}
+
+struct rmw_time_t
+convert_liveliness_lease_duration(
+  dds_LivelinessQosPolicy policy)
+{
+  return dds_duration_to_rmw(policy.lease_duration);
 }

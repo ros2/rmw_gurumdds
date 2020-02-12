@@ -29,16 +29,17 @@
 
 void GurumddsDataReaderListener::add_information(
   const GuidPrefix_t & participant_guid,
-  const GuidPrefix_t & topic_guid,
+  const GuidPrefix_t & entity_guid,
   const std::string & topic_name,
   const std::string & type_name,
+  rmw_qos_profile_t & qos,
   EntityType entity_type)
 {
   (void)entity_type;
   std::lock_guard<std::mutex> lock(mutex_);
 
   // store topic name and type name
-  topic_cache.add_topic(participant_guid, topic_guid, topic_name, type_name);
+  topic_cache.add_topic(participant_guid, entity_guid, topic_name, type_name, qos);
 }
 
 void GurumddsDataReaderListener::remove_information(
@@ -65,8 +66,8 @@ size_t GurumddsDataReaderListener::count_topic(const char * topic_name)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   auto count = std::count_if(
-    topic_cache.get_topic_guid_to_info().begin(),
-    topic_cache.get_topic_guid_to_info().end(),
+    topic_cache.get_entity_guid_to_info().begin(),
+    topic_cache.get_entity_guid_to_info().end(),
     [&](auto tnt) -> bool {
       auto fqdn = _demangle_if_ros_topic(tnt.second.name);
       return fqdn == topic_name;
@@ -79,7 +80,7 @@ void GurumddsDataReaderListener::fill_topic_names_and_types(
   std::map<std::string, std::set<std::string>> & topic_names_to_types)
 {
   std::lock_guard<std::mutex> lock(mutex_);
-  for (auto it : topic_cache.get_topic_guid_to_info()) {
+  for (auto it : topic_cache.get_entity_guid_to_info()) {
     if (!no_demangle && (_get_ros_prefix_if_exists(it.second.name) != ros_topic_prefix)) {
       continue;
     }
@@ -91,7 +92,7 @@ void GurumddsDataReaderListener::fill_service_names_and_types(
   std::map<std::string, std::set<std::string>> & services)
 {
   std::lock_guard<std::mutex> lock(mutex_);
-  for (auto it : topic_cache.get_topic_guid_to_info()) {
+  for (auto it : topic_cache.get_entity_guid_to_info()) {
     std::string service_name = _demangle_service_from_topic(it.second.name);
     if (service_name.length() == 0) {  // not a service
       continue;

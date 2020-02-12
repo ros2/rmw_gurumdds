@@ -38,21 +38,22 @@ link_directories(${GurumDDS_LIBRARY_DIRS})
 add_library(
   rmw_gurumdds_shared_cpp
   SHARED
+  src/demangle.cpp
   src/event_converter.cpp
+  src/names_and_types_helpers.cpp
+  src/namespace_prefix.cpp
+  src/qos.cpp
+  src/rmw_count.cpp
   src/rmw_event.cpp
-  src/rmw_node.cpp
+  src/rmw_get_topic_endpoint_info.cpp
   src/rmw_guard_condition.cpp
-  src/rmw_wait.cpp
+  src/rmw_logging.cpp
+  src/rmw_node.cpp
   src/rmw_node_info_and_types.cpp
   src/rmw_service_names_and_types.cpp
   src/rmw_topic_names_and_types.cpp
-  src/rmw_count.cpp
-  src/qos.cpp
-  src/namespace_prefix.cpp
+  src/rmw_wait.cpp
   src/types/custom_listener.cpp
-  src/demangle.cpp
-  src/names_and_types_helpers.cpp
-  src/rmw_logging.cpp
 )
 #target_link_libraries(rmw_gurumdds_shared_cpp gurumdds)
 ament_target_dependencies(rmw_gurumdds_shared_cpp

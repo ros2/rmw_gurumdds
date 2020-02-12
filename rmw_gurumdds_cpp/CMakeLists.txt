@@ -59,6 +59,7 @@ add_library(rmw_gurumdds_cpp
   src/rmw_event.cpp
   src/rmw_get_implementation_identifier.cpp
   src/rmw_get_serialization_format.cpp
+  src/rmw_get_topic_endpoint_info.cpp
   src/rmw_guard_condition.cpp
   src/rmw_init.cpp
   src/rmw_logging.cpp
