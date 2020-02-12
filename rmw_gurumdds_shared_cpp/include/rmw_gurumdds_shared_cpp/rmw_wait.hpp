@@ -253,9 +253,9 @@ shared__rmw_wait(
   }
 
   for (auto status_condition : status_conditions) {
-    dds_ReturnCode_t ret =
-      dds_WaitSet_attach_condition(dds_wait_set,
-        reinterpret_cast<dds_Condition *>(status_condition));
+    dds_ReturnCode_t ret = dds_WaitSet_attach_condition(
+      dds_wait_set,
+      reinterpret_cast<dds_Condition *>(status_condition));
     CHECK_ATTACH(ret);
   }
 

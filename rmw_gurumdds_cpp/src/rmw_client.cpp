@@ -323,7 +323,8 @@ rmw_create_client(
 
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp",
     "Created client with service '%s' on node '%s%s%s'",
     service_name, node->namespace_,
     node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -444,7 +445,8 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     delete client_info;
     client->data = nullptr;
     if (client->service_name != nullptr) {
-      RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+      RCUTILS_LOG_DEBUG_NAMED(
+        "rmw_gurumdds_cpp",
         "Deleted client with service '%s' on node '%s%s%s'",
         client->service_name, node->namespace_,
         node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);

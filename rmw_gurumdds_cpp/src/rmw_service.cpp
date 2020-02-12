@@ -318,7 +318,8 @@ rmw_create_service(
 
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp",
     "Created server with service '%s' on node '%s%s%s'",
     service_name, node->namespace_,
     node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -439,7 +440,8 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     delete service_info;
     service->data = nullptr;
     if (service->service_name != nullptr) {
-      RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+      RCUTILS_LOG_DEBUG_NAMED(
+        "rmw_gurumdds_cpp",
         "Deleted server with service '%s' on node '%s%s%s'",
         service->service_name, node->namespace_,
         node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);

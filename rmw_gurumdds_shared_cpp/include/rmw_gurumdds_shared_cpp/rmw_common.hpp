@@ -26,7 +26,7 @@
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_guard_condition_t *
-shared__rmw_create_guard_condition(const char * identifier);
+shared__rmw_create_guard_condition(const char * implementation_identifier);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -43,7 +43,7 @@ shared__rmw_trigger_guard_condition(
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_node_t *
 shared__rmw_create_node(
-  const char * identifier,
+  const char * implementation_identifier,
   const char * name,
   const char * namespace_,
   size_t domain_id,
@@ -53,7 +53,7 @@ shared__rmw_create_node(
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_destroy_node(
-  const char * identifier,
+  const char * implementation_identifier,
   rmw_node_t * node);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
@@ -63,7 +63,7 @@ shared__rmw_node_get_graph_guard_condition(const rmw_node_t * node);
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_get_node_names(
-  const char * identifier,
+  const char * implementation_identifier,
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces);
@@ -71,21 +71,21 @@ shared__rmw_get_node_names(
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_publish(
-  const char * identifier,
+  const char * implementation_identifier,
   const rmw_publisher_t * publisher,
   const void * ros_message);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_publish_serialized_message(
-  const char * identifier,
+  const char * implementation_identifier,
   const rmw_publisher_t * publisher,
   const rmw_serialized_message_t * serialized_message);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_take(
-  const char * identifier,
+  const char * implementation_identifier,
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken);
@@ -93,7 +93,7 @@ shared__rmw_take(
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_take_with_info(
-  const char * identifier,
+  const char * implementation_identifier,
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
@@ -109,7 +109,7 @@ shared__rmw_create_wait_set(
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_destroy_wait_set(
-  const char * identifier,
+  const char * implementation_identifier,
   rmw_wait_set_t * wait_set);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC

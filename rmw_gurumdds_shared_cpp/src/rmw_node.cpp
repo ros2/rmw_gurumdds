@@ -38,7 +38,7 @@
 
 rmw_node_t *
 shared__rmw_create_node(
-  const char * identifier,
+  const char * implementation_identifier,
   const char * name,
   const char * namespace_,
   size_t domain_id,
@@ -69,7 +69,8 @@ shared__rmw_create_node(
     std::string("name=") + std::string(name) + std::string(";namespace=") +
     std::string(namespace_) + std::string(";");
   if (node_user_data.size() > sizeof(participant_qos.user_data.value)) {
-    RCUTILS_LOG_ERROR_NAMED("rmw_gurumdds_shared_cpp",
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_gurumdds_shared_cpp",
       "node name and namespace are too long - "
       "(strlen(name) + strlen(namespace_)) must be less than %zu",
       sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;"));
@@ -105,21 +106,21 @@ shared__rmw_create_node(
     participant = dds_DomainParticipantFactory_create_participant(
       factory, domain_id, &participant_qos, nullptr, 0);
   }
-  graph_guard_condition = shared__rmw_create_guard_condition(identifier);
+  graph_guard_condition = shared__rmw_create_guard_condition(implementation_identifier);
   if (graph_guard_condition == nullptr) {
     RMW_SET_ERROR_MSG("failed to create graph guard condition");
     goto fail;
   }
 
   publisher_listener =
-    new(std::nothrow) GurumddsPublisherListener(identifier, graph_guard_condition);
+    new(std::nothrow) GurumddsPublisherListener(implementation_identifier, graph_guard_condition);
   if (publisher_listener == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsPublisherListener");
     return nullptr;
   }
 
   subscriber_listener =
-    new(std::nothrow) GurumddsSubscriberListener(identifier, graph_guard_condition);
+    new(std::nothrow) GurumddsSubscriberListener(implementation_identifier, graph_guard_condition);
   if (subscriber_listener == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsSubscriberListener");
     return nullptr;
@@ -131,7 +132,7 @@ shared__rmw_create_node(
     goto fail;
   }
 
-  node_handle->implementation_identifier = identifier;
+  node_handle->implementation_identifier = implementation_identifier;
   node_handle->data = participant;
   node_handle->name = reinterpret_cast<const char *>(rmw_allocate(sizeof(char) * strlen(name) + 1));
   if (node_handle->name == nullptr) {
@@ -159,7 +160,7 @@ shared__rmw_create_node(
   node_info->pub_listener = publisher_listener;
   node_info->sub_listener = subscriber_listener;
 
-  node_handle->implementation_identifier = identifier;
+  node_handle->implementation_identifier = implementation_identifier;
   node_handle->data = node_info;
 
   // set listeners
@@ -191,7 +192,8 @@ shared__rmw_create_node(
     builtin_subscription_datareader, &node_info->sub_listener->context);
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_shared_cpp",
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_shared_cpp",
     "Created node '%s' in namespace '%s'", name, namespace_);
 
   return node_handle;
@@ -202,7 +204,8 @@ fail:
   }
 
   if (graph_guard_condition != nullptr) {
-    rmw_ret_t rmw_ret = shared__rmw_destroy_guard_condition(identifier, graph_guard_condition);
+    rmw_ret_t rmw_ret =
+      shared__rmw_destroy_guard_condition(implementation_identifier, graph_guard_condition);
     if (rmw_ret != RMW_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED("rmw_gurumdds_shared_cpp", "Failed to delete guard condition");
     }
@@ -236,7 +239,7 @@ fail:
 }
 
 rmw_ret_t
-shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
+shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * node)
 {
   if (node == nullptr) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -244,7 +247,7 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
   }
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node_handle,
-    node->implementation_identifier, identifier,
+    node->implementation_identifier, implementation_identifier,
     return RMW_RET_ERROR);
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
@@ -277,7 +280,8 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_DomainParticipant_get_contained_entities(participant, pub_seq, sub_seq, NULL, NULL);
+  dds_ReturnCode_t ret =
+    dds_DomainParticipant_get_contained_entities(participant, pub_seq, sub_seq, NULL, NULL);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to get contained entities of the domain participant");
     dds_InstanceHandleSeq_delete(pub_seq);
@@ -287,7 +291,8 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
 
   int32_t cnt = static_cast<int32_t>(dds_InstanceHandleSeq_length(pub_seq));
   for (int32_t i = cnt - 1; i >= 0; i--) {
-    dds_Publisher * pub = reinterpret_cast<dds_Publisher *>(dds_InstanceHandleSeq_remove(pub_seq, i));
+    dds_Publisher * pub =
+      reinterpret_cast<dds_Publisher *>(dds_InstanceHandleSeq_remove(pub_seq, i));
     dds_InstanceHandleSeq * dw_seq = dds_InstanceHandleSeq_create(1);
     if (dw_seq == nullptr) {
       RMW_SET_ERROR_MSG("failed to create instance handle sequence");
@@ -335,7 +340,8 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
 
   cnt = static_cast<int32_t>(dds_InstanceHandleSeq_length(sub_seq));
   for (int32_t i = cnt - 1; i >= 0; i--) {
-    dds_Subscriber * sub = reinterpret_cast<dds_Subscriber *>(dds_InstanceHandleSeq_remove(sub_seq, i));
+    dds_Subscriber * sub =
+      reinterpret_cast<dds_Subscriber *>(dds_InstanceHandleSeq_remove(sub_seq, i));
     dds_InstanceHandleSeq * dr_seq = dds_InstanceHandleSeq_create(1);
     if (dr_seq == nullptr) {
       RMW_SET_ERROR_MSG("failed to create instance handle sequence");
@@ -394,8 +400,8 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
   }
 
   if (node_info->graph_guard_condition != nullptr) {
-    rmw_ret_t rmw_ret =
-      shared__rmw_destroy_guard_condition(identifier, node_info->graph_guard_condition);
+    rmw_ret_t rmw_ret = shared__rmw_destroy_guard_condition(
+      implementation_identifier, node_info->graph_guard_condition);
     if (rmw_ret != RMW_RET_OK) {
       RMW_SET_ERROR_MSG("failed to delete graph guard condition");
       return RMW_RET_ERROR;
@@ -406,7 +412,8 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
   delete node_info;
   node->data = nullptr;
 
-  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_shared_cpp",
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_shared_cpp",
     "Deleted node '%s' in namespace '%s'", node->name, node->namespace_);
 
   rmw_free(const_cast<char *>(node->name));
@@ -463,7 +470,7 @@ shared__rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 
 rmw_ret_t
 shared__rmw_get_node_names(
-  const char * identifier,
+  const char * implementation_identifier,
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces)
@@ -481,7 +488,7 @@ shared__rmw_get_node_names(
     return RMW_RET_ERROR;
   }
 
-  if (node->implementation_identifier != identifier) {
+  if (node->implementation_identifier != implementation_identifier) {
     RMW_SET_ERROR_MSG("node handle not from this implementation");
     return RMW_RET_ERROR;
   }

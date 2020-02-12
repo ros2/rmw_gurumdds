@@ -241,7 +241,8 @@ rmw_create_subscription(
 
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp",
     "Created subscription with topic '%s' on node '%s%s%s'",
     topic_name, node->namespace_,
     node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -494,7 +495,8 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     delete subscriber_info;
     subscription->data = nullptr;
     if (subscription->topic_name != nullptr) {
-      RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+      RCUTILS_LOG_DEBUG_NAMED(
+        "rmw_gurumdds_cpp",
         "Deleted subscription with topic '%s' on node '%s%s%s'",
         subscription->topic_name, node->namespace_,
         node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
