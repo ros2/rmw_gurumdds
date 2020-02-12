@@ -264,7 +264,120 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_DomainParticipantFactory_delete_participant(factory, participant);
+  dds_InstanceHandleSeq * pub_seq = dds_InstanceHandleSeq_create(4);
+  if (pub_seq == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create instance handle sequence");
+    return RMW_RET_ERROR;
+  }
+
+  dds_InstanceHandleSeq * sub_seq = dds_InstanceHandleSeq_create(4);
+  if (pub_seq == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create instance handle sequence");
+    dds_InstanceHandleSeq_delete(pub_seq);
+    return RMW_RET_ERROR;
+  }
+
+  dds_ReturnCode_t ret = dds_DomainParticipant_get_contained_entities(participant, pub_seq, sub_seq, NULL, NULL);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to get contained entities of the domain participant");
+    dds_InstanceHandleSeq_delete(pub_seq);
+    dds_InstanceHandleSeq_delete(sub_seq);
+    return RMW_RET_ERROR;
+  }
+
+  int32_t cnt = static_cast<int32_t>(dds_InstanceHandleSeq_length(pub_seq));
+  for (int32_t i = cnt - 1; i >= 0; i--) {
+    dds_Publisher * pub = reinterpret_cast<dds_Publisher *>(dds_InstanceHandleSeq_remove(pub_seq, i));
+    dds_InstanceHandleSeq * dw_seq = dds_InstanceHandleSeq_create(1);
+    if (dw_seq == nullptr) {
+      RMW_SET_ERROR_MSG("failed to create instance handle sequence");
+      dds_InstanceHandleSeq_delete(pub_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    ret = dds_Publisher_get_contained_entities(pub, dw_seq);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to get contained entities of the publisher");
+      dds_InstanceHandleSeq_delete(dw_seq);
+      dds_InstanceHandleSeq_delete(pub_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    if (dds_InstanceHandleSeq_length(dw_seq) > 1) {
+      dds_InstanceHandleSeq_delete(dw_seq);
+      continue;
+    }
+
+    dds_DataWriter * dw = reinterpret_cast<dds_DataWriter *>(dds_InstanceHandleSeq_get(dw_seq, 0));
+    ret = dds_Publisher_delete_datawriter(pub, dw);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to delete datawriter");
+      dds_InstanceHandleSeq_delete(dw_seq);
+      dds_InstanceHandleSeq_delete(pub_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    ret = dds_DomainParticipant_delete_publisher(participant, pub);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to delete Publisher");
+      dds_InstanceHandleSeq_delete(dw_seq);
+      dds_InstanceHandleSeq_delete(pub_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    dds_InstanceHandleSeq_delete(dw_seq);
+  }
+  dds_InstanceHandleSeq_delete(pub_seq);
+
+  cnt = static_cast<int32_t>(dds_InstanceHandleSeq_length(sub_seq));
+  for (int32_t i = cnt - 1; i >= 0; i--) {
+    dds_Subscriber * sub = reinterpret_cast<dds_Subscriber *>(dds_InstanceHandleSeq_remove(sub_seq, i));
+    dds_InstanceHandleSeq * dr_seq = dds_InstanceHandleSeq_create(1);
+    if (dr_seq == nullptr) {
+      RMW_SET_ERROR_MSG("failed to create instance handle sequence");
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    ret = dds_Subscriber_get_contained_entities(sub, dr_seq);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to get contained entities of the subscriber");
+      dds_InstanceHandleSeq_delete(dr_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    if (dds_InstanceHandleSeq_length(dr_seq) > 1) {
+      dds_InstanceHandleSeq_delete(dr_seq);
+      continue;
+    }
+
+    dds_DataReader * dr = reinterpret_cast<dds_DataReader *>(dds_InstanceHandleSeq_get(dr_seq, 0));
+    ret = dds_Subscriber_delete_datareader(sub, dr);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to delete datareader");
+      dds_InstanceHandleSeq_delete(dr_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    ret = dds_DomainParticipant_delete_subscriber(participant, sub);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to delete Subscriber");
+      dds_InstanceHandleSeq_delete(dr_seq);
+      dds_InstanceHandleSeq_delete(sub_seq);
+      return RMW_RET_ERROR;
+    }
+
+    dds_InstanceHandleSeq_delete(dr_seq);
+  }
+  dds_InstanceHandleSeq_delete(sub_seq);
+
+  ret = dds_DomainParticipantFactory_delete_participant(factory, participant);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to delete participant");
     return RMW_RET_ERROR;
@@ -395,6 +508,7 @@ shared__rmw_get_node_names(
   dds_ReturnCode_t ret = dds_DomainParticipant_get_discovered_participants(participant, handle_seq);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("unable to fetch discovered participants.");
+    dds_InstanceHandleSeq_delete(handle_seq);
     return RMW_RET_ERROR;
   }
 
@@ -406,6 +520,7 @@ shared__rmw_get_node_names(
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
+    dds_InstanceHandleSeq_delete(handle_seq);
     return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
   }
 
@@ -414,6 +529,7 @@ shared__rmw_get_node_names(
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
+    dds_InstanceHandleSeq_delete(handle_seq);
     return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
   }
 
@@ -448,12 +564,14 @@ shared__rmw_get_node_names(
     node_list.data[n] = rcutils_strdup(name.c_str(), allocator);
     if (node_list.data[n] == nullptr) {
       RMW_SET_ERROR_MSG("could not allocate memory for node name");
+      dds_InstanceHandleSeq_delete(handle_seq);
       goto fail;
     }
 
     ns_list.data[n] = rcutils_strdup(namespace_.c_str(), allocator);
     if (ns_list.data[n] == nullptr) {
       RMW_SET_ERROR_MSG("could not allocate memory for node namspace");
+      dds_InstanceHandleSeq_delete(handle_seq);
       goto fail;
     }
 
@@ -462,6 +580,7 @@ shared__rmw_get_node_names(
 
     n++;
   }
+  dds_InstanceHandleSeq_delete(handle_seq);
 
   rcutils_ret = rcutils_string_array_init(node_names, n, &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {

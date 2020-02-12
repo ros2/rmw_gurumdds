@@ -510,7 +510,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
   return rmw_ret;
 }
 
-rmw_ret_t
+static rmw_ret_t
 _take(
   const char * identifier,
   const rmw_subscription_t * subscription,
@@ -650,7 +650,7 @@ rmw_take_with_info(
     gurum_gurumdds_identifier, subscription, ros_message, taken, message_info, allocation);
 }
 
-rmw_ret_t
+static rmw_ret_t
 _take_serialized(
   const char * identifier,
   const rmw_subscription_t * subscription,
