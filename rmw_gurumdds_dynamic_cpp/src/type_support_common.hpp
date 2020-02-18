@@ -23,24 +23,23 @@
 
 #include "rmw/impl/cpp/macros.hpp"
 
-#include "rosidl_typesupport_gurumdds_c/identifier.h"
-#include "rosidl_typesupport_gurumdds_cpp/identifier.hpp"
-#include "rosidl_typesupport_gurumdds_cpp/message_type_support.h"
-#include "rosidl_typesupport_gurumdds_cpp/service_type_support.h"
+#include "rosidl_typesupport_introspection_c/field_types.h"
+#include "rosidl_typesupport_introspection_c/identifier.h"
+#include "rosidl_typesupport_introspection_c/message_introspection.h"
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
 
-#define RMW_GURUMDDS_CPP_TYPESUPPORT_C rosidl_typesupport_gurumdds_c__identifier
-#define RMW_GURUMDDS_CPP_TYPESUPPORT_CPP rosidl_typesupport_gurumdds_cpp::typesupport_identifier
+#include "rosidl_typesupport_introspection_cpp/field_types.hpp"
+#include "rosidl_typesupport_introspection_cpp/identifier.hpp"
+#include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
+#include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
 
 inline std::string
-_create_type_name(const message_type_support_callbacks_t * callbacks)
+_create_type_name(const void * info, const char * identifier)
 {
-  std::ostringstream ss;
-  std::string message_namespace(callbacks->message_namespace);
-  if (!message_namespace.empty()) {
-    ss << message_namespace << "::";
-  }
-  ss << "dds_::" << callbacks->message_name << "_";
-  return ss.str();
+  // TODO(clemjh): Implement this
+  return std::string();
 }
+
+
 
 #endif  // TYPE_SUPPORT_COMMON_HPP_
