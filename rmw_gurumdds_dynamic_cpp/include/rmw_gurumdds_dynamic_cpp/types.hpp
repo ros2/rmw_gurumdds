@@ -23,7 +23,8 @@ typedef struct _GurumddsPublisherInfo : GurumddsEventInfo
   dds_Publisher * publisher;
   rmw_gid_t publisher_gid;
   dds_DataWriter * topic_writer;
-  dds_TypeSupport * typesupport;
+  dds_TypeSupport * dds_typesupport;
+  const rosidl_message_type_support_t * rosidl_message_typesupport;
   const char * implementation_identifier;
 
   rmw_ret_t get_status(dds_StatusMask mask, void * event) override;
@@ -41,7 +42,8 @@ typedef struct _GurumddsSubscriberInfo : GurumddsEventInfo
   dds_Subscriber * subscriber;
   dds_DataReader * topic_reader;
   dds_ReadCondition * read_condition;
-  dds_TypeSupport * typesupport;
+  dds_TypeSupport * dds_typesupport;
+  const rosidl_message_type_support_t * rosidl_message_typesupport;
   const char * implementation_identifier;
 
   rmw_ret_t get_status(dds_StatusMask mask, void * event) override;
@@ -53,10 +55,14 @@ typedef struct _GurumddsServiceInfo
 {
   dds_Subscriber * dds_subscriber;
   dds_DataReader * request_reader;
-  dds_TypeSupport * request_typesupport;
+  dds_TypeSupport * dds_request_typesupport;
+  const rosidl_message_type_support_t * rosidl_request_typesupport;
+
   dds_Publisher * dds_publisher;
   dds_DataWriter * response_writer;
-  dds_TypeSupport * response_typesupport;
+  dds_TypeSupport * dds_response_typesupport;
+  const rosidl_message_type_support_t * rosidl_response_typesupport;
+
   dds_ReadCondition * read_condition;
   dds_DomainParticipant * participant;
   const char * implementation_identifier;
@@ -66,13 +72,19 @@ typedef struct _GurumddsClientInfo
 {
   dds_Publisher * dds_publisher;
   dds_DataWriter * request_writer;
-  dds_TypeSupport * request_typesupport;
+  dds_TypeSupport * dds_request_typesupport;
+  const rosidl_message_type_support_t * rosidl_request_typesupport;
+
   dds_Subscriber * dds_subscriber;
   dds_DataReader * response_reader;
-  dds_TypeSupport * response_typesupport;
+  dds_TypeSupport * dds_response_typesupport;
+  const void * untyped_response_members;
+  const rosidl_message_type_support_t * rosidl_response_typesupport;
+
   dds_ReadCondition * read_condition;
   dds_DomainParticipant * participant;
   const char * implementation_identifier;
+
   int64_t sequence_number;
   int64_t writer_guid_0;
   int64_t writer_guid_1;
