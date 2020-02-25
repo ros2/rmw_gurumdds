@@ -231,7 +231,6 @@ _get_endpoint_info_by_topic(
     for (size_t i = 0; i < info_vec.size(); i++) {
       endpoints_info->info_array[i] = info_vec.at(i);
     }
-    endpoints_info->count = info_vec.size();
   }
 
   return ret;
