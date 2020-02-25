@@ -68,6 +68,11 @@ rmw_create_publisher(
   const rmw_publisher_options_t * publisher_options)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)type_supports;
+  (void)topic_name;
+  (void)qos_policies;
+  (void)publisher_options;
   return nullptr;
 }
 
@@ -77,6 +82,8 @@ rmw_publisher_count_matched_subscriptions(
   size_t * subscription_count)
 {
   // TODO(clemjh): Implement this
+  (void)publisher;
+  (void)subscription_count;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -84,6 +91,7 @@ rmw_ret_t
 rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 {
   // TODO(clemjh): Implement this
+  (void)publisher;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -91,6 +99,8 @@ rmw_ret_t
 rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)publisher;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -98,6 +108,8 @@ rmw_ret_t
 rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid)
 {
   // TODO(clemjh): Implement this
+  (void)publisher;
+  (void)gid;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -107,6 +119,8 @@ rmw_publisher_get_actual_qos(
   rmw_qos_profile_t * qos)
 {
   // TODO(clemjh): Implement this
+  (void)publisher;
+  (void)qos;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -117,6 +131,9 @@ rmw_publish(
   rmw_publisher_allocation_t * allocation)
 {
   // TODO(clemjh): Implement this
+  (void)publisher;
+  (void)ros_message;
+  (void)allocation;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -127,6 +144,9 @@ rmw_publish_serialized_message(
   rmw_publisher_allocation_t * allocation)
 {
   // TODO(clemjh): Implement this
+  (void)publisher;
+  (void)serialized_message;
+  (void)allocation;
   return RMW_RET_UNSUPPORTED;
 }
 
