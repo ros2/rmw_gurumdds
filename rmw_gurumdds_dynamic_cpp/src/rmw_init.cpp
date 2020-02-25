@@ -95,7 +95,9 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   env_value = getenv(env_name);
   if (env_value != nullptr) {
     if (strcmp(env_value, "1") == 0) {
-      RCUTILS_LOG_INFO_NAMED("rmw_gurumdds_dynamic_cpp", "RMW successfully initialized with GurumDDS");
+      RCUTILS_LOG_INFO_NAMED(
+        "rmw_gurumdds_dynamic_cpp",
+        "RMW successfully initialized with GurumDDS");
     }
   }
 

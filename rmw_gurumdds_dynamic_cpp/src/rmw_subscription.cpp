@@ -69,6 +69,11 @@ rmw_create_subscription(
   const rmw_subscription_options_t * subscription_options)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)type_supports;
+  (void)topic_name;
+  (void)qos_policies;
+  (void)subscription_options;
   return nullptr;
 }
 
@@ -78,6 +83,8 @@ rmw_subscription_count_matched_publishers(
   size_t * publisher_count)
 {
   // TODO(clemjh): Implement this
+  (void)subscription;
+  (void)publisher_count;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -87,6 +94,8 @@ rmw_subscription_get_actual_qos(
   rmw_qos_profile_t * qos)
 {
   // TODO(clemjh): Implement this
+  (void)subscription;
+  (void)qos;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -94,6 +103,8 @@ rmw_ret_t
 rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)subscription;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -107,6 +118,12 @@ _take(
   rmw_subscription_allocation_t * allocation)
 {
   // TODO(clemjh): Implement this
+  (void)identifier;
+  (void)subscription;
+  (void)ros_message;
+  (void)taken;
+  (void)message_info;
+  (void)allocation;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -124,7 +141,8 @@ rmw_take(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
-  return _take(gurum_gurumdds_dynamic_identifier, subscription, ros_message, taken, nullptr, allocation);
+  return _take(
+    gurum_gurumdds_dynamic_identifier, subscription, ros_message, taken, nullptr, allocation);
 }
 
 rmw_ret_t
@@ -158,6 +176,12 @@ _take_serialized(
   rmw_subscription_allocation_t * allocation)
 {
   // TODO(clemjh): Implement this
+  (void)identifier;
+  (void)subscription;
+  (void)serialized_message;
+  (void)taken;
+  (void)message_info;
+  (void)allocation;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -176,7 +200,8 @@ rmw_take_serialized_message(
     taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
   return _take_serialized(
-    gurum_gurumdds_dynamic_identifier, subscription, serialized_message, taken, nullptr, allocation);
+    gurum_gurumdds_dynamic_identifier, subscription,
+    serialized_message, taken, nullptr, allocation);
 }
 
 rmw_ret_t
@@ -197,7 +222,8 @@ rmw_take_serialized_message_with_info(
     message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take_serialized(
-    gurum_gurumdds_dynamic_identifier, subscription, serialized_message, taken, message_info, allocation);
+    gurum_gurumdds_dynamic_identifier, subscription,
+    serialized_message, taken, message_info, allocation);
 }
 
 rmw_ret_t

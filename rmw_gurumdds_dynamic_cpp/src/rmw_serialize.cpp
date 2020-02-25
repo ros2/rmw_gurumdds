@@ -27,6 +27,9 @@ rmw_serialize(
   rmw_serialized_message_t * serialized_message)
 {
   // TODO(clemjh): Implement this
+  (void)ros_message;
+  (void)type_support;
+  (void)serialized_message;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -37,6 +40,9 @@ rmw_deserialize(
   void * ros_message)
 {
   // TODO(clemjh): Implement this
+  (void)ros_message;
+  (void)type_support;
+  (void)serialized_message;
   return RMW_RET_UNSUPPORTED;
 }
 

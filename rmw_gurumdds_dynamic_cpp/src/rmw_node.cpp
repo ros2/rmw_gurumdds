@@ -52,7 +52,8 @@ rmw_create_node(
     gurum_gurumdds_dynamic_identifier,
     return nullptr);
   return shared__rmw_create_node(
-    gurum_gurumdds_dynamic_identifier, name, namespace_, domain_id, security_options, localhost_only);
+    gurum_gurumdds_dynamic_identifier, name, namespace_,
+    domain_id, security_options, localhost_only);
 }
 
 rmw_ret_t
@@ -79,6 +80,7 @@ rmw_get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces)
 {
-  return shared__rmw_get_node_names(gurum_gurumdds_dynamic_identifier, node, node_names, node_namespaces);
+  return shared__rmw_get_node_names(
+    gurum_gurumdds_dynamic_identifier, node, node_names, node_namespaces);
 }
 }  // extern "C"
