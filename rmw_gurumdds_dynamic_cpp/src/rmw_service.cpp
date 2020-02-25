@@ -54,6 +54,10 @@ rmw_create_service(
   const char * service_name, const rmw_qos_profile_t * qos_policies)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)type_supports;
+  (void)service_name;
+  (void)qos_policies;
   return nullptr;
 }
 
@@ -61,6 +65,8 @@ rmw_ret_t
 rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)service;
   return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

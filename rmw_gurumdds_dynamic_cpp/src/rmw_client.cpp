@@ -47,6 +47,10 @@ rmw_create_client(
   const rmw_qos_profile_t * qos_policies)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)type_supports;
+  (void)service_name;
+  (void)qos_policies;
   return nullptr;
 }
 
@@ -54,6 +58,8 @@ rmw_ret_t
 rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)client;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -64,6 +70,9 @@ rmw_service_server_is_available(
   bool * is_available)
 {
   // TODO(clemjh): Implement this
+  (void)node;
+  (void)client;
+  (void)is_available;
   return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"
