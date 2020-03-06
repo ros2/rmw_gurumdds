@@ -52,6 +52,7 @@ include_directories(include)
 add_library(rmw_gurumdds_dynamic_cpp
   SHARED
   src/identifier.cpp
+  src/message_converter.cpp
   src/serialization_format.cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
