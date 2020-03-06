@@ -20,7 +20,6 @@
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
-
 #include "rmw/impl/cpp/macros.hpp"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
@@ -32,6 +31,8 @@
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
 #include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
+
+#include "./message_converter.hpp"
 
 template<typename MessageMembersT>
 std::string
@@ -211,6 +212,179 @@ create_metastring(const void * untyped_members, const char * identifier)
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return std::string("");
+}
+
+template<typename MessageMembersT>
+void *
+_allocate_message(
+  const void * untyped_members,
+  const uint8_t * ros_message,
+  size_t * size)
+{
+  auto members =
+    static_cast<const MessageMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return nullptr;
+  }
+
+  if (ros_message == nullptr) {
+    RMW_SET_ERROR_MSG("ros message is null");
+    return nullptr;
+  }
+
+  if (size == nullptr) {
+    RMW_SET_ERROR_MSG("size pointer is null");
+    return nullptr;
+  }
+
+  auto buffer = CDRSerializationBuffer(nullptr, 0);
+  auto serializer = MessageSerializer(buffer);
+  serializer.serialize(members, ros_message);
+
+  *size = buffer.get_offset() + 4;
+  void * message = calloc(1, *size);
+  if (message == nullptr) {
+    RMW_SET_ERROR_MSG("Failed to allocate memory for dds message");
+    return nullptr;
+  }
+
+  return message;
+}
+
+inline void *
+allocate_message(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_message,
+  size_t * size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _allocate_message<rosidl_typesupport_introspection_c__MessageMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_message),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _allocate_message<rosidl_typesupport_introspection_cpp::MessageMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_message),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return nullptr;
+}
+
+template<typename MessageMembersT>
+bool
+_serialize_ros_to_cdr(
+  const void * untyped_members,
+  const uint8_t * ros_message,
+  uint8_t * dds_message,
+  const size_t size)
+{
+  auto members =
+    static_cast<const MessageMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  try {
+    auto buffer = CDRSerializationBuffer(dds_message, size);
+    auto serializer = MessageSerializer(buffer);
+    serializer.serialize(members, ros_message);
+  } catch (std::runtime_error e) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to serialize ros message: %s", e.what());
+    return false;
+  }
+
+  return true;
+}
+
+inline bool
+serialize_ros_to_cdr(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_message,
+  void * dds_message,
+  const size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _serialize_ros_to_cdr<rosidl_typesupport_introspection_c__MessageMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_message),
+      reinterpret_cast<uint8_t *>(dds_message),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _serialize_ros_to_cdr<rosidl_typesupport_introspection_cpp::MessageMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_message),
+      reinterpret_cast<uint8_t *>(dds_message),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+template<typename MessageMembersT>
+bool
+_deserialize_cdr_to_ros(
+  const void * untyped_members,
+  uint8_t * ros_message,
+  uint8_t * dds_message,
+  const size_t size)
+{
+  auto members =
+    static_cast<const MessageMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  try {
+    auto buffer = CDRDeserializationBuffer(dds_message, size);
+    auto deserializer = MessageDeserializer(buffer);
+    deserializer.deserialize(members, ros_message);
+  } catch (std::exception e) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
+    return false;
+  }
+
+  return true;
+}
+
+inline bool
+deserialize_cdr_to_ros(
+  const void * untyped_members,
+  const char * identifier,
+  void * ros_message,
+  void * dds_message,
+  const size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _deserialize_cdr_to_ros<rosidl_typesupport_introspection_c__MessageMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_message),
+      reinterpret_cast<uint8_t *>(dds_message),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _deserialize_cdr_to_ros<rosidl_typesupport_introspection_cpp::MessageMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_message),
+      reinterpret_cast<uint8_t *>(dds_message),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
 }
 
 #endif  // TYPE_SUPPORT_COMMON_HPP_
