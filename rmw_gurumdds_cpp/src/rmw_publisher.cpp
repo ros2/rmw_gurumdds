@@ -575,6 +575,7 @@ rmw_publish(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "publisher info pointer is null", return RMW_RET_ERROR);
 
   dds_DataWriter * topic_writer = info->topic_writer;
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "topic writer is null", return RMW_RET_ERROR);
 
   const message_type_support_callbacks_t * callbacks = info->callbacks;
   if (callbacks == nullptr) {
