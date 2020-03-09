@@ -265,9 +265,12 @@ private:
         member->resize_function(output + member->offset_, static_cast<size_t>(size));
       }
 
-      for (uint32_t i = 0; i < member->size_function(output + member->offset_); i++) {
-        buffer >> *(reinterpret_cast<PrimitiveT *>(member->get_function(output + member->offset_, i)));
-      }
+      buffer.copy_arr(
+        reinterpret_cast<PrimitiveT *>(
+          member->get_function(output + member->offset_, 0)
+        ),
+        member->size_function(output + member->offset_)
+      );
     } else {
       buffer >> *(reinterpret_cast<PrimitiveT *>(output + member->offset_));
     }

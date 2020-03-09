@@ -351,7 +351,7 @@ _deserialize_cdr_to_ros(
     auto buffer = CDRDeserializationBuffer(dds_message, size);
     auto deserializer = MessageDeserializer(buffer);
     deserializer.deserialize(members, ros_message);
-  } catch (std::exception e) {
+  } catch (std::runtime_error e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
     return false;
   }
