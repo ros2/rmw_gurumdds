@@ -237,7 +237,7 @@ public:
     if (a_size < CDR_HEADER_SIZE) {
       throw std::runtime_error("Insufficient buffer size");
     }
-    swap = (buf[1] != system_endian);
+    swap = (a_buf[1] != system_endian);
     buf = a_buf + CDR_HEADER_SIZE;
     size = a_size - CDR_HEADER_SIZE;
     offset = 0;
@@ -286,10 +286,10 @@ public:
     uint32_t str_size = 0;
     *this >> str_size;
     align(1);  // align of char
-    if (offset + str_size> size) {
+    if (offset + str_size > size) {
       throw std::runtime_error("Out of buffer");
     }
-    if (*(reinterpret_cast<char *>(buf + offset) + str_size) != '\0') {
+    if (*(reinterpret_cast<char *>(buf + offset) + (str_size - 1)) != '\0') {
       throw std::runtime_error("String is not null terminated");
     }
     dst = std::string(reinterpret_cast<char *>(buf + offset), str_size - 1);
@@ -303,7 +303,7 @@ public:
     if (offset + str_size * 4 > size) {
       throw std::runtime_error("Out of buffer");
     }
-    if (*(reinterpret_cast<uint32_t *>(buf + offset) + str_size) != '\0') {
+    if (*(reinterpret_cast<uint32_t *>(buf + offset) + (str_size - 1)) != '\0') {
       throw std::runtime_error("Wstring is not null terminated");
     }
     dst.resize(str_size);
