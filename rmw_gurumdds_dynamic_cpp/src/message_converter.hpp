@@ -34,10 +34,12 @@
 class MessageSerializer
 {
 public:
-  MessageSerializer(CDRSerializationBuffer & a_buffer) : buffer(a_buffer) {}
+  explicit MessageSerializer(CDRSerializationBuffer & a_buffer)
+  : buffer(a_buffer) {}
 
   template<typename MessageMembersT>
-  void serialize(const MessageMembersT * members, const uint8_t * input) {
+  void serialize(const MessageMembersT * members, const uint8_t * input)
+  {
     for (uint32_t i = 0; i < members->member_count_; i++) {
       auto member = members->members_ + i;
       switch (member->type_id_) {
@@ -157,10 +159,12 @@ private:
 class MessageDeserializer
 {
 public:
-  MessageDeserializer(CDRDeserializationBuffer & a_buffer) : buffer(a_buffer) {}
+  explicit MessageDeserializer(CDRDeserializationBuffer & a_buffer)
+  : buffer(a_buffer) {}
 
   template<typename MessageMembersT>
-  void deserialize(const MessageMembersT * members, uint8_t * output) {
+  void deserialize(const MessageMembersT * members, uint8_t * output)
+  {
     for (uint32_t i = 0; i < members->member_count_; i++) {
       auto member = members->members_ + i;
       switch (member->type_id_) {

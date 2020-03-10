@@ -102,7 +102,7 @@ rmw_create_publisher(
     get_message_typesupport_handle(type_supports, rosidl_typesupport_introspection_c__identifier);
   if (type_support == nullptr) {
     type_support = get_message_typesupport_handle(
-        type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+      type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (type_support == nullptr) {
       RMW_SET_ERROR_MSG("type support not from this implementation");
       return nullptr;
@@ -121,7 +121,8 @@ rmw_create_publisher(
   dds_ReturnCode_t ret = dds_RETCODE_OK;
   rmw_ret_t rmw_ret = RMW_RET_OK;
 
-  std::string type_name = create_type_name(type_support->data, type_support->typesupport_identifier);
+  std::string type_name =
+    create_type_name(type_support->data, type_support->typesupport_identifier);
   if (type_name.empty()) {
     // Error message is already set
     return nullptr;
@@ -142,7 +143,7 @@ rmw_create_publisher(
   }
 
   dds_typesupport = dds_TypeSupport_create(metastring.c_str());
-  if(dds_typesupport == nullptr) {
+  if (dds_typesupport == nullptr) {
     RMW_SET_ERROR_MSG("failed to create typesupport");
     goto fail;
   }
