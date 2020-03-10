@@ -536,12 +536,17 @@ _take(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(topic_reader, "topic reader is null", return RMW_RET_ERROR);
 
   dds_DataSeq * data_values = dds_DataSeq_create(1);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    data_values, "failed to create data sequence", return RMW_RET_ERROR);
+  if (data_values == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create data sequence");
+    return RMW_RET_ERROR;
+  }
 
   dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    sample_infos, "failed to create sample info sequence", return RMW_RET_ERROR);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    return RMW_RET_ERROR;
+  }
 
   dds_ReturnCode_t ret = dds_DataReader_take(
     topic_reader, data_values, sample_infos, 1,
@@ -678,16 +683,25 @@ _take_serialized(
     topic_reader, "topic reader is null", return RMW_RET_ERROR);
 
   dds_DataSeq * data_values = dds_DataSeq_create(1);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    data_values, "failed to create data sequence", return RMW_RET_ERROR);
+  if (data_values == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create data sequence");
+    return RMW_RET_ERROR;
+  }
 
   dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    sample_infos, "failed to create sample info sequence", return RMW_RET_ERROR);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    return RMW_RET_ERROR;
+  }
 
   dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    sample_infos, "failed to create sample size sequence", return RMW_RET_ERROR);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample size sequence");
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    return RMW_RET_ERROR;
+  }
 
   dds_ReturnCode_t ret = dds_DataReader_raw_take(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
@@ -748,7 +762,7 @@ _take_serialized(
         dds_DataSeq_delete(data_values);
         dds_SampleInfoSeq_delete(sample_infos);
         dds_UnsignedLongSeq_delete(sample_sizes);
-        return ret;
+        return rmw_ret;
       }
     }
 
@@ -766,6 +780,7 @@ _take_serialized(
       if (ret != dds_RETCODE_OK) {
         RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
       }
+      memset(custom_gid->publication_handle, 0, sizeof(custom_gid->publication_handle));
     }
   }
 
