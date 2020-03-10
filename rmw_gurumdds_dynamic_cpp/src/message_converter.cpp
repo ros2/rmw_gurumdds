@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+#include <vector>
+
 #include "./message_converter.hpp"
 
 #define SERIALIZER_C_SERIALIZE_PRIMITIVE(SIZE) \
@@ -23,7 +26,8 @@
     if (member->is_array_) { \
       if (!member->array_size_ || member->is_upper_bound_) { \
         auto seq = \
-          *(reinterpret_cast<const rosidl_generator_c__uint ## SIZE ## __Sequence *>(input + member->offset_)); \
+          *(reinterpret_cast<const rosidl_generator_c__uint ## SIZE ## __Sequence *>( \
+            input + member->offset_)); \
         buffer << static_cast<const uint32_t>(seq.size); \
  \
         buffer.copy_arr(seq.data, seq.size); \
@@ -53,7 +57,8 @@
         buffer >> size; \
  \
         auto seq = \
-          *(reinterpret_cast<rosidl_generator_c__uint ## SIZE ## __Sequence *>(output + member->offset_)); \
+          *(reinterpret_cast<rosidl_generator_c__uint ## SIZE ## __Sequence *>( \
+            output + member->offset_)); \
         if (seq.data) { \
           rosidl_generator_c__uint ## SIZE ## __Sequence__fini(&seq); \
         } \
@@ -85,13 +90,15 @@ void MessageSerializer::serialize_boolean(
       auto vec =
         *(reinterpret_cast<const std::vector<bool> *>(input + member->offset_));
       buffer << static_cast<const uint32_t>(vec.size());
-      for (const auto &i : vec) {
+      for (const auto & i : vec) {
         buffer << static_cast<const uint8_t>(i == true);
       }
     } else {
       // Array
       for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
-        buffer << *(reinterpret_cast<const uint8_t *>(member->get_const_function(input + member->offset_, i)));
+        buffer <<
+          *(reinterpret_cast<const uint8_t *>(
+          member->get_const_function(input + member->offset_, i)));
       }
     }
   } else {
@@ -111,10 +118,14 @@ void MessageSerializer::serialize_wchar(
     }
 
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
-      buffer << static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(member->get_const_function(input + member->offset_, i))));
+      buffer <<
+        static_cast<const uint32_t>(
+        *(reinterpret_cast<const uint16_t *>(
+          member->get_const_function(input + member->offset_, i))));
     }
   } else {
-    buffer << static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
+    buffer <<
+      static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
   }
 }
 
@@ -130,7 +141,9 @@ void MessageSerializer::serialize_string(
     }
 
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
-      buffer << *(reinterpret_cast<const std::string *>(member->get_const_function(input + member->offset_, i)));
+      buffer <<
+        *(reinterpret_cast<const std::string *>(
+        member->get_const_function(input + member->offset_, i)));
     }
   } else {
     buffer << *(reinterpret_cast<const std::string *>(input + member->offset_));
@@ -149,7 +162,9 @@ void MessageSerializer::serialize_wstring(
     }
 
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
-      buffer << *(reinterpret_cast<const std::u16string *>(member->get_const_function(input + member->offset_, i)));
+      buffer <<
+        *(reinterpret_cast<const std::u16string *>(
+        member->get_const_function(input + member->offset_, i)));
     }
   } else {
     buffer << *(reinterpret_cast<const std::u16string *>(input + member->offset_));
@@ -209,7 +224,8 @@ void MessageSerializer::serialize_wchar(
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
     }
   } else {
-    buffer << static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
+    buffer <<
+      static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
   }
 }
 
@@ -231,7 +247,8 @@ void MessageSerializer::serialize_string(
     } else {
       // Array
       for (uint32_t i = 0; i < member->array_size_; i++) {
-        buffer << *(reinterpret_cast<const rosidl_generator_c__String *>(input + member->offset_) + i);
+        buffer <<
+          *(reinterpret_cast<const rosidl_generator_c__String *>(input + member->offset_) + i);
       }
     }
   } else {
@@ -248,7 +265,8 @@ void MessageSerializer::serialize_wstring(
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__U16String__Sequence *>(input + member->offset_));
+        *(reinterpret_cast<const rosidl_generator_c__U16String__Sequence *>(
+          input + member->offset_));
       buffer << static_cast<const uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
@@ -257,7 +275,8 @@ void MessageSerializer::serialize_wstring(
     } else {
       // Array
       for (uint32_t i = 0; i < member->array_size_; i++) {
-        buffer << *(reinterpret_cast<const rosidl_generator_c__U16String *>(input + member->offset_) + i);
+        buffer <<
+          *(reinterpret_cast<const rosidl_generator_c__U16String *>(input + member->offset_) + i);
       }
     }
   } else {
@@ -293,7 +312,8 @@ void MessageDeserializer::deserialize_boolean(
         buffer >> *(reinterpret_cast<uint8_t *>(member->get_function(output + member->offset_, i)));
         uint8_t data = 0;
         buffer >> data;
-        *(reinterpret_cast<bool *>(member->get_function(output + member->offset_, i))) = static_cast<bool>(data != 0);
+        *(reinterpret_cast<bool *>(member->get_function(output + member->offset_, i))) =
+          static_cast<bool>(data != 0);
       }
     }
   } else {
@@ -319,7 +339,8 @@ void MessageDeserializer::deserialize_wchar(
     for (uint32_t i = 0; i < member->size_function(output + member->offset_); i++) {
       uint32_t data = 0;
       buffer >> data;
-      *(reinterpret_cast<uint16_t *>(member->get_function(output + member->offset_, i))) = static_cast<uint16_t>(data);
+      *(reinterpret_cast<uint16_t *>(member->get_function(output + member->offset_, i))) =
+        static_cast<uint16_t>(data);
     }
   } else {
     uint32_t data = 0;
@@ -342,7 +363,8 @@ void MessageDeserializer::deserialize_string(
     }
 
     for (uint32_t i = 0; i < member->size_function(output + member->offset_); i++) {
-      buffer >> *(reinterpret_cast<std::string *>(member->get_function(output + member->offset_, i)));
+      buffer >>
+      *(reinterpret_cast<std::string *>(member->get_function(output + member->offset_, i)));
     }
   } else {
     buffer >> *(reinterpret_cast<std::string *>(output + member->offset_));
@@ -363,7 +385,8 @@ void MessageDeserializer::deserialize_wstring(
     }
 
     for (uint32_t i = 0; i < member->size_function(output + member->offset_); i++) {
-      buffer >> *(reinterpret_cast<std::u16string *>(member->get_function(output + member->offset_, i)));
+      buffer >>
+      *(reinterpret_cast<std::u16string *>(member->get_function(output + member->offset_, i)));
     }
   } else {
     buffer >> *(reinterpret_cast<std::u16string *>(output + member->offset_));
@@ -386,7 +409,8 @@ void MessageDeserializer::deserialize_boolean(
       buffer >> size;
 
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__boolean__Sequence *>(output + member->offset_));
+        *(reinterpret_cast<const rosidl_generator_c__boolean__Sequence *>(
+          output + member->offset_));
       if (seq.data) {
         rosidl_generator_c__boolean__Sequence__fini(&seq);
       }
@@ -521,7 +545,8 @@ void MessageDeserializer::deserialize_wstring(
       buffer >> size;
 
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__U16String__Sequence *>(output + member->offset_));
+        *(reinterpret_cast<const rosidl_generator_c__U16String__Sequence *>(
+          output + member->offset_));
       if (seq.data) {
         rosidl_generator_c__U16String__Sequence__fini(&seq);
       }

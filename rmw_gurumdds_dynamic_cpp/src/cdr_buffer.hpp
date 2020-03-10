@@ -36,18 +36,22 @@
 #define CDR_HEADER_SIZE 4
 #define CDR_HEADER_ENDIAN_IDX 1
 
-class CDRBuffer {
+class CDRBuffer
+{
 public:
-  size_t get_offset() {
+  size_t get_offset()
+  {
     return offset;
   }
 
-  void roundup(uint32_t align_) {
+  void roundup(uint32_t align_)
+  {
     align(align_);
   }
 
 protected:
-  void align(size_t align_) {
+  void align(size_t align_)
+  {
     size_t cnt = align_ ? (-offset & (align_ - 1)) : 0;
     if (buf != nullptr && offset + cnt > size) {
       throw std::runtime_error("Out of buffer");
@@ -55,11 +59,12 @@ protected:
     advance(cnt);
   }
 
-  void advance(size_t cnt) {
+  void advance(size_t cnt)
+  {
     offset += cnt;
   }
 
-  uint8_t* buf;
+  uint8_t * buf;
   size_t offset;
   size_t size;
 
@@ -69,7 +74,8 @@ protected:
 class CDRSerializationBuffer : public CDRBuffer
 {
 public:
-  CDRSerializationBuffer(uint8_t * a_buf, size_t a_size) {
+  CDRSerializationBuffer(uint8_t * a_buf, size_t a_size)
+  {
     if (a_buf != nullptr) {
       if (a_size < CDR_HEADER_SIZE) {
         throw std::runtime_error("Insufficient buffer size");
@@ -85,7 +91,8 @@ public:
     offset = 0;
   }
 
-  void operator << (uint8_t src) {
+  void operator<<(uint8_t src)
+  {
     align(1);
     if (buf != nullptr) {
       if (offset + 1 > size) {
@@ -96,7 +103,8 @@ public:
     advance(1);
   }
 
-  void operator << (uint16_t src) {
+  void operator<<(uint16_t src)
+  {
     align(2);
     if (buf != nullptr) {
       if (offset + 2 > size) {
@@ -107,7 +115,8 @@ public:
     advance(2);
   }
 
-  void operator << (uint32_t src) {
+  void operator<<(uint32_t src)
+  {
     align(4);
     if (buf != nullptr) {
       if (offset + 4 > size) {
@@ -118,7 +127,8 @@ public:
     advance(4);
   }
 
-  void operator << (uint64_t src) {
+  void operator<<(uint64_t src)
+  {
     align(8);
     if (buf != nullptr) {
       if (offset + 8 > size) {
@@ -129,7 +139,8 @@ public:
     advance(8);
   }
 
-  void operator << (std::string src) {
+  void operator<<(std::string src)
+  {
     *this << static_cast<uint32_t>(src.size() + 1);
     align(1);  // align of char
     if (buf != nullptr) {
@@ -141,7 +152,8 @@ public:
     advance(src.size() + 1);
   }
 
-  void operator << (std::u16string src) {
+  void operator<<(std::u16string src)
+  {
     *this << static_cast<uint32_t>(src.size() + 1);
     align(4);  // align of wchar
     if (buf != nullptr) {
@@ -156,7 +168,8 @@ public:
     advance((src.size() + 1) * 4);
   }
 
-  void operator << (rosidl_generator_c__String src) {
+  void operator<<(rosidl_generator_c__String src)
+  {
     *this << static_cast<uint32_t>(src.size + 1);
     align(1);  // align of char
     if (buf != nullptr) {
@@ -168,7 +181,8 @@ public:
     advance(src.size + 1);
   }
 
-  void operator << (rosidl_generator_c__U16String src) {
+  void operator<<(rosidl_generator_c__U16String src)
+  {
     *this << static_cast<uint32_t>(src.size + 1);
     align(4);  // align of wchar
     if (buf != nullptr) {
@@ -183,7 +197,8 @@ public:
     advance((src.size + 1) * 4);
   }
 
-  void copy_arr(const uint8_t * arr, size_t cnt) {
+  void copy_arr(const uint8_t * arr, size_t cnt)
+  {
     align(1);
     if (buf != nullptr) {
       if (offset + cnt > size) {
@@ -194,7 +209,8 @@ public:
     advance(cnt);
   }
 
-  void copy_arr(const uint16_t * arr, size_t cnt) {
+  void copy_arr(const uint16_t * arr, size_t cnt)
+  {
     align(2);
     if (buf != nullptr) {
       if (offset + cnt * 2 > size) {
@@ -205,7 +221,8 @@ public:
     advance(cnt * 2);
   }
 
-  void copy_arr(const uint32_t * arr, size_t cnt) {
+  void copy_arr(const uint32_t * arr, size_t cnt)
+  {
     align(4);
     if (buf != nullptr) {
       if (offset + cnt * 4 > size) {
@@ -216,7 +233,8 @@ public:
     advance(cnt * 4);
   }
 
-  void copy_arr(const uint64_t * arr, size_t cnt) {
+  void copy_arr(const uint64_t * arr, size_t cnt)
+  {
     align(8);
     if (buf != nullptr) {
       if (offset + cnt * 8 > size) {
@@ -233,7 +251,8 @@ public:
 class CDRDeserializationBuffer : public CDRBuffer
 {
 public:
-  CDRDeserializationBuffer(uint8_t * a_buf, size_t a_size) {
+  CDRDeserializationBuffer(uint8_t * a_buf, size_t a_size)
+  {
     if (a_size < CDR_HEADER_SIZE) {
       throw std::runtime_error("Insufficient buffer size");
     }
@@ -243,7 +262,8 @@ public:
     offset = 0;
   }
 
-  void operator >> (uint8_t & dst) {
+  void operator>>(uint8_t & dst)
+  {
     align(1);
     if (offset + 1 > size) {
       throw std::runtime_error("Out of buffer");
@@ -252,7 +272,8 @@ public:
     advance(1);
   }
 
-  void operator >> (uint16_t & dst) {
+  void operator>>(uint16_t & dst)
+  {
     align(2);
     if (offset + 2 > size) {
       throw std::runtime_error("Out of buffer");
@@ -262,7 +283,8 @@ public:
     advance(2);
   }
 
-  void operator >> (uint32_t & dst) {
+  void operator>>(uint32_t & dst)
+  {
     align(4);
     if (offset + 4 > size) {
       throw std::runtime_error("Out of buffer");
@@ -272,7 +294,8 @@ public:
     advance(4);
   }
 
-  void operator >> (uint64_t & dst) {
+  void operator>>(uint64_t & dst)
+  {
     align(8);
     if (offset + 8 > size) {
       throw std::runtime_error("Out of buffer");
@@ -282,7 +305,8 @@ public:
     advance(8);
   }
 
-  void operator >> (std::string & dst) {
+  void operator>>(std::string & dst)
+  {
     uint32_t str_size = 0;
     *this >> str_size;
     align(1);  // align of char
@@ -296,7 +320,8 @@ public:
     advance(str_size);
   }
 
-  void operator >> (std::u16string & dst) {
+  void operator>>(std::u16string & dst)
+  {
     uint32_t str_size = 0;
     *this >> str_size;
     align(4);  // align of wchar
@@ -316,7 +341,8 @@ public:
     advance(str_size * 4);
   }
 
-  void operator >> (rosidl_generator_c__String & dst) {
+  void operator>>(rosidl_generator_c__String & dst)
+  {
     uint32_t str_size = 0;
     *this >> str_size;
     align(1);  // align of char
@@ -333,7 +359,8 @@ public:
     advance(str_size);
   }
 
-  void operator >> (rosidl_generator_c__U16String & dst) {
+  void operator>>(rosidl_generator_c__U16String & dst)
+  {
     uint32_t str_size = 0;
     *this >> str_size;
     align(4);  // align of wchar
@@ -355,7 +382,8 @@ public:
     advance(str_size * 4);
   }
 
-  void copy_arr(uint8_t * arr, size_t cnt) {
+  void copy_arr(uint8_t * arr, size_t cnt)
+  {
     align(1);
     if (buf != nullptr) {
       if (offset + cnt > size) {
@@ -366,7 +394,8 @@ public:
     advance(cnt);
   }
 
-  void copy_arr(uint16_t * arr, size_t cnt) {
+  void copy_arr(uint16_t * arr, size_t cnt)
+  {
     align(2);
     if (buf != nullptr) {
       if (offset + cnt * 2 > size) {
@@ -374,7 +403,7 @@ public:
       }
       if (swap) {
         for (size_t i = 0; i < cnt; i++) {
-          arr[i] = bswap16(*(reinterpret_cast<uint16_t * >(buf + offset) + i));
+          arr[i] = bswap16(*(reinterpret_cast<uint16_t *>(buf + offset) + i));
         }
       } else {
         memcpy(buf + offset, arr, cnt * 2);
@@ -383,7 +412,8 @@ public:
     advance(cnt * 2);
   }
 
-  void copy_arr(uint32_t * arr, size_t cnt) {
+  void copy_arr(uint32_t * arr, size_t cnt)
+  {
     align(4);
     if (buf != nullptr) {
       if (offset + cnt * 4 > size) {
@@ -391,7 +421,7 @@ public:
       }
       if (swap) {
         for (size_t i = 0; i < cnt; i++) {
-          arr[i] = bswap32(*(reinterpret_cast<uint32_t * >(buf + offset) + i));
+          arr[i] = bswap32(*(reinterpret_cast<uint32_t *>(buf + offset) + i));
         }
       } else {
         memcpy(buf + offset, arr, cnt * 4);
@@ -400,7 +430,8 @@ public:
     advance(cnt * 4);
   }
 
-  void copy_arr(uint64_t * arr, size_t cnt) {
+  void copy_arr(uint64_t * arr, size_t cnt)
+  {
     align(8);
     if (buf != nullptr) {
       if (offset + cnt * 8 > size) {
@@ -408,7 +439,7 @@ public:
       }
       if (swap) {
         for (size_t i = 0; i < cnt; i++) {
-          arr[i] = bswap64(*(reinterpret_cast<uint64_t * >(buf + offset) + i));
+          arr[i] = bswap64(*(reinterpret_cast<uint64_t *>(buf + offset) + i));
         }
       } else {
         memcpy(buf + offset, arr, cnt * 8);
@@ -420,26 +451,29 @@ public:
 private:
   bool swap;
 
-  static uint16_t bswap16(uint16_t data) {
+  static uint16_t bswap16(uint16_t data)
+  {
     return (data >> 8) | (data << 8);
   }
 
-  static uint32_t bswap32(uint32_t data) {
-    return (data >> 24)
-      | ((data >> 8) & 0x0000ff00)
-      | ((data << 8) & 0x00ff0000)
-      | (data << 24);
+  static uint32_t bswap32(uint32_t data)
+  {
+    return (data >> 24) |
+           ((data >> 8) & 0x0000ff00) |
+           ((data << 8) & 0x00ff0000) |
+           (data << 24);
   }
 
-  static uint64_t bswap64(uint64_t data) {
-    return (data >> 56)
-      | ((data >> 40) & 0x000000000000ff00ull)
-      | ((data >> 24) & 0x0000000000ff0000ull)
-      | ((data >> 8) & 0x00000000ff000000ull)
-      | ((data << 8) & 0x000000ff00000000ull)
-      | ((data << 24) & 0x0000ff0000000000ull)
-      | ((data << 40) & 0x00ff000000000000ull)
-      | (data << 56);
+  static uint64_t bswap64(uint64_t data)
+  {
+    return (data >> 56) |
+           ((data >> 40) & 0x000000000000ff00ull) |
+           ((data >> 24) & 0x0000000000ff0000ull) |
+           ((data >> 8) & 0x00000000ff000000ull) |
+           ((data << 8) & 0x000000ff00000000ull) |
+           ((data << 24) & 0x0000ff0000000000ull) |
+           ((data << 40) & 0x00ff000000000000ull) |
+           (data << 56);
   }
 };
 
