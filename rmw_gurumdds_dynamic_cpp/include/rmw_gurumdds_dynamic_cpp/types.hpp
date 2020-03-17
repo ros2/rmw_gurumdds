@@ -54,15 +54,13 @@ typedef struct _GurumddsSubscriberInfo : GurumddsEventInfo
 
 typedef struct _GurumddsServiceInfo
 {
+  const rosidl_service_type_support_t * service_typesupport;
+
   dds_Subscriber * dds_subscriber;
   dds_DataReader * request_reader;
-  dds_TypeSupport * dds_request_typesupport;
-  const rosidl_message_type_support_t * rosidl_request_typesupport;
 
   dds_Publisher * dds_publisher;
   dds_DataWriter * response_writer;
-  dds_TypeSupport * dds_response_typesupport;
-  const rosidl_message_type_support_t * rosidl_response_typesupport;
 
   dds_ReadCondition * read_condition;
   dds_DomainParticipant * participant;
@@ -71,24 +69,20 @@ typedef struct _GurumddsServiceInfo
 
 typedef struct _GurumddsClientInfo
 {
+  const rosidl_service_type_support_t * service_typesupport;
+
   dds_Publisher * dds_publisher;
   dds_DataWriter * request_writer;
-  dds_TypeSupport * dds_request_typesupport;
-  const rosidl_message_type_support_t * rosidl_request_typesupport;
 
   dds_Subscriber * dds_subscriber;
   dds_DataReader * response_reader;
-  dds_TypeSupport * dds_response_typesupport;
-  const void * untyped_response_members;
-  const rosidl_message_type_support_t * rosidl_response_typesupport;
 
   dds_ReadCondition * read_condition;
   dds_DomainParticipant * participant;
   const char * implementation_identifier;
 
   int64_t sequence_number;
-  int64_t writer_guid_0;
-  int64_t writer_guid_1;
+  int8_t writer_guid[16];
 } GurumddsClientInfo;
 
 #endif  // RMW_GURUMDDS_DYNAMIC_CPP__TYPES_HPP_

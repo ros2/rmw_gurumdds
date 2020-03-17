@@ -165,6 +165,7 @@ rmw_take_request(
   dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
   if (sample_infos == nullptr) {
     RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
     return RMW_RET_ERROR;
   }
 
@@ -195,6 +196,8 @@ rmw_take_request(
     if (!request_callbacks->convert_dds_to_ros(sample, ros_request)) {
       RMW_SET_ERROR_MSG("failed to convert message");
       dds_DataReader_return_loan(request_reader, data_values, sample_infos);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
       return RMW_RET_ERROR;
     }
 
