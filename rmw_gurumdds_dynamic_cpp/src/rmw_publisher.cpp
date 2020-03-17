@@ -609,7 +609,8 @@ rmw_publish(
     rosidl_typesupport->data,
     rosidl_typesupport->typesupport_identifier,
     ros_message,
-    &size
+    &size,
+    false
   );
   if (dds_message == nullptr) {
     // Error message already set

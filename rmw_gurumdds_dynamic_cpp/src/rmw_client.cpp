@@ -36,7 +36,6 @@
 
 #include "./type_support_common.hpp"
 
-// TODO
 extern "C"
 {
 rmw_client_t *

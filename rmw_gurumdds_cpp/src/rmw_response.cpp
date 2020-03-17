@@ -89,6 +89,7 @@ rmw_take_response(
   dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
   if (sample_infos == nullptr) {
     RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
     return RMW_RET_ERROR;
   }
 
@@ -193,6 +194,7 @@ rmw_send_response(
   void * dds_response = response_callbacks->alloc();
   if (!response_callbacks->convert_ros_to_dds(ros_response, dds_response)) {
     RMW_SET_ERROR_MSG("failed to convert message");
+    response_callbacks->free(dds_response);
     return RMW_RET_ERROR;
   }
 
