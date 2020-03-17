@@ -596,7 +596,7 @@ _take(
       dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_gurumdds_dynamic_cpp", "No data on topic %s", topic_name);
-    dds_DataReader_return_loan(topic_reader, data_values, sample_infos);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
     dds_UnsignedLongSeq_delete(sample_sizes);
@@ -770,7 +770,7 @@ _take_serialized(
       dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_gurumdds_dynamic_cpp", "No data on topic %s", topic_name);
-    dds_DataReader_return_loan(topic_reader, data_values, sample_infos);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
     dds_UnsignedLongSeq_delete(sample_sizes);

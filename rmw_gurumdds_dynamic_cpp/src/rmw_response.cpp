@@ -23,6 +23,8 @@
 #include "rmw_gurumdds_dynamic_cpp/identifier.hpp"
 #include "rmw_gurumdds_dynamic_cpp/types.hpp"
 
+#include "./type_support_service.hpp"
+
 extern "C"
 {
 rmw_ret_t
@@ -33,6 +35,10 @@ rmw_take_response(
   bool * taken)
 {
   // TODO(clemjh): Implement this
+  (void)client;
+  (void)request_header;
+  (void)ros_response;
+  (void)taken;
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -42,7 +48,77 @@ rmw_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
-  // TODO(clemjh): Implement this
-  return RMW_RET_UNSUPPORTED;
+  if (service == nullptr) {
+    RMW_SET_ERROR_MSG("service handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    service handle,
+    service->implementation_identifier, gurum_gurumdds_dynamic_identifier,
+    return RMW_RET_ERROR)
+
+  if (ros_response == nullptr) {
+    RMW_SET_ERROR_MSG("ros response handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  GurumddsServiceInfo * service_info = static_cast<GurumddsServiceInfo *>(service->data);
+  if (service_info == nullptr) {
+    RMW_SET_ERROR_MSG("service info handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  dds_DataWriter * response_writer = service_info->response_writer;
+  if (response_writer == nullptr) {
+    RMW_SET_ERROR_MSG("response writer is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto type_support = service_info->service_typesupport;
+  if (type_support == nullptr) {
+    RMW_SET_ERROR_MSG("typesupport handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  size_t size = 0;
+
+  void * dds_response = allocate_response(
+    type_support->data,
+    type_support->typesupport_identifier,
+    ros_response,
+    &size
+  );
+
+  if (dds_response == nullptr) {
+    // Error message already set
+    return RMW_RET_ERROR;
+  }
+
+  bool res = serialize_response(
+    type_support->data,
+    type_support->typesupport_identifier,
+    ros_response,
+    dds_response,
+    size,
+    request_header->sequence_number,
+    request_header->writer_guid
+  );
+
+  if (!res) {
+    // Error message already set
+    free(dds_response);
+    return RMW_RET_ERROR;
+  }
+
+  if (dds_DataWriter_raw_write(response_writer, dds_response, size) != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to publish data");
+    free(dds_response);
+    return RMW_RET_ERROR;
+  }
+
+  free(dds_response);
+
+  return RMW_RET_OK;
 }
 }  // extern "C"
