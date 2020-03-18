@@ -26,11 +26,52 @@ rmw_serialize(
   const rosidl_message_type_support_t * type_support,
   rmw_serialized_message_t * serialized_message)
 {
-  // TODO(clemjh): Implement this
-  (void)ros_message;
-  (void)type_support;
-  (void)serialized_message;
-  return RMW_RET_UNSUPPORTED;
+  const rosidl_message_type_support_t * ts =
+    get_message_typesupport_handle(type_support, rosidl_typesupport_introspection_c__identifier);
+  if (ts == nullptr) {
+    type_support = get_message_typesupport_handle(
+      type_support, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+    if (ts == nullptr) {
+      RMW_SET_ERROR_MSG("type support not from this implementation");
+      return RMW_RET_ERROR;
+    }
+  }
+
+  ssize_t ssize = get_serialized_size(
+    ts->data,
+    ts->typesupport_identifier,
+    ros_message
+  );
+  if (ssize < 0) {
+    RMW_SET_ERROR_MSG("failed to get size of serialized message");
+    return RMW_RET_ERROR;
+  }
+
+  size_t size = static_cast<size_t>(ssize);
+
+  serialized_message->buffer_length = size;
+  if (serialized_message->buffer_capacity < size) {
+    serialized_message->allocator.deallocate(
+      serialized_message->buffer, serialized_message->allocator.state);
+    serialized_message->buffer = static_cast<uint8_t *>(
+      serialized_message->allocator.allocate(
+        serialized_message->buffer_length,
+        serialized_message->allocator.state));
+  }
+
+  bool res = serialize_ros_to_cdr(
+    ts->data,
+    ts->typesupport_identifier,
+    ros_message,
+    serialized_message->buffer,
+    size
+  );
+  if (!res) {
+    // Error message already set
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
@@ -39,11 +80,30 @@ rmw_deserialize(
   const rosidl_message_type_support_t * type_support,
   void * ros_message)
 {
-  // TODO(clemjh): Implement this
-  (void)ros_message;
-  (void)type_support;
-  (void)serialized_message;
-  return RMW_RET_UNSUPPORTED;
+  const rosidl_message_type_support_t * ts =
+    get_message_typesupport_handle(type_support, rosidl_typesupport_introspection_c__identifier);
+  if (ts == nullptr) {
+    type_support = get_message_typesupport_handle(
+      type_support, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+    if (ts == nullptr) {
+      RMW_SET_ERROR_MSG("type support not from this implementation");
+      return RMW_RET_ERROR;
+    }
+  }
+
+  bool res = deserialize_cdr_to_ros(
+    ts->data,
+    ts->typesupport_identifier,
+    ros_message,
+    serialized_message->buffer,
+    serialized_message->buffer_length
+  );
+  if (!res) {
+    // Error message already set
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
@@ -53,6 +113,6 @@ rmw_get_serialized_message_size(
   size_t * /*size*/)
 {
   RMW_SET_ERROR_MSG("unimplemented");
-  return RMW_RET_ERROR;
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"
