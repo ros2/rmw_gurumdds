@@ -34,12 +34,128 @@ rmw_take_response(
   void * ros_response,
   bool * taken)
 {
-  // TODO(clemjh): Implement this
-  (void)client;
-  (void)request_header;
-  (void)ros_response;
-  (void)taken;
-  return RMW_RET_UNSUPPORTED;
+  if (client == nullptr) {
+    RMW_SET_ERROR_MSG("client handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    client handle,
+    client->implementation_identifier, gurum_gurumdds_dynamic_identifier,
+    return RMW_RET_ERROR)
+
+  if (ros_response == nullptr) {
+    RMW_SET_ERROR_MSG("ros response handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  if (taken == nullptr) {
+    RMW_SET_ERROR_MSG("boolean flag for taken is null");
+    return RMW_RET_ERROR;
+  }
+
+  *taken = false;
+
+  GurumddsClientInfo * client_info = static_cast<GurumddsClientInfo *>(client->data);
+  if (client_info == nullptr) {
+    RMW_SET_ERROR_MSG("client info handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  dds_DataReader * response_reader = client_info->response_reader;
+  if (response_reader == nullptr) {
+    RMW_SET_ERROR_MSG("response reader is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto type_support = client_info->service_typesupport;
+  if (type_support == nullptr) {
+    RMW_SET_ERROR_MSG("typesupport handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  dds_DataSeq * data_values = dds_DataSeq_create(1);
+  if (data_values == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create data sequence");
+    return RMW_RET_ERROR;
+  }
+
+  dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    return RMW_RET_ERROR;
+  }
+
+  dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    return RMW_RET_ERROR;
+  }
+
+  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+    response_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+
+  if (ret == dds_RETCODE_NO_DATA) {
+    dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    *taken = false;
+    return RMW_RET_OK;
+  }
+
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to take data");
+    dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_ERROR;
+  }
+
+  dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
+  if (sample_info->valid_data) {
+    void * sample = dds_DataSeq_get(data_values, 0);
+    uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
+    int64_t sequence_number = 0;
+    int8_t client_guid[16] = {0};
+    bool res = deserialize_response(
+      type_support->data,
+      type_support->typesupport_identifier,
+      ros_response,
+      sample,
+      static_cast<size_t>(size),
+      &sequence_number,
+      client_guid
+    );
+
+    if (!res) {
+      // Error message already set
+      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
+      return RMW_RET_ERROR;
+    }
+
+    if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
+      request_header->sequence_number = sequence_number;
+      memcpy(request_header->writer_guid, client_guid, 16);
+
+      *taken = true;
+    }
+  }
+
+  dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+  dds_DataSeq_delete(data_values);
+  dds_SampleInfoSeq_delete(sample_infos);
+  dds_UnsignedLongSeq_delete(sample_sizes);
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t

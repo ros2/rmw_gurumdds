@@ -530,7 +530,7 @@ rmw_service_server_is_available(
     return RMW_RET_ERROR;
   }
 
-  size_t sub_cnt = (size_t)dds_InstanceHandleSeq_length(seq);
+  auto sub_cnt = dds_InstanceHandleSeq_length(seq);
   dds_InstanceHandleSeq_delete(seq);
 
   // Matching request reader not found
@@ -551,7 +551,7 @@ rmw_service_server_is_available(
     return RMW_RET_ERROR;
   }
 
-  size_t pub_cnt = (size_t)dds_InstanceHandleSeq_length(seq);
+  auto pub_cnt = dds_InstanceHandleSeq_length(seq);
   dds_InstanceHandleSeq_delete(seq);
 
   // Matching response writer not found
