@@ -33,8 +33,79 @@ rmw_send_request(
   const void * ros_request,
   int64_t * sequence_id)
 {
-  // TODO(clemjh): Implement this
-  return RMW_RET_UNSUPPORTED;
+  if (client == nullptr) {
+    RMW_SET_ERROR_MSG("client handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    client handle,
+    client->implementation_identifier, gurum_gurumdds_dynamic_identifier,
+    return RMW_RET_ERROR)
+
+  if (ros_request == nullptr) {
+    RMW_SET_ERROR_MSG("ros request handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  GurumddsClientInfo * client_info = static_cast<GurumddsClientInfo *>(client->data);
+  if (client_info == nullptr) {
+    RMW_SET_ERROR_MSG("client info handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  dds_DataWriter * request_writer = client_info->request_writer;
+  if (request_writer == nullptr) {
+    RMW_SET_ERROR_MSG("request writer is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto type_support = client_info->service_typesupport;
+  if (type_support == nullptr) {
+    RMW_SET_ERROR_MSG("typesupport handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  size_t size = 0;
+
+  void * dds_request = allocate_request(
+    type_support->data,
+    type_support->typesupport_identifier,
+    ros_request,
+    &size
+  );
+
+  if (dds_request == nullptr) {
+    // Error message already set
+    return RMW_RET_ERROR;
+  }
+
+  bool res = serialize_request(
+    type_support->data,
+    type_support->typesupport_identifier,
+    ros_request,
+    dds_request,
+    size,
+    ++client_info->sequence_number,
+    client_info->writer_guid
+  );
+
+  if (!res) {
+    RMW_SET_ERROR_MSG("failed to serialize message");
+    free(dds_request);
+    return RMW_RET_ERROR;
+  }
+
+  if (dds_DataWriter_raw_write(request_writer, dds_request, size) != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to publish data");
+    free(dds_request);
+    return RMW_RET_ERROR;
+  }
+
+  *sequence_id = client_info->sequence_number;
+  free(dds_request);
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
