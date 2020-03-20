@@ -20,6 +20,32 @@
 #include "rmw_gurumdds_shared_cpp/event_converter.hpp"
 
 rmw_ret_t
+shared__rmw_init_event(
+  const char * identifier,
+  rmw_event_t * rmw_event,
+  const char * topic_endpoint_impl_identifier,
+  void * data,
+  rmw_event_type_t event_type)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(identifier, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(rmw_event, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_endpoint_impl_identifier, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(data, RMW_RET_INVALID_ARGUMENT);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    topic endpoint,
+    topic_endpoint_impl_identifier,
+    identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  rmw_event->implementation_identifier = topic_endpoint_impl_identifier;
+  rmw_event->data = data;
+  rmw_event->event_type = event_type;
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
 shared__rmw_take_event(
   const char * implementation_identifier,
   const rmw_event_t * event_handle,

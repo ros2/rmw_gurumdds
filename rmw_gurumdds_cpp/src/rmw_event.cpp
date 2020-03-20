@@ -19,6 +19,34 @@
 extern "C"
 {
 rmw_ret_t
+rmw_publisher_event_init(
+  rmw_event_t * rmw_event,
+  const rmw_publisher_t * publisher,
+  rmw_event_type_t event_type)
+{
+  return shared__rmw_init_event(
+    gurum_gurumdds_identifier,
+    rmw_event,
+    publisher->implementation_identifier,
+    publisher->data,
+    event_type);
+}
+
+rmw_ret_t
+rmw_subscription_event_init(
+  rmw_event_t * rmw_event,
+  const rmw_subscription_t * subscription,
+  rmw_event_type_t event_type)
+{
+  return shared__rmw_init_event(
+    gurum_gurumdds_identifier,
+    rmw_event,
+    subscription->implementation_identifier,
+    subscription->data,
+    event_type);
+}
+
+rmw_ret_t
 rmw_take_event(
   const rmw_event_t * event_handle,
   void * event_info,
