@@ -487,6 +487,22 @@ shared__rmw_get_node_names(
     ns_list.data[i] = nullptr;
   }
 
+  rcutils_ret = rcutils_string_array_fini(&node_list);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_gurumdds_cpp",
+      "failed to delete string array: %s", rcutils_get_error_string().str);
+    rcutils_reset_error();
+  }
+
+  rcutils_ret = rcutils_string_array_fini(&ns_list);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_gurumdds_cpp",
+      "failed to delete string array: %s", rcutils_get_error_string().str);
+    rcutils_reset_error();
+  }
+
   return RMW_RET_OK;
 
 fail:
