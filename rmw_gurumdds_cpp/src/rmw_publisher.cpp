@@ -153,6 +153,13 @@ rmw_create_publisher(
   dds_publisher = dds_DomainParticipant_create_publisher(participant, &publisher_qos, nullptr, 0);
   if (dds_publisher == nullptr) {
     RMW_SET_ERROR_MSG("failed to create publisher");
+    dds_PublisherQos_finalize(&publisher_qos);
+    goto fail;
+  }
+
+  ret = dds_PublisherQos_finalize(&publisher_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize publisher qos");
     goto fail;
   }
 
