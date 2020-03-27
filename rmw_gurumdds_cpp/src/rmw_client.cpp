@@ -242,9 +242,16 @@ rmw_create_client(
   dds_publisher = dds_DomainParticipant_create_publisher(participant, &publisher_qos, nullptr, 0);
   if (dds_publisher == nullptr) {
     RMW_SET_ERROR_MSG("failed to create publisher");
+    ret = dds_PublisherQos_finalize(&publisher_qos);
     goto fail;
   }
   client_info->dds_publisher = dds_publisher;
+
+  ret = dds_PublisherQos_finalize(&publisher_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize publisher qos");
+    goto fail;
+  }
 
   if (!get_datawriter_qos(dds_publisher, qos_policies, &datawriter_qos)) {
     // Error message already set
@@ -270,9 +277,16 @@ rmw_create_client(
     participant, &subscriber_qos, nullptr, 0);
   if (dds_subscriber == nullptr) {
     RMW_SET_ERROR_MSG("failed to create subscriber");
+    dds_SubscriberQos_finalize(&subscriber_qos);
     goto fail;
   }
   client_info->dds_subscriber = dds_subscriber;
+
+  ret = dds_SubscriberQos_finalize(&subscriber_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize subscriber qos");
+    goto fail;
+  }
 
   if (!get_datareader_qos(dds_subscriber, qos_policies, &datareader_qos)) {
     // error message already set

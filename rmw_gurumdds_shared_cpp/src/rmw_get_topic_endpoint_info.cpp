@@ -183,28 +183,30 @@ _get_endpoint_info_by_topic(
         dds_InstanceHandleSeq_delete(handle_seq);
 
         ret = rmw_topic_endpoint_info_set_node_name(&ep_info, node_name.c_str(), allocator);
-        check_ok()
+        check_ok();
 
         ret =
           rmw_topic_endpoint_info_set_node_namespace(&ep_info, node_namespace.c_str(), allocator);
-        check_ok()
+        check_ok();
 
         std::string type_name =
           no_mangle ? topic_info.type : _demangle_if_ros_type(topic_info.type);
         ret = rmw_topic_endpoint_info_set_topic_type(&ep_info, type_name.c_str(), allocator);
-        check_ok()
+        check_ok();
 
         ret = rmw_topic_endpoint_info_set_endpoint_type(&ep_info, endpoint_type);
-        check_ok()
+        check_ok();
 
         uint8_t gid[RMW_GID_STORAGE_SIZE];
         memset(gid, 0, RMW_GID_STORAGE_SIZE);
         memcpy(gid, topic_info.entity_guid.value, GuidPrefix_t::kSize);
         ret = rmw_topic_endpoint_info_set_gid(&ep_info, gid, GuidPrefix_t::kSize);
-        check_ok()
+        check_ok();
 
         ret = rmw_topic_endpoint_info_set_qos_profile(&ep_info, &topic_info.qos);
-        check_ok()
+        check_ok();
+
+        info_vec.push_back(ep_info);
 #undef check_ok
       }
     }
