@@ -164,13 +164,6 @@ rmw_create_subscription(
   ret = dds_DomainParticipant_get_default_subscriber_qos(participant, &subscriber_qos);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to get default subscriber qos");
-    dds_SubscriberQos_finalize(&subscriber_qos);
-    goto fail;
-  }
-
-  ret = dds_SubscriberQos_finalize(&subscriber_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to finalize subscriber qos");
     goto fail;
   }
 
@@ -178,6 +171,13 @@ rmw_create_subscription(
     dds_DomainParticipant_create_subscriber(participant, &subscriber_qos, nullptr, 0);
   if (dds_subscriber == nullptr) {
     RMW_SET_ERROR_MSG("failed to create subscriber");
+    dds_SubscriberQos_finalize(&subscriber_qos);
+    goto fail;
+  }
+
+  ret = dds_SubscriberQos_finalize(&subscriber_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize subscriber qos");
     goto fail;
   }
 
