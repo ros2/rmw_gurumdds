@@ -51,6 +51,10 @@ static void pub_on_data_available(const dds_DataReader * a_reader)
   dds_DataReader * reader = const_cast<dds_DataReader *>(a_reader);
   ListenerContext * context =
     reinterpret_cast<ListenerContext *>(dds_DataReader_get_listener_context(reader));
+  if (context == nullptr) {
+    return;
+  }
+
   std::lock_guard<std::mutex> lock(*context->mutex_);
   dds_DataSeq * samples = dds_DataSeq_create(8);
   if (samples == nullptr) {
@@ -68,12 +72,14 @@ static void pub_on_data_available(const dds_DataReader * a_reader)
     reader, samples, infos, dds_LENGTH_UNLIMITED,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
   if (ret == dds_RETCODE_NO_DATA) {
+    dds_DataReader_return_loan(reader, samples, infos);
     dds_DataSeq_delete(samples);
     dds_SampleInfoSeq_delete(infos);
     return;
   }
   if (ret != dds_RETCODE_OK) {
     fprintf(stderr, "failed to access data from the built-in reader\n");
+    dds_DataReader_return_loan(reader, samples, infos);
     dds_DataSeq_delete(samples);
     dds_SampleInfoSeq_delete(infos);
     return;
@@ -120,6 +126,10 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
   dds_DataReader * reader = const_cast<dds_DataReader *>(a_reader);
   ListenerContext * context =
     reinterpret_cast<ListenerContext *>(dds_DataReader_get_listener_context(reader));
+  if (context == nullptr) {
+    return;
+  }
+
   std::lock_guard<std::mutex> lock(*context->mutex_);
   dds_DataSeq * samples = dds_DataSeq_create(8);
   if (samples == nullptr) {
@@ -137,12 +147,14 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
     reader, samples, infos, dds_LENGTH_UNLIMITED,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
   if (ret == dds_RETCODE_NO_DATA) {
+    dds_DataReader_return_loan(reader, samples, infos);
     dds_DataSeq_delete(samples);
     dds_SampleInfoSeq_delete(infos);
     return;
   }
   if (ret != dds_RETCODE_OK) {
     fprintf(stderr, "failed to access data from the built-in reader\n");
+    dds_DataReader_return_loan(reader, samples, infos);
     dds_DataSeq_delete(samples);
     dds_SampleInfoSeq_delete(infos);
     return;
