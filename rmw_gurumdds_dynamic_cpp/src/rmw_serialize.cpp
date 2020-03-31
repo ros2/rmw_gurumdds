@@ -29,7 +29,7 @@ rmw_serialize(
   const rosidl_message_type_support_t * ts =
     get_message_typesupport_handle(type_support, rosidl_typesupport_introspection_c__identifier);
   if (ts == nullptr) {
-    type_support = get_message_typesupport_handle(
+    ts = get_message_typesupport_handle(
       type_support, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (ts == nullptr) {
       RMW_SET_ERROR_MSG("type support not from this implementation");
@@ -83,7 +83,7 @@ rmw_deserialize(
   const rosidl_message_type_support_t * ts =
     get_message_typesupport_handle(type_support, rosidl_typesupport_introspection_c__identifier);
   if (ts == nullptr) {
-    type_support = get_message_typesupport_handle(
+    ts = get_message_typesupport_handle(
       type_support, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (ts == nullptr) {
       RMW_SET_ERROR_MSG("type support not from this implementation");
