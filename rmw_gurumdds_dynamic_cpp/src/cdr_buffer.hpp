@@ -310,6 +310,9 @@ public:
     uint32_t str_size = 0;
     *this >> str_size;
     align(1);  // align of char
+    if (str_size == 0) {
+      throw std::runtime_error("Invalid string value");
+    }
     if (offset + str_size > size) {
       throw std::runtime_error("Out of buffer");
     }
@@ -325,19 +328,21 @@ public:
     uint32_t str_size = 0;
     *this >> str_size;
     align(4);  // align of wchar
+    if (str_size == 0) {
+      throw std::runtime_error("Invalid wstring value");
+    }
     if (offset + str_size * 4 > size) {
       throw std::runtime_error("Out of buffer");
     }
     if (*(reinterpret_cast<uint32_t *>(buf + offset) + (str_size - 1)) != '\0') {
       throw std::runtime_error("Wstring is not null terminated");
     }
-    dst.resize(str_size);
+    dst.resize(str_size - 1);
     for (uint32_t i = 0; i < str_size - 1; i++) {
       auto data = *(reinterpret_cast<uint32_t *>(buf + offset) + i);
       data = swap ? bswap32(data) : data;
       dst[i] = static_cast<uint16_t>(data);
     }
-    dst[str_size - 1] = u'\0';
     advance(str_size * 4);
   }
 
@@ -347,6 +352,9 @@ public:
     *this >> str_size;
     align(1);  // align of char
     if (buf != nullptr) {
+      if (str_size == 0) {
+        throw std::runtime_error("Invalid string value");
+      }
       if (offset + str_size > size) {
         throw std::runtime_error("Out of buffer");
       }
@@ -365,6 +373,9 @@ public:
     *this >> str_size;
     align(4);  // align of wchar
     if (buf != nullptr) {
+      if (str_size == 0) {
+        throw std::runtime_error("Invalid wstring value");
+      }
       if (offset + str_size * 4 > size) {
         throw std::runtime_error("Out of buffer");
       }
@@ -372,10 +383,12 @@ public:
       if (!res) {
         throw std::runtime_error("Failed to resize wstring");
       }
-      for (uint32_t i = 0; i < str_size - 1; i++) {
-        auto data = *(reinterpret_cast<uint32_t *>(buf + offset) + i);
-        data = swap ? bswap32(data) : data;
-        dst.data[i] = static_cast<uint16_t>(data);
+      if (str_size >= 1) {
+        for (uint32_t i = 0; i < str_size - 1; i++) {
+          auto data = *(reinterpret_cast<uint32_t *>(buf + offset) + i);
+          data = swap ? bswap32(data) : data;
+          dst.data[i] = static_cast<uint16_t>(data);
+        }
       }
       dst.data[str_size - 1] = u'\0';
     }
@@ -406,7 +419,7 @@ public:
           arr[i] = bswap16(*(reinterpret_cast<uint16_t *>(buf + offset) + i));
         }
       } else {
-        memcpy(buf + offset, arr, cnt * 2);
+        memcpy(arr, buf + offset, cnt * 2);
       }
     }
     advance(cnt * 2);
@@ -424,7 +437,7 @@ public:
           arr[i] = bswap32(*(reinterpret_cast<uint32_t *>(buf + offset) + i));
         }
       } else {
-        memcpy(buf + offset, arr, cnt * 4);
+        memcpy(arr, buf + offset, cnt * 4);
       }
     }
     advance(cnt * 4);
@@ -442,7 +455,7 @@ public:
           arr[i] = bswap64(*(reinterpret_cast<uint64_t *>(buf + offset) + i));
         }
       } else {
-        memcpy(buf + offset, arr, cnt * 8);
+        memcpy(arr, buf + offset, cnt * 8);
       }
     }
     advance(cnt * 8);

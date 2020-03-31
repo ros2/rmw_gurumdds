@@ -77,28 +77,7 @@ public:
           serialize_wstring(member, input);
           break;
         case rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE:
-          if (member->is_array_) {
-            if (!member->array_size_ || member->is_upper_bound_) {
-              // Sequence
-              buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
-            }
-
-            for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
-              serialize(
-                reinterpret_cast<const MessageMembersT *>(member->members_->data),
-                reinterpret_cast<const uint8_t *>(
-                  member->get_const_function(input + member->offset_, i)
-                )
-              );
-            }
-          } else {
-            serialize(
-              reinterpret_cast<const MessageMembersT *>(member->members_->data),
-              reinterpret_cast<const uint8_t *>(
-                input + member->offset_
-              )
-            );
-          }
+          serialize_struct_arr(member, input);
           break;
         default:
           throw std::logic_error("This should not be rechable");
@@ -152,6 +131,11 @@ private:
     }
   }
 
+  template<typename MessageMemberT>
+  void serialize_struct_arr(
+    const MessageMemberT * member,
+    const uint8_t * input);
+
 private:
   CDRSerializationBuffer & buffer;
 };
@@ -202,30 +186,7 @@ public:
           deserialize_wstring(member, output);
           break;
         case rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE:
-          if (member->is_array_) {
-            if (!member->array_size_ || member->is_upper_bound_) {
-              // Sequence
-              uint32_t size = 0;
-              buffer >> size;
-              member->resize_function(output + member->offset_, static_cast<size_t>(size));
-            }
-
-            for (uint32_t i = 0; i < member->size_function(output + member->offset_); i++) {
-              deserialize(
-                reinterpret_cast<const MessageMembersT *>(member->members_->data),
-                reinterpret_cast<uint8_t *>(
-                  member->get_function(output + member->offset_, i)
-                )
-              );
-            }
-          } else {
-            deserialize(
-              reinterpret_cast<const MessageMembersT *>(member->members_->data),
-              reinterpret_cast<uint8_t *>(
-                output + member->offset_
-              )
-            );
-          }
+          deserialize_struct_arr(member, output);
           break;
         default:
           break;
@@ -279,6 +240,11 @@ private:
       buffer >> *(reinterpret_cast<PrimitiveT *>(output + member->offset_));
     }
   }
+
+  template<typename MessageMemberT>
+  void deserialize_struct_arr(
+    const MessageMemberT * member,
+    uint8_t * output);
 
 private:
   CDRDeserializationBuffer & buffer;
