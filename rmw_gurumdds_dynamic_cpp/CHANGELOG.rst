@@ -2,8 +2,8 @@
 Changelog for package rmw_gurumdds_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.3 (2020-04-01)
+------------------
 * Added changelog
 * Fixed serialization/deserialization errors
 * Fixed some errors
