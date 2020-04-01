@@ -2,8 +2,8 @@
 Changelog for package rmw_gurumdds_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.4 (2020-04-01)
+------------------
 * Fixed serialization/deserialization errors
 * Fixed some errors
   * added missing qos finalization

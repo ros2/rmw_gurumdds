@@ -2,5 +2,5 @@
 Changelog for package demo_nodes_cpp_native_gurumdds
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.4 (2020-04-01)
+------------------

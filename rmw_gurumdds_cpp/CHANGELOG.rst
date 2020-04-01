@@ -2,8 +2,8 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.4 (2020-04-01)
+------------------
 * Fixed some errors
   * added missing qos finalization
   * fixed issue that topic endpoint info was not handled correctly
