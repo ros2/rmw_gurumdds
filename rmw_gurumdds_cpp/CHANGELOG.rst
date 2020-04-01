@@ -2,6 +2,20 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed some errors
+  * added missing qos finalization
+  * fixed issue that topic endpoint info was not handled correctly
+  * added null check to builtin datareader callbacks
+* Added qos finalization after creating publisher/subscriber
+* Implemented client
+* Implemented service
+* Implemented subscription
+* Implemented publisher
+* added rmw_gurumdds_dynamic_cpp
+* Contributors: junho
+
 0.8.2 (2019-12-19)
 ------------------
 * updated packages to use gurumdds-2.5

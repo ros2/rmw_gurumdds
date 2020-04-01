@@ -2,6 +2,9 @@
 Changelog for package demo_nodes_cpp_native_gurumdds
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.8.2 (2019-12-19)
 ------------------
 
