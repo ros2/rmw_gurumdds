@@ -233,3 +233,24 @@ convert_liveliness_lease_duration(
 {
   return dds_duration_to_rmw(policy.lease_duration);
 }
+
+rmw_qos_policy_kind_t
+convert_qos_policy(
+  dds_QosPolicyId_t policy_id)
+{
+  if (policy_id == dds_HISTORY_QOS_POLICY_ID) {
+    return RMW_QOS_POLICY_HISTORY;
+  } else if (policy_id == dds_RELIABILITY_QOS_POLICY_ID) {
+    return RMW_QOS_POLICY_RELIABILITY;
+  } else if (policy_id == dds_DURABILITY_QOS_POLICY_ID) {
+    return RMW_QOS_POLICY_DURABILITY;
+  } else if (policy_id == dds_DEADLINE_QOS_POLICY_ID) {
+    return RMW_QOS_POLICY_DEADLINE;
+  } else if (policy_id == dds_LIFESPAN_QOS_POLICY_ID) {
+    return RMW_QOS_POLICY_LIFESPAN;
+  } else if (policy_id == dds_LIVELINESS_QOS_POLICY_ID) {
+    return RMW_QOS_POLICY_LIVELINESS;
+  }
+
+  return RMW_QOS_POLICY_INVALID;
+}

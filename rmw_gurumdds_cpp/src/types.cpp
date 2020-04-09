@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "rmw_gurumdds_shared_cpp/event_converter.hpp"
+#include "rmw_gurumdds_shared_cpp/qos.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
 
 rmw_ret_t GurumddsPublisherInfo::get_status(
@@ -20,29 +21,42 @@ rmw_ret_t GurumddsPublisherInfo::get_status(
   void * event)
 {
   if (mask == dds_LIVELINESS_LOST_STATUS) {
-    dds_LivelinessLostStatus liveliness_lost;
-    dds_ReturnCode_t dds_return_code =
-      dds_DataWriter_get_liveliness_lost_status(topic_writer, &liveliness_lost);
-    rmw_ret_t from_dds = check_dds_ret_code(dds_return_code);
-    if (from_dds != RMW_RET_OK) {
-      return from_dds;
+    dds_LivelinessLostStatus status;
+    dds_ReturnCode_t dds_ret =
+      dds_DataWriter_get_liveliness_lost_status(topic_writer, &status);
+    rmw_ret_t rmw_ret = check_dds_ret_code(dds_ret);
+    if (rmw_ret != RMW_RET_OK) {
+      return rmw_ret;
     }
 
-    auto rmw_liveliness_lost = static_cast<rmw_liveliness_lost_status_t *>(event);
-    rmw_liveliness_lost->total_count = liveliness_lost.total_count;
-    rmw_liveliness_lost->total_count_change = liveliness_lost.total_count_change;
+    auto rmw_status = static_cast<rmw_liveliness_lost_status_t *>(event);
+    rmw_status->total_count = status.total_count;
+    rmw_status->total_count_change = status.total_count_change;
   } else if (mask == dds_OFFERED_DEADLINE_MISSED_STATUS) {
-    dds_OfferedDeadlineMissedStatus offered_deadline_missed;
-    dds_ReturnCode_t dds_return_code =
-      dds_DataWriter_get_offered_deadline_missed_status(topic_writer, &offered_deadline_missed);
-    rmw_ret_t from_dds = check_dds_ret_code(dds_return_code);
-    if (from_dds != RMW_RET_OK) {
-      return from_dds;
+    dds_OfferedDeadlineMissedStatus status;
+    dds_ReturnCode_t dds_ret =
+      dds_DataWriter_get_offered_deadline_missed_status(topic_writer, &status);
+    rmw_ret_t rmw_ret = check_dds_ret_code(dds_ret);
+    if (rmw_ret != RMW_RET_OK) {
+      return rmw_ret;
     }
 
-    auto rmw_offered_deadline_missed = static_cast<rmw_offered_deadline_missed_status_t *>(event);
-    rmw_offered_deadline_missed->total_count = offered_deadline_missed.total_count;
-    rmw_offered_deadline_missed->total_count_change = offered_deadline_missed.total_count_change;
+    auto rmw_status = static_cast<rmw_offered_deadline_missed_status_t *>(event);
+    rmw_status->total_count = status.total_count;
+    rmw_status->total_count_change = status.total_count_change;
+  } else if (mask == dds_OFFERED_INCOMPATIBLE_QOS_STATUS) {
+    dds_OfferedIncompatibleQosStatus status;
+    dds_ReturnCode_t dds_ret =
+      dds_DataWriter_get_offered_incompatible_qos_status(topic_writer, &status);
+    rmw_ret_t rmw_ret = check_dds_ret_code(dds_ret);
+    if (rmw_ret != RMW_RET_OK) {
+      return rmw_ret;
+    }
+
+    auto rmw_status = static_cast<rmw_offered_qos_incompatible_event_status_t *>(event);
+    rmw_status->total_count = status.total_count;
+    rmw_status->total_count_change = status.total_count_change;
+    rmw_status->last_policy_kind = convert_qos_policy(status.last_policy_id);
   } else {
     return RMW_RET_UNSUPPORTED;
   }
@@ -64,34 +78,46 @@ rmw_ret_t GurumddsSubscriberInfo::get_status(
   void * event)
 {
   if (mask == dds_LIVELINESS_CHANGED_STATUS) {
-    dds_LivelinessChangedStatus liveliness_changed;
-    dds_ReturnCode_t dds_return_code =
-      dds_DataReader_get_liveliness_changed_status(topic_reader, &liveliness_changed);
-    rmw_ret_t from_dds = check_dds_ret_code(dds_return_code);
-    if (from_dds != RMW_RET_OK) {
-      return from_dds;
+    dds_LivelinessChangedStatus status;
+    dds_ReturnCode_t dds_ret =
+      dds_DataReader_get_liveliness_changed_status(topic_reader, &status);
+    rmw_ret_t rmw_ret = check_dds_ret_code(dds_ret);
+    if (rmw_ret != RMW_RET_OK) {
+      return rmw_ret;
     }
 
-    auto rmw_liveliness_changed_status = static_cast<rmw_liveliness_changed_status_t *>(event);
-    rmw_liveliness_changed_status->alive_count = liveliness_changed.alive_count;
-    rmw_liveliness_changed_status->not_alive_count = liveliness_changed.not_alive_count;
-    rmw_liveliness_changed_status->alive_count_change = liveliness_changed.alive_count_change;
-    rmw_liveliness_changed_status->not_alive_count_change =
-      liveliness_changed.not_alive_count_change;
+    auto rmw_status = static_cast<rmw_liveliness_changed_status_t *>(event);
+    rmw_status->alive_count = status.alive_count;
+    rmw_status->not_alive_count = status.not_alive_count;
+    rmw_status->alive_count_change = status.alive_count_change;
+    rmw_status->not_alive_count_change =
+      status.not_alive_count_change;
   } else if (mask == dds_REQUESTED_DEADLINE_MISSED_STATUS) {
-    dds_RequestedDeadlineMissedStatus requested_deadline_missed;
-    dds_ReturnCode_t dds_return_code =
-      dds_DataReader_get_requested_deadline_missed_status(topic_reader, &requested_deadline_missed);
-    rmw_ret_t from_dds = check_dds_ret_code(dds_return_code);
-    if (from_dds != RMW_RET_OK) {
-      return from_dds;
+    dds_RequestedDeadlineMissedStatus status;
+    dds_ReturnCode_t dds_ret =
+      dds_DataReader_get_requested_deadline_missed_status(topic_reader, &status);
+    rmw_ret_t rmw_ret = check_dds_ret_code(dds_ret);
+    if (rmw_ret != RMW_RET_OK) {
+      return rmw_ret;
     }
 
-    auto rmw_requested_deadline_missed_status =
+    auto rmw_status =
       static_cast<rmw_requested_deadline_missed_status_t *>(event);
-    rmw_requested_deadline_missed_status->total_count = requested_deadline_missed.total_count;
-    rmw_requested_deadline_missed_status->total_count_change =
-      requested_deadline_missed.total_count_change;
+    rmw_status->total_count = status.total_count;
+    rmw_status->total_count_change = status.total_count_change;
+  } else if (mask == dds_REQUESTED_INCOMPATIBLE_QOS_STATUS) {
+    dds_RequestedIncompatibleQosStatus status;
+    dds_ReturnCode_t dds_ret =
+      dds_DataReader_get_requested_incompatible_qos_status(topic_reader, &status);
+    rmw_ret_t rmw_ret = check_dds_ret_code(dds_ret);
+    if (rmw_ret != RMW_RET_OK) {
+      return rmw_ret;
+    }
+
+    auto rmw_status = static_cast<rmw_requested_qos_incompatible_event_status_t *>(event);
+    rmw_status->total_count = status.total_count;
+    rmw_status->total_count_change = status.total_count_change;
+    rmw_status->last_policy_kind = convert_qos_policy(status.last_policy_id);
   } else {
     return RMW_RET_UNSUPPORTED;
   }
