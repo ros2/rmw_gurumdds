@@ -39,16 +39,19 @@
 rmw_node_t *
 shared__rmw_create_node(
   const char * implementation_identifier,
+  rmw_context_t * context,
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  const rmw_node_security_options_t * security_options,
   bool localhost_only)
 {
-  if (security_options == nullptr) {
-    RMW_SET_ERROR_MSG("security_options is null");
-    return nullptr;
-  }
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    context,
+    context->implementation_identifier,
+    implementation_identifier,
+    return NULL
+  );
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
   if (factory == nullptr) {
@@ -67,13 +70,14 @@ shared__rmw_create_node(
   // This is used to get node name from discovered participants
   std::string node_user_data =
     std::string("name=") + std::string(name) + std::string(";namespace=") +
-    std::string(namespace_) + std::string(";");
+    std::string(namespace_) + std::string(";securitycontext=") +
+    std::string(context->options.security_context) + std::string(";");
   if (node_user_data.size() > sizeof(participant_qos.user_data.value)) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_gurumdds_shared_cpp",
-      "node name and namespace are too long - "
-      "(strlen(name) + strlen(namespace_)) must be less than %zu",
-      sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;"));
+      "node name, namespace and security context are too long - "
+      "the sum of their lengths must be less than %zu",
+      sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;security_context=;"));
     return nullptr;
   }
 
@@ -162,6 +166,7 @@ shared__rmw_create_node(
 
   node_handle->implementation_identifier = implementation_identifier;
   node_handle->data = node_info;
+  node_handle->context = context;
 
   // set listeners
   builtin_subscriber = dds_DomainParticipant_get_builtin_subscriber(participant);
@@ -469,11 +474,12 @@ shared__rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 }
 
 rmw_ret_t
-shared__rmw_get_node_names(
+_get_node_names(
   const char * implementation_identifier,
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
-  rcutils_string_array_t * node_namespaces)
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * security_contexts)
 {
   if (node == nullptr) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -485,6 +491,12 @@ shared__rmw_get_node_names(
   }
 
   if (rmw_check_zero_rmw_string_array(node_namespaces) != RMW_RET_OK) {
+    return RMW_RET_ERROR;
+  }
+
+  if (security_contexts != nullptr &&
+    rmw_check_zero_rmw_string_array(security_contexts) != RMW_RET_OK)
+  {
     return RMW_RET_ERROR;
   }
 
@@ -522,31 +534,46 @@ shared__rmw_get_node_names(
   uint32_t length = dds_InstanceHandleSeq_length(handle_seq);
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
+  rmw_ret_t fail_ret = RMW_RET_ERROR;
+
   rcutils_string_array_t node_list = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t ns_list = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t sc_list = rcutils_get_zero_initialized_string_array();
+  int n = 0;
+
   rcutils_ret_t rcutils_ret = rcutils_string_array_init(&node_list, length, &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
-    dds_InstanceHandleSeq_delete(handle_seq);
-    return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    goto fail;
   }
 
-  rcutils_string_array_t ns_list = rcutils_get_zero_initialized_string_array();
   rcutils_ret = rcutils_string_array_init(&ns_list, length, &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
-    dds_InstanceHandleSeq_delete(handle_seq);
-    return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    goto fail;
   }
 
-  int n = 0;
+  if (security_contexts != nullptr) {
+    rcutils_ret = rcutils_string_array_init(&sc_list, length, &allocator);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
+      rcutils_reset_error();
+      fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+      goto fail;
+    }
+  }
+
   for (uint32_t i = 0; i < length; ++i) {
     dds_ParticipantBuiltinTopicData pbtd;
     dds_InstanceHandle_t handle = dds_InstanceHandleSeq_get(handle_seq, i);
     ret = dds_DomainParticipant_get_discovered_participant_data(participant, &pbtd, handle);
     std::string name;
     std::string namespace_;
+    std::string security_context;
     if (ret == dds_RETCODE_OK) {
       // Get node name and namespace from user_data
       uint8_t * data = pbtd.user_data.value;
@@ -554,6 +581,7 @@ shared__rmw_get_node_names(
       auto map = rmw::impl::cpp::parse_key_value(kv);
       auto name_found = map.find("name");
       auto ns_found = map.find("namespace");
+      auto sc_found = map.find("securitycontext");
 
       if (name_found != map.end()) {
         name = std::string(name_found->second.begin(), name_found->second.end());
@@ -561,6 +589,10 @@ shared__rmw_get_node_names(
 
       if (ns_found != map.end()) {
         namespace_ = std::string(ns_found->second.begin(), ns_found->second.end());
+      }
+
+      if (sc_found != map.end()) {
+        security_context = std::string(sc_found->second.begin(), sc_found->second.end());
       }
     }
 
@@ -571,15 +603,24 @@ shared__rmw_get_node_names(
     node_list.data[n] = rcutils_strdup(name.c_str(), allocator);
     if (node_list.data[n] == nullptr) {
       RMW_SET_ERROR_MSG("could not allocate memory for node name");
-      dds_InstanceHandleSeq_delete(handle_seq);
+      fail_ret = RMW_RET_BAD_ALLOC;
       goto fail;
     }
 
     ns_list.data[n] = rcutils_strdup(namespace_.c_str(), allocator);
     if (ns_list.data[n] == nullptr) {
       RMW_SET_ERROR_MSG("could not allocate memory for node namspace");
-      dds_InstanceHandleSeq_delete(handle_seq);
+      fail_ret = RMW_RET_BAD_ALLOC;
       goto fail;
+    }
+
+    if (security_contexts != nullptr) {
+      sc_list.data[n] = rcutils_strdup(security_context.c_str(), allocator);
+      if (sc_list.data[n] == nullptr) {
+        RMW_SET_ERROR_MSG("could not allocate memory for security context");
+        fail_ret = RMW_RET_BAD_ALLOC;
+        goto fail;
+      }
     }
 
     RCUTILS_LOG_DEBUG_NAMED(
@@ -588,11 +629,13 @@ shared__rmw_get_node_names(
     n++;
   }
   dds_InstanceHandleSeq_delete(handle_seq);
+  handle_seq = nullptr;
 
   rcutils_ret = rcutils_string_array_init(node_names, n, &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
+    fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
     goto fail;
   }
 
@@ -600,38 +643,78 @@ shared__rmw_get_node_names(
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
+    fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
     goto fail;
+  }
+
+  if (security_contexts != nullptr) {
+    rcutils_ret = rcutils_string_array_init(security_contexts, n, &allocator);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
+      rcutils_reset_error();
+      fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+      goto fail;
+    }
   }
 
   for (int i = 0; i < n; ++i) {
     node_names->data[i] = node_list.data[i];
     node_list.data[i] = nullptr;
-  }
-
-  for (int i = 0; i < n; ++i) {
     node_namespaces->data[i] = ns_list.data[i];
     ns_list.data[i] = nullptr;
+    if (security_contexts != nullptr) {
+      security_contexts->data[i] = sc_list.data[i];
+      sc_list.data[i] = nullptr;
+    }
+  }
+
+  rcutils_ret = rcutils_string_array_fini(&node_list);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_gurumdds_shared_cpp",
+      "failed to delete string array: %s", rcutils_get_error_string().str);
+    rcutils_reset_error();
+    fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    goto fail;
+  }
+
+  rcutils_ret = rcutils_string_array_fini(&ns_list);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_gurumdds_shared_cpp",
+      "failed to delete string array: %s", rcutils_get_error_string().str);
+    rcutils_reset_error();
+    fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    goto fail;
+  }
+
+  if (security_contexts != nullptr) {
+    rcutils_ret = rcutils_string_array_fini(&sc_list);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_gurumdds_shared_cpp",
+        "failed to delete string array: %s", rcutils_get_error_string().str);
+      rcutils_reset_error();
+      fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+      goto fail;
+    }
+  }
+
+  return RMW_RET_OK;
+
+fail:
+  if (handle_seq != nullptr) {
+    dds_InstanceHandleSeq_delete(handle_seq);
   }
 
   rcutils_ret = rcutils_string_array_fini(&node_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_gurumdds_cpp",
-      "failed to delete string array: %s", rcutils_get_error_string().str);
+      "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
     rcutils_reset_error();
   }
 
-  rcutils_ret = rcutils_string_array_fini(&ns_list);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rmw_gurumdds_cpp",
-      "failed to delete string array: %s", rcutils_get_error_string().str);
-    rcutils_reset_error();
-  }
-
-  return RMW_RET_OK;
-
-fail:
   rcutils_ret = rcutils_string_array_fini(&ns_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
@@ -640,7 +723,7 @@ fail:
     rcutils_reset_error();
   }
 
-  rcutils_ret = rcutils_string_array_fini(&node_list);
+  rcutils_ret = rcutils_string_array_fini(&sc_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_gurumdds_cpp",
@@ -668,5 +751,37 @@ fail:
     }
   }
 
-  return RMW_RET_BAD_ALLOC;
+  if (security_contexts != nullptr) {
+    rcutils_ret = rcutils_string_array_fini(security_contexts);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_gurumdds_cpp",
+        "failed to cleanup during error handling; %s", rcutils_get_error_string().str);
+      rcutils_reset_error();
+    }
+  }
+
+  return fail_ret;
+}
+
+rmw_ret_t
+shared__rmw_get_node_names(
+  const char * implementation_identifier,
+  const rmw_node_t * node,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces)
+{
+  return _get_node_names(implementation_identifier, node, node_names, node_namespaces, nullptr);
+}
+
+rmw_ret_t
+shared__rmw_get_node_names_with_security_contexts(
+  const char * implementation_identifier,
+  const rmw_node_t * node,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * security_contexts)
+{
+  return _get_node_names(
+    implementation_identifier, node, node_names, node_namespaces, security_contexts);
 }

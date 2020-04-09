@@ -15,6 +15,7 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
 
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_shared_cpp/dds_include.hpp"
@@ -32,6 +33,10 @@ rmw_init_options_init(rmw_init_options_t * init_options, rcutils_allocator_t all
   }
   init_options->instance_id = 0;
   init_options->implementation_identifier = gurum_gurumdds_identifier;
+  init_options->domain_id = RMW_DEFAULT_DOMAIN_ID;
+  init_options->security_options = rmw_get_zero_initialized_security_options();
+  init_options->localhost_only = RMW_LOCALHOST_ONLY_DEFAULT;
+  init_options->security_context = nullptr;
   init_options->allocator = allocator;
   init_options->impl = nullptr;
   return RMW_RET_OK;
@@ -51,8 +56,17 @@ rmw_init_options_copy(const rmw_init_options_t * src, rmw_init_options_t * dst)
     RMW_SET_ERROR_MSG("expected zero-initialized dst");
     return RMW_RET_INVALID_ARGUMENT;
   }
+
+  src->allocator.deallocate(dst->security_context, src->allocator.state);
+
   *dst = *src;
-  return RMW_RET_OK;
+  dst->security_options = rmw_get_zero_initialized_security_options();
+  dst->security_context = rcutils_strdup(src->security_context, src->allocator);
+  if (dst->security_context == nullptr && src->security_context != nullptr) {
+    return RMW_RET_BAD_ALLOC;
+  }
+
+  return rmw_security_options_copy(&src->security_options, &src->allocator, &dst->security_options);
 }
 
 rmw_ret_t
@@ -65,6 +79,8 @@ rmw_init_options_fini(rmw_init_options_t * init_options)
     init_options->implementation_identifier,
     gurum_gurumdds_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  init_options->allocator.deallocate(init_options->security_context, init_options->allocator.state);
+  rmw_security_options_fini(&init_options->security_options, &init_options->allocator);
   *init_options = rmw_get_zero_initialized_init_options();
   return RMW_RET_OK;
 }
@@ -82,6 +98,11 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   context->instance_id = options->instance_id;
   context->implementation_identifier = gurum_gurumdds_identifier;
   context->impl = nullptr;
+
+  rmw_ret_t ret = rmw_init_options_copy(options, &context->options);
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
 
   dds_DomainParticipantFactory * dpf = dds_DomainParticipantFactory_get_instance();
   if (dpf == nullptr) {

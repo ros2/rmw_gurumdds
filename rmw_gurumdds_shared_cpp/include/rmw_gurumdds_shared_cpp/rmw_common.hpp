@@ -44,10 +44,10 @@ RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_node_t *
 shared__rmw_create_node(
   const char * implementation_identifier,
+  rmw_context_t * context,
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  const rmw_node_security_options_t * security_options,
   bool localhost_only);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
@@ -67,6 +67,15 @@ shared__rmw_get_node_names(
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces);
+
+RMW_GURUMDDS_SHARED_CPP_PUBLIC
+rmw_ret_t
+shared__rmw_get_node_names_with_security_contexts(
+  const char * implementation_identifier,
+  const rmw_node_t * node,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * security_contexts);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t

@@ -42,7 +42,6 @@ rmw_create_node(
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  const rmw_node_security_options_t * security_options,
   bool localhost_only)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
@@ -52,7 +51,7 @@ rmw_create_node(
     gurum_gurumdds_identifier,
     return nullptr);
   return shared__rmw_create_node(
-    gurum_gurumdds_identifier, name, namespace_, domain_id, security_options, localhost_only);
+    gurum_gurumdds_identifier, context, name, namespace_, domain_id, localhost_only);
 }
 
 rmw_ret_t
@@ -80,5 +79,16 @@ rmw_get_node_names(
   rcutils_string_array_t * node_namespaces)
 {
   return shared__rmw_get_node_names(gurum_gurumdds_identifier, node, node_names, node_namespaces);
+}
+
+rmw_ret_t
+rmw_get_node_names_with_security_contexts(
+  const rmw_node_t * node,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * security_contexts)
+{
+  return shared__rmw_get_node_names_with_security_contexts(
+    gurum_gurumdds_identifier, node, node_names, node_namespaces, security_contexts);
 }
 }  // extern "C"
