@@ -70,12 +70,12 @@ shared__rmw_get_node_names(
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
-shared__rmw_get_node_names_with_security_contexts(
+shared__rmw_get_node_names_with_enclaves(
   const char * implementation_identifier,
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts);
+  rcutils_string_array_t * enclaves);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t

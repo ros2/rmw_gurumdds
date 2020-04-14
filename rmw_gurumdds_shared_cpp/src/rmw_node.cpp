@@ -71,13 +71,13 @@ shared__rmw_create_node(
   std::string node_user_data =
     std::string("name=") + std::string(name) + std::string(";namespace=") +
     std::string(namespace_) + std::string(";securitycontext=") +
-    std::string(context->options.security_context) + std::string(";");
+    std::string(context->options.enclave) + std::string(";");
   if (node_user_data.size() > sizeof(participant_qos.user_data.value)) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_gurumdds_shared_cpp",
       "node name, namespace and security context are too long - "
       "the sum of their lengths must be less than %zu",
-      sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;security_context=;"));
+      sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;enclave=;"));
     return nullptr;
   }
 
@@ -479,7 +479,7 @@ _get_node_names(
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts)
+  rcutils_string_array_t * enclaves)
 {
   if (node == nullptr) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -494,8 +494,8 @@ _get_node_names(
     return RMW_RET_ERROR;
   }
 
-  if (security_contexts != nullptr &&
-    rmw_check_zero_rmw_string_array(security_contexts) != RMW_RET_OK)
+  if (enclaves != nullptr &&
+    rmw_check_zero_rmw_string_array(enclaves) != RMW_RET_OK)
   {
     return RMW_RET_ERROR;
   }
@@ -538,7 +538,7 @@ _get_node_names(
 
   rcutils_string_array_t node_list = rcutils_get_zero_initialized_string_array();
   rcutils_string_array_t ns_list = rcutils_get_zero_initialized_string_array();
-  rcutils_string_array_t sc_list = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t enclave_list = rcutils_get_zero_initialized_string_array();
   int n = 0;
 
   rcutils_ret_t rcutils_ret = rcutils_string_array_init(&node_list, length, &allocator);
@@ -557,8 +557,8 @@ _get_node_names(
     goto fail;
   }
 
-  if (security_contexts != nullptr) {
-    rcutils_ret = rcutils_string_array_init(&sc_list, length, &allocator);
+  if (enclaves != nullptr) {
+    rcutils_ret = rcutils_string_array_init(&enclave_list, length, &allocator);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
       rcutils_reset_error();
@@ -573,7 +573,7 @@ _get_node_names(
     ret = dds_DomainParticipant_get_discovered_participant_data(participant, &pbtd, handle);
     std::string name;
     std::string namespace_;
-    std::string security_context;
+    std::string enclave;
     if (ret == dds_RETCODE_OK) {
       // Get node name and namespace from user_data
       uint8_t * data = pbtd.user_data.value;
@@ -581,7 +581,7 @@ _get_node_names(
       auto map = rmw::impl::cpp::parse_key_value(kv);
       auto name_found = map.find("name");
       auto ns_found = map.find("namespace");
-      auto sc_found = map.find("securitycontext");
+      auto enclave_found = map.find("securitycontext");
 
       if (name_found != map.end()) {
         name = std::string(name_found->second.begin(), name_found->second.end());
@@ -591,8 +591,8 @@ _get_node_names(
         namespace_ = std::string(ns_found->second.begin(), ns_found->second.end());
       }
 
-      if (sc_found != map.end()) {
-        security_context = std::string(sc_found->second.begin(), sc_found->second.end());
+      if (enclave_found != map.end()) {
+        enclave = std::string(enclave_found->second.begin(), enclave_found->second.end());
       }
     }
 
@@ -614,9 +614,9 @@ _get_node_names(
       goto fail;
     }
 
-    if (security_contexts != nullptr) {
-      sc_list.data[n] = rcutils_strdup(security_context.c_str(), allocator);
-      if (sc_list.data[n] == nullptr) {
+    if (enclaves != nullptr) {
+      enclave_list.data[n] = rcutils_strdup(enclave.c_str(), allocator);
+      if (enclave_list.data[n] == nullptr) {
         RMW_SET_ERROR_MSG("could not allocate memory for security context");
         fail_ret = RMW_RET_BAD_ALLOC;
         goto fail;
@@ -647,8 +647,8 @@ _get_node_names(
     goto fail;
   }
 
-  if (security_contexts != nullptr) {
-    rcutils_ret = rcutils_string_array_init(security_contexts, n, &allocator);
+  if (enclaves != nullptr) {
+    rcutils_ret = rcutils_string_array_init(enclaves, n, &allocator);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
       rcutils_reset_error();
@@ -662,9 +662,9 @@ _get_node_names(
     node_list.data[i] = nullptr;
     node_namespaces->data[i] = ns_list.data[i];
     ns_list.data[i] = nullptr;
-    if (security_contexts != nullptr) {
-      security_contexts->data[i] = sc_list.data[i];
-      sc_list.data[i] = nullptr;
+    if (enclaves != nullptr) {
+      enclaves->data[i] = enclave_list.data[i];
+      enclave_list.data[i] = nullptr;
     }
   }
 
@@ -688,8 +688,8 @@ _get_node_names(
     goto fail;
   }
 
-  if (security_contexts != nullptr) {
-    rcutils_ret = rcutils_string_array_fini(&sc_list);
+  if (enclaves != nullptr) {
+    rcutils_ret = rcutils_string_array_fini(&enclave_list);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_gurumdds_shared_cpp",
@@ -723,7 +723,7 @@ fail:
     rcutils_reset_error();
   }
 
-  rcutils_ret = rcutils_string_array_fini(&sc_list);
+  rcutils_ret = rcutils_string_array_fini(&enclave_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_gurumdds_cpp",
@@ -751,8 +751,8 @@ fail:
     }
   }
 
-  if (security_contexts != nullptr) {
-    rcutils_ret = rcutils_string_array_fini(security_contexts);
+  if (enclaves != nullptr) {
+    rcutils_ret = rcutils_string_array_fini(enclaves);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_gurumdds_cpp",
@@ -775,13 +775,13 @@ shared__rmw_get_node_names(
 }
 
 rmw_ret_t
-shared__rmw_get_node_names_with_security_contexts(
+shared__rmw_get_node_names_with_enclaves(
   const char * implementation_identifier,
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts)
+  rcutils_string_array_t * enclaves)
 {
   return _get_node_names(
-    implementation_identifier, node, node_names, node_namespaces, security_contexts);
+    implementation_identifier, node, node_names, node_namespaces, enclaves);
 }

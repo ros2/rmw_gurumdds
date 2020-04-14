@@ -36,7 +36,7 @@ rmw_init_options_init(rmw_init_options_t * init_options, rcutils_allocator_t all
   init_options->domain_id = RMW_DEFAULT_DOMAIN_ID;
   init_options->security_options = rmw_get_zero_initialized_security_options();
   init_options->localhost_only = RMW_LOCALHOST_ONLY_DEFAULT;
-  init_options->security_context = nullptr;
+  init_options->enclave = nullptr;
   init_options->allocator = allocator;
   init_options->impl = nullptr;
   return RMW_RET_OK;
@@ -57,12 +57,12 @@ rmw_init_options_copy(const rmw_init_options_t * src, rmw_init_options_t * dst)
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  src->allocator.deallocate(dst->security_context, src->allocator.state);
+  src->allocator.deallocate(dst->enclave, src->allocator.state);
 
   *dst = *src;
   dst->security_options = rmw_get_zero_initialized_security_options();
-  dst->security_context = rcutils_strdup(src->security_context, src->allocator);
-  if (dst->security_context == nullptr && src->security_context != nullptr) {
+  dst->enclave = rcutils_strdup(src->enclave, src->allocator);
+  if (dst->enclave == nullptr && src->enclave != nullptr) {
     return RMW_RET_BAD_ALLOC;
   }
 
@@ -79,7 +79,7 @@ rmw_init_options_fini(rmw_init_options_t * init_options)
     init_options->implementation_identifier,
     gurum_gurumdds_dynamic_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  init_options->allocator.deallocate(init_options->security_context, init_options->allocator.state);
+  init_options->allocator.deallocate(init_options->enclave, init_options->allocator.state);
   rmw_security_options_fini(&init_options->security_options, &init_options->allocator);
   *init_options = rmw_get_zero_initialized_init_options();
   return RMW_RET_OK;
