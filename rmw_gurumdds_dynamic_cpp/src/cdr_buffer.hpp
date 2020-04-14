@@ -19,10 +19,10 @@
 #include <string>
 #include <stdexcept>
 
-#include "rosidl_generator_c/string.h"
-#include "rosidl_generator_c/string_functions.h"
-#include "rosidl_generator_c/u16string.h"
-#include "rosidl_generator_c/u16string_functions.h"
+#include "rosidl_runtime_c/string.h"
+#include "rosidl_runtime_c/string_functions.h"
+#include "rosidl_runtime_c/u16string.h"
+#include "rosidl_runtime_c/u16string_functions.h"
 
 #define CDR_BIG_ENDIAN 0
 #define CDR_LITTLE_ENDIAN 1
@@ -168,7 +168,7 @@ public:
     advance((src.size() + 1) * 4);
   }
 
-  void operator<<(rosidl_generator_c__String src)
+  void operator<<(rosidl_runtime_c__String src)
   {
     *this << static_cast<uint32_t>(src.size + 1);
     align(1);  // align of char
@@ -181,7 +181,7 @@ public:
     advance(src.size + 1);
   }
 
-  void operator<<(rosidl_generator_c__U16String src)
+  void operator<<(rosidl_runtime_c__U16String src)
   {
     *this << static_cast<uint32_t>(src.size + 1);
     align(4);  // align of wchar
@@ -346,7 +346,7 @@ public:
     advance(str_size * 4);
   }
 
-  void operator>>(rosidl_generator_c__String & dst)
+  void operator>>(rosidl_runtime_c__String & dst)
   {
     uint32_t str_size = 0;
     *this >> str_size;
@@ -358,7 +358,7 @@ public:
       if (offset + str_size > size) {
         throw std::runtime_error("Out of buffer");
       }
-      rosidl_generator_c__String__assignn(
+      rosidl_runtime_c__String__assignn(
         &dst,
         reinterpret_cast<const char *>(buf + offset),
         str_size - 1
@@ -367,7 +367,7 @@ public:
     advance(str_size);
   }
 
-  void operator>>(rosidl_generator_c__U16String & dst)
+  void operator>>(rosidl_runtime_c__U16String & dst)
   {
     uint32_t str_size = 0;
     *this >> str_size;
@@ -379,7 +379,7 @@ public:
       if (offset + str_size * 4 > size) {
         throw std::runtime_error("Out of buffer");
       }
-      bool res = rosidl_generator_c__U16String__resize(&dst, str_size - 1);
+      bool res = rosidl_runtime_c__U16String__resize(&dst, str_size - 1);
       if (!res) {
         throw std::runtime_error("Failed to resize wstring");
       }

@@ -26,7 +26,7 @@
     if (member->is_array_) { \
       if (!member->array_size_ || member->is_upper_bound_) { \
         auto seq = \
-          *(reinterpret_cast<const rosidl_generator_c__uint ## SIZE ## __Sequence *>( \
+          *(reinterpret_cast<const rosidl_runtime_c__uint ## SIZE ## __Sequence *>( \
             input + member->offset_)); \
         buffer << static_cast<const uint32_t>(seq.size); \
  \
@@ -54,12 +54,12 @@
         buffer >> size; \
  \
         auto seq_ptr = \
-          (reinterpret_cast<rosidl_generator_c__uint ## SIZE ## __Sequence *>( \
+          (reinterpret_cast<rosidl_runtime_c__uint ## SIZE ## __Sequence *>( \
             output + member->offset_)); \
         if (seq_ptr->data) { \
-          rosidl_generator_c__uint ## SIZE ## __Sequence__fini(seq_ptr); \
+          rosidl_runtime_c__uint ## SIZE ## __Sequence__fini(seq_ptr); \
         } \
-        bool res = rosidl_generator_c__uint ## SIZE ## __Sequence__init(seq_ptr, size); \
+        bool res = rosidl_runtime_c__uint ## SIZE ## __Sequence__init(seq_ptr, size); \
         if (!res) { \
           throw std::runtime_error("Failed to initialize sequence"); \
         } \
@@ -214,7 +214,7 @@ void MessageSerializer::serialize_boolean(
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__boolean__Sequence *>(input + member->offset_));
+        *(reinterpret_cast<const rosidl_runtime_c__boolean__Sequence *>(input + member->offset_));
       buffer << static_cast<const uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
@@ -242,7 +242,7 @@ void MessageSerializer::serialize_wchar(
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__wchar__Sequence *>(input + member->offset_));
+        *(reinterpret_cast<const rosidl_runtime_c__wchar__Sequence *>(input + member->offset_));
       buffer << static_cast<const uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
@@ -264,7 +264,7 @@ void MessageSerializer::serialize_string(
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__String__Sequence *>(input + member->offset_));
+        *(reinterpret_cast<const rosidl_runtime_c__String__Sequence *>(input + member->offset_));
       buffer << static_cast<const uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
@@ -274,11 +274,11 @@ void MessageSerializer::serialize_string(
       // Array
       for (uint32_t i = 0; i < member->array_size_; i++) {
         buffer <<
-          *(reinterpret_cast<const rosidl_generator_c__String *>(input + member->offset_) + i);
+          *(reinterpret_cast<const rosidl_runtime_c__String *>(input + member->offset_) + i);
       }
     }
   } else {
-    buffer << *(reinterpret_cast<const rosidl_generator_c__String *>(input + member->offset_));
+    buffer << *(reinterpret_cast<const rosidl_runtime_c__String *>(input + member->offset_));
   }
 }
 
@@ -291,7 +291,7 @@ void MessageSerializer::serialize_wstring(
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       auto seq =
-        *(reinterpret_cast<const rosidl_generator_c__U16String__Sequence *>(
+        *(reinterpret_cast<const rosidl_runtime_c__U16String__Sequence *>(
           input + member->offset_));
       buffer << static_cast<const uint32_t>(seq.size);
 
@@ -302,11 +302,11 @@ void MessageSerializer::serialize_wstring(
       // Array
       for (uint32_t i = 0; i < member->array_size_; i++) {
         buffer <<
-          *(reinterpret_cast<const rosidl_generator_c__U16String *>(input + member->offset_) + i);
+          *(reinterpret_cast<const rosidl_runtime_c__U16String *>(input + member->offset_) + i);
       }
     }
   } else {
-    buffer << *(reinterpret_cast<const rosidl_generator_c__U16String *>(input + member->offset_));
+    buffer << *(reinterpret_cast<const rosidl_runtime_c__U16String *>(input + member->offset_));
   }
 }
 
@@ -512,12 +512,12 @@ void MessageDeserializer::deserialize_boolean(
       buffer >> size;
 
       auto seq_ptr =
-        (reinterpret_cast<rosidl_generator_c__boolean__Sequence *>(
+        (reinterpret_cast<rosidl_runtime_c__boolean__Sequence *>(
           output + member->offset_));
       if (seq_ptr->data) {
-        rosidl_generator_c__boolean__Sequence__fini(seq_ptr);
+        rosidl_runtime_c__boolean__Sequence__fini(seq_ptr);
       }
-      bool res = rosidl_generator_c__boolean__Sequence__init(seq_ptr, size);
+      bool res = rosidl_runtime_c__boolean__Sequence__init(seq_ptr, size);
       if (!res) {
         throw std::runtime_error("Failed to initialize sequence");
       }
@@ -555,11 +555,11 @@ void MessageDeserializer::deserialize_wchar(
       buffer >> size;
 
       auto seq_ptr =
-        (reinterpret_cast<rosidl_generator_c__wchar__Sequence *>(output + member->offset_));
+        (reinterpret_cast<rosidl_runtime_c__wchar__Sequence *>(output + member->offset_));
       if (seq_ptr->data) {
-        rosidl_generator_c__wchar__Sequence__fini(seq_ptr);
+        rosidl_runtime_c__wchar__Sequence__fini(seq_ptr);
       }
-      bool res = rosidl_generator_c__wchar__Sequence__init(seq_ptr, size);
+      bool res = rosidl_runtime_c__wchar__Sequence__init(seq_ptr, size);
       if (!res) {
         throw std::runtime_error("Failed to initialize sequence");
       }
@@ -597,28 +597,28 @@ void MessageDeserializer::deserialize_string(
       buffer >> size;
 
       auto seq_ptr =
-        (reinterpret_cast<rosidl_generator_c__String__Sequence *>(output + member->offset_));
+        (reinterpret_cast<rosidl_runtime_c__String__Sequence *>(output + member->offset_));
       if (seq_ptr->data) {
-        rosidl_generator_c__String__Sequence__fini(seq_ptr);
+        rosidl_runtime_c__String__Sequence__fini(seq_ptr);
       }
-      bool res = rosidl_generator_c__String__Sequence__init(seq_ptr, size);
+      bool res = rosidl_runtime_c__String__Sequence__init(seq_ptr, size);
       if (!res) {
         throw std::runtime_error("Failed to initialize sequence");
       }
 
       for (uint32_t i = 0; i < size; i++) {
         if (seq_ptr->data[i].data == nullptr) {
-          if (!rosidl_generator_c__String__init(&seq_ptr->data[i])) {
+          if (!rosidl_runtime_c__String__init(&seq_ptr->data[i])) {
             throw std::runtime_error("Failed to initialize string");
           }
         }
         buffer >> seq_ptr->data[i];
       }
     } else {
-      auto arr = reinterpret_cast<rosidl_generator_c__String *>(output + member->offset_);
+      auto arr = reinterpret_cast<rosidl_runtime_c__String *>(output + member->offset_);
       for (uint32_t i = 0; i < member->array_size_; i++) {
         if (arr == nullptr) {
-          if (!rosidl_generator_c__String__init(&arr[i])) {
+          if (!rosidl_runtime_c__String__init(&arr[i])) {
             throw std::runtime_error("Failed to initialize string");
           }
         }
@@ -626,9 +626,9 @@ void MessageDeserializer::deserialize_string(
       }
     }
   } else {
-    auto dst = reinterpret_cast<rosidl_generator_c__String *>(output + member->offset_);
+    auto dst = reinterpret_cast<rosidl_runtime_c__String *>(output + member->offset_);
     if (dst->data == nullptr) {
-      if (!rosidl_generator_c__String__init(dst)) {
+      if (!rosidl_runtime_c__String__init(dst)) {
         throw std::runtime_error("Failed to initialize string");
       }
     }
@@ -648,29 +648,29 @@ void MessageDeserializer::deserialize_wstring(
       buffer >> size;
 
       auto seq_ptr =
-        (reinterpret_cast<rosidl_generator_c__U16String__Sequence *>(
+        (reinterpret_cast<rosidl_runtime_c__U16String__Sequence *>(
           output + member->offset_));
       if (seq_ptr->data) {
-        rosidl_generator_c__U16String__Sequence__fini(seq_ptr);
+        rosidl_runtime_c__U16String__Sequence__fini(seq_ptr);
       }
-      bool res = rosidl_generator_c__U16String__Sequence__init(seq_ptr, size);
+      bool res = rosidl_runtime_c__U16String__Sequence__init(seq_ptr, size);
       if (!res) {
         throw std::runtime_error("Failed to initialize sequence");
       }
 
       for (uint32_t i = 0; i < size; i++) {
         if (seq_ptr->data[i].data == nullptr) {
-          if (!rosidl_generator_c__U16String__init(&seq_ptr->data[i])) {
+          if (!rosidl_runtime_c__U16String__init(&seq_ptr->data[i])) {
             throw std::runtime_error("Failed to initialize string");
           }
         }
         buffer >> seq_ptr->data[i];
       }
     } else {
-      auto arr = reinterpret_cast<rosidl_generator_c__U16String *>(output + member->offset_);
+      auto arr = reinterpret_cast<rosidl_runtime_c__U16String *>(output + member->offset_);
       for (uint32_t i = 0; i < member->array_size_; i++) {
         if (arr == nullptr) {
-          if (!rosidl_generator_c__U16String__init(&arr[i])) {
+          if (!rosidl_runtime_c__U16String__init(&arr[i])) {
             throw std::runtime_error("Failed to initialize string");
           }
         }
@@ -678,9 +678,9 @@ void MessageDeserializer::deserialize_wstring(
       }
     }
   } else {
-    auto dst = reinterpret_cast<rosidl_generator_c__U16String *>(output + member->offset_);
+    auto dst = reinterpret_cast<rosidl_runtime_c__U16String *>(output + member->offset_);
     if (dst->data == nullptr) {
-      if (!rosidl_generator_c__U16String__init(dst)) {
+      if (!rosidl_runtime_c__U16String__init(dst)) {
         throw std::runtime_error("Failed to initialize string");
       }
     }

@@ -44,8 +44,8 @@ endif()
 
 find_package(rmw REQUIRED)
 find_package(rmw_gurumdds_shared_cpp REQUIRED)
-find_package(rosidl_generator_c REQUIRED)
-find_package(rosidl_generator_cpp REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
+find_package(rosidl_runtime_cpp REQUIRED)
 
 include_directories(include)
 
@@ -85,8 +85,8 @@ ament_target_dependencies(rmw_gurumdds_cpp
   "rosidl_typesupport_gurumdds_cpp"
   "rmw_gurumdds_shared_cpp"
   "rmw"
-  "rosidl_generator_c"
-  "rosidl_generator_cpp"
+  "rosidl_runtime_c"
+  "rosidl_runtime_cpp"
   "GurumDDS")
 
 ament_export_include_directories(include)
@@ -95,8 +95,8 @@ ament_export_libraries(rmw_gurumdds_cpp)
 ament_export_dependencies(
   rosidl_typesupport_gurumdds_cpp
   rosidl_typesupport_gurumdds_c
-  rosidl_generator_c
-  rosidl_generator_cpp
+  rosidl_runtime_c
+  rosidl_runtime_cpp
   rcutils
   rmw_gurumdds_shared_cpp
   rmw
