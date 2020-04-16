@@ -112,24 +112,7 @@ private:
   template<typename PrimitiveT, typename MessageMemberT>
   void serialize_primitive(
     const MessageMemberT * member,
-    const uint8_t * input)
-  {
-    if (member->is_array_) {
-      if (!member->array_size_ || member->is_upper_bound_) {
-        // Sequence
-        buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
-      }
-
-      buffer.copy_arr(
-        reinterpret_cast<const PrimitiveT *>(
-          member->get_const_function(input + member->offset_, 0)
-        ),
-        member->size_function(input + member->offset_)
-      );
-    } else {
-      buffer << *(reinterpret_cast<const PrimitiveT *>(input + member->offset_));
-    }
-  }
+    const uint8_t * input);
 
   template<typename MessageMemberT>
   void serialize_struct_arr(
@@ -220,26 +203,7 @@ private:
   template<typename PrimitiveT, typename MessageMemberT>
   void deserialize_primitive(
     const MessageMemberT * member,
-    uint8_t * output)
-  {
-    if (member->is_array_) {
-      if (!member->array_size_ || member->is_upper_bound_) {
-        // Sequence
-        uint32_t size = 0;
-        buffer >> size;
-        member->resize_function(output + member->offset_, static_cast<size_t>(size));
-      }
-
-      buffer.copy_arr(
-        reinterpret_cast<PrimitiveT *>(
-          member->get_function(output + member->offset_, 0)
-        ),
-        member->size_function(output + member->offset_)
-      );
-    } else {
-      buffer >> *(reinterpret_cast<PrimitiveT *>(output + member->offset_));
-    }
-  }
+    uint8_t * output);
 
   template<typename MessageMemberT>
   void deserialize_struct_arr(

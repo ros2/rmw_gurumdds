@@ -76,6 +76,57 @@
     } \
   } \
 
+#define SERIALIZER_CPP_SERIALIZE_PRIMITIVE(SIZE) \
+  template<> \
+  void MessageSerializer::serialize_primitive<uint ## SIZE ## _t>( \
+    const rosidl_typesupport_introspection_cpp::MessageMember * member, \
+    const uint8_t * input) \
+  { \
+    if (member->is_array_) { \
+      if (!member->array_size_ || member->is_upper_bound_) { \
+        buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_)); \
+      } \
+ \
+      buffer.copy_arr( \
+        reinterpret_cast<const uint ## SIZE ## _t *>( \
+          member->get_const_function(input + member->offset_, 0) \
+        ), \
+        member->size_function(input + member->offset_) \
+      ); \
+    } else { \
+      buffer << *(reinterpret_cast<const uint ## SIZE ## _t *>(input + member->offset_)); \
+    } \
+  }
+
+#define DESERIALIZER_CPP_DESERIALIZE_PRIMITIVE(SIZE) \
+  template<> \
+  void MessageDeserializer::deserialize_primitive<uint ## SIZE ## _t>( \
+    const rosidl_typesupport_introspection_cpp::MessageMember * member, \
+    uint8_t * output) \
+  { \
+    if (member->is_array_) { \
+      if (!member->array_size_ || member->is_upper_bound_) { \
+        uint32_t size = 0; \
+        buffer >> size; \
+        member->resize_function(output + member->offset_, static_cast<size_t>(size)); \
+      } \
+   \
+      buffer.copy_arr( \
+        reinterpret_cast<uint ## SIZE ## _t *>( \
+          member->get_function(output + member->offset_, 0) \
+        ), \
+        member->size_function(output + member->offset_) \
+      ); \
+    } else { \
+      buffer >> *(reinterpret_cast<uint ## SIZE ## _t *>(output + member->offset_)); \
+    } \
+  }
+
+SERIALIZER_CPP_SERIALIZE_PRIMITIVE(8)
+SERIALIZER_CPP_SERIALIZE_PRIMITIVE(16)
+SERIALIZER_CPP_SERIALIZE_PRIMITIVE(32)
+SERIALIZER_CPP_SERIALIZE_PRIMITIVE(64)
+
 template<>
 void MessageSerializer::serialize_boolean(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
@@ -357,6 +408,11 @@ void MessageSerializer::serialize_struct_arr(
 
 // ================================================================================================
 
+
+DESERIALIZER_CPP_DESERIALIZE_PRIMITIVE(8)
+DESERIALIZER_CPP_DESERIALIZE_PRIMITIVE(16)
+DESERIALIZER_CPP_DESERIALIZE_PRIMITIVE(32)
+DESERIALIZER_CPP_DESERIALIZE_PRIMITIVE(64)
 
 template<>
 void MessageDeserializer::deserialize_boolean(
