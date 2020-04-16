@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.5 (2020-04-16)
+------------------
+* Fixed template specialization
+* Contributors: junho
+
 0.7.4 (2020-04-01)
 ------------------
 * Fixed serialization/deserialization errors
