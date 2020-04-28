@@ -30,7 +30,7 @@ extern "C"
 rmw_ret_t
 rmw_take_response(
   const rmw_client_t * client,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_response,
   bool * taken)
 {
@@ -143,8 +143,13 @@ rmw_take_response(
     }
 
     if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
-      request_header->sequence_number = sequence_number;
-      memcpy(request_header->writer_guid, client_guid, 16);
+      request_header->source_timestamp =
+        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->source_timestamp.nanosec;
+      // TODO(clemjh): SampleInfo doesn't contain received_timestamp
+      request_header->received_timestamp = 0;
+      request_header->request_id.sequence_number = sequence_number;
+      memcpy(request_header->request_id.writer_guid, client_guid, 16);
 
       *taken = true;
     }
