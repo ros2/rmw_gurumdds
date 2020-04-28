@@ -662,6 +662,11 @@ _take(
     *taken = true;
 
     if (message_info != nullptr) {
+      message_info->source_timestamp =
+        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->source_timestamp.nanosec;
+      // TODO(clemjh): SampleInfo doesn't contain received_timestamp
+      message_info->received_timestamp = 0;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
       sender_gid->implementation_identifier = identifier;
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
@@ -836,6 +841,11 @@ _take_serialized(
     *taken = true;
 
     if (message_info != nullptr) {
+      message_info->source_timestamp =
+        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->source_timestamp.nanosec;
+      // TODO(clemjh): SampleInfo doesn't contain received_timestamp
+      message_info->received_timestamp = 0;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
       sender_gid->implementation_identifier = identifier;
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
