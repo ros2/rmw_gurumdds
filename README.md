@@ -3,7 +3,17 @@ Implementation of the ROS middleware interface using [GurumNetworks GurumDDS](ht
 
 ## Requirements
 This project requires `rosidl_typesupport_gurumdds` to be built. For more information, see README.md of the [project](https://github.com/ros2/rosidl_typesupport_gurumdds).
-For version 0.8.3, this project requires GurumDDS 2.5.1861 or higher. For version lower than 0.8.2, version of GurumDDS is irrelevant.
+
++--------------+---------------------------+
+| rmw_gurumdds |         GurumDDS          |
++--------------+---------------------------+
+|0.8.5         |2.6.1875 or higher         |
++--------------+---------------------------+
+|0.8.4         |2.5.x, higher than 2.5.1861|
+|0.8.3         |                           |
++--------------+---------------------------+
+|0.8.2 or lower|2.5.x                      |
++--------------+---------------------------+
 
 ## Packages
 This project consists of four packages, `rmw_gurumdds_cpp`, `rmw_gurumdds_dynamic_cpp`, `rmw_gurumdds_shared_cpp` and `demo_nodes_cpp_native_gurumdds`.
