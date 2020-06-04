@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.6 (2020-06-04)
+------------------
+* Updated packages to use gurumdds-2.6
+* Contributors: junho
+
 0.7.5 (2020-04-16)
 ------------------
 
