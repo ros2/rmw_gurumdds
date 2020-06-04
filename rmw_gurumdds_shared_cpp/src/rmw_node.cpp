@@ -430,37 +430,6 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
   return RMW_RET_OK;
 }
 
-rmw_ret_t
-shared__rmw_node_assert_liveliness(
-  const char * implementation_identifier,
-  const rmw_node_t * node)
-{
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node handle,
-    node->implementation_identifier,
-    implementation_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
-
-  auto node_info = static_cast<GurumddsNodeInfo *>(node->data);
-  if (node_info == nullptr) {
-    RMW_SET_ERROR_MSG("node info handle is null");
-    return RMW_RET_ERROR;
-  }
-
-  if (node_info->participant == nullptr) {
-    RMW_SET_ERROR_MSG("node internal participant is invalid");
-    return RMW_RET_ERROR;
-  }
-
-  if (dds_DomainParticipant_assert_liveliness(node_info->participant) != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to assert liveliness of participant");
-    return RMW_RET_ERROR;
-  }
-
-  return RMW_RET_OK;
-}
-
 const rmw_guard_condition_t *
 shared__rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 {

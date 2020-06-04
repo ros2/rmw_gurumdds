@@ -405,9 +405,6 @@ rmw_subscription_get_actual_qos(
     case dds_AUTOMATIC_LIVELINESS_QOS:
       qos->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
       break;
-    case dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS:
-      qos->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
-      break;
     case dds_MANUAL_BY_TOPIC_LIVELINESS_QOS:
       qos->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
       break;

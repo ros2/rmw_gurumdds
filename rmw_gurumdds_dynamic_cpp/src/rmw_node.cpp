@@ -60,12 +60,6 @@ rmw_destroy_node(rmw_node_t * node)
   return shared__rmw_destroy_node(gurum_gurumdds_dynamic_identifier, node);
 }
 
-rmw_ret_t
-rmw_node_assert_liveliness(const rmw_node_t * node)
-{
-  return shared__rmw_node_assert_liveliness(gurum_gurumdds_dynamic_identifier, node);
-}
-
 const rmw_guard_condition_t *
 rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 {

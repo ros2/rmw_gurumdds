@@ -98,9 +98,6 @@ set_entity_qos_from_profile_generic(
     case RMW_QOS_POLICY_LIVELINESS_AUTOMATIC:
       entity_qos->liveliness.kind = dds_AUTOMATIC_LIVELINESS_QOS;
       break;
-    case RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE:
-      entity_qos->liveliness.kind = dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS;
-      break;
     case RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC:
       entity_qos->liveliness.kind = dds_MANUAL_BY_TOPIC_LIVELINESS_QOS;
       break;
@@ -218,8 +215,6 @@ convert_liveliness(
   switch (policy.kind) {
     case dds_AUTOMATIC_LIVELINESS_QOS:
       return RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-    case dds_MANUAL_BY_PARTICIPANT_LIVELINESS_QOS:
-      return RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
     case dds_MANUAL_BY_TOPIC_LIVELINESS_QOS:
       return RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
     default:
