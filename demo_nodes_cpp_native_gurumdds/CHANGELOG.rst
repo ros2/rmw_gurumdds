@@ -2,6 +2,11 @@
 Changelog for package demo_nodes_cpp_native_gurumdds
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-06-04)
+------------------
+* Minor refactoring
+* Contributors: junho
+
 0.8.2 (2019-12-19)
 ------------------
 

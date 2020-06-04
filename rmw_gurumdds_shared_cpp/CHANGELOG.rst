@@ -2,6 +2,25 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-06-04)
+------------------
+* MANUAL_BY_NODE liveliness is deprecated
+* Updated packages to use gurumdds-2.6
+* security_context is renamed to enclave
+* Added incompatible qos support
+* Apply one participant per context API changes
+* Fixed some errors
+  * added missing qos finalization
+  * fixed issue that topic endpoint info was not handled correctly
+  * added null check to builtin datareader callbacks
+* Fixed missing string array finalization
+* Added event init functions
+* Follow changes made to rmw_topic_endpoint_info_array
+* Minor refactoring
+* Fixed some errors
+* Implemented rmw_get_publishers/subscriptions_info_by_topic()
+* Contributors: junho
+
 0.8.2 (2019-12-19)
 ------------------
 * updated packages to use gurumdds-2.5

@@ -2,6 +2,34 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-06-04)
+------------------
+* MANUAL_BY_NODE liveliness is deprecated
+* Updated packages to use gurumdds-2.6
+* Replaced rosidl_message_bounds_t with rosidl_runtime_c__Sequence__bound
+* Replaced rmw_request_id_t with rmw_service_info_t
+* Added rmw_take_sequence()
+* Fill timestamps in message info
+* security_context is renamed to enclave
+* Replaced rosidl_generator\_* with rosidl_runtime\_*
+* Added incompatible qos support
+* Apply one participant per context API changes
+* Fixed some errors
+  * added missing qos finalization
+  * fixed issue that topic endpoint info was not handled correctly
+  * added null check to builtin datareader callbacks
+* Added qos finalization after creating publisher/subscriber
+* Added event init functions
+* Implemented client
+* Implemented service
+* Implemented subscription
+* Implemented publisher
+* added rmw_gurumdds_dynamic_cpp
+* Minor refactoring
+* Fixed some errors
+* Implemented rmw_get_publishers/subscriptions_info_by_topic()
+* Contributors: junho
+
 0.8.2 (2019-12-19)
 ------------------
 * updated packages to use gurumdds-2.5
