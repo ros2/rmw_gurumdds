@@ -12,12 +12,12 @@
 
   <buildtool_export_depend>ament_cmake</buildtool_export_depend>
 
-  <build_depend>gurumdds-2.5</build_depend>
+  <build_depend>gurumdds-2.6</build_depend>
   <build_depend>gurumdds_cmake_module</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rmw</build_depend>
 
-  <build_export_depend>gurumdds-2.5</build_export_depend>
+  <build_export_depend>gurumdds-2.6</build_export_depend>
   <build_export_depend>gurumdds_cmake_module</build_export_depend>
 
   <test_depend>ament_lint_auto</test_depend>
