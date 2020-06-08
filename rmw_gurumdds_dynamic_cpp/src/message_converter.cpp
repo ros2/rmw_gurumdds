@@ -28,7 +28,7 @@
         auto seq = \
           *(reinterpret_cast<const rosidl_runtime_c__uint ## SIZE ## __Sequence *>( \
             input + member->offset_)); \
-        buffer << static_cast<const uint32_t>(seq.size); \
+        buffer << static_cast<uint32_t>(seq.size); \
  \
         buffer.copy_arr(seq.data, seq.size); \
       } else { \
@@ -84,7 +84,7 @@
   { \
     if (member->is_array_) { \
       if (!member->array_size_ || member->is_upper_bound_) { \
-        buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_)); \
+        buffer << static_cast<uint32_t>(member->size_function(input + member->offset_)); \
       } \
  \
       buffer.copy_arr( \
@@ -137,9 +137,9 @@ void MessageSerializer::serialize_boolean(
       // Sequence
       auto vec =
         *(reinterpret_cast<const std::vector<bool> *>(input + member->offset_));
-      buffer << static_cast<const uint32_t>(vec.size());
+      buffer << static_cast<uint32_t>(vec.size());
       for (const auto & i : vec) {
-        buffer << static_cast<const uint8_t>(i == true);
+        buffer << static_cast<uint8_t>(i == true);
       }
     } else {
       // Array
@@ -162,18 +162,18 @@ void MessageSerializer::serialize_wchar(
   if (member->is_array_) {
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
-      buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
+      buffer << static_cast<uint32_t>(member->size_function(input + member->offset_));
     }
 
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
       buffer <<
-        static_cast<const uint32_t>(
+        static_cast<uint32_t>(
         *(reinterpret_cast<const uint16_t *>(
           member->get_const_function(input + member->offset_, i))));
     }
   } else {
     buffer <<
-      static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
+      static_cast<uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
   }
 }
 
@@ -185,7 +185,7 @@ void MessageSerializer::serialize_string(
   if (member->is_array_) {
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
-      buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
+      buffer << static_cast<uint32_t>(member->size_function(input + member->offset_));
     }
 
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
@@ -206,7 +206,7 @@ void MessageSerializer::serialize_wstring(
   if (member->is_array_) {
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
-      buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
+      buffer << static_cast<uint32_t>(member->size_function(input + member->offset_));
     }
 
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
@@ -227,7 +227,7 @@ void MessageSerializer::serialize_struct_arr(
   if (member->is_array_) {
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
-      buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
+      buffer << static_cast<uint32_t>(member->size_function(input + member->offset_));
     }
     for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
       serialize(
@@ -266,20 +266,20 @@ void MessageSerializer::serialize_boolean(
       // Sequence
       auto seq =
         *(reinterpret_cast<const rosidl_runtime_c__boolean__Sequence *>(input + member->offset_));
-      buffer << static_cast<const uint32_t>(seq.size);
+      buffer << static_cast<uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
-        buffer << static_cast<const uint8_t>(seq.data[i] == true);
+        buffer << static_cast<uint8_t>(seq.data[i] == true);
       }
     } else {
       // Array
       for (uint32_t i = 0; i < member->array_size_; i++) {
-        buffer << static_cast<const uint8_t>(
+        buffer << static_cast<uint8_t>(
           (reinterpret_cast<const bool *>(input + member->offset_))[i] == true);
       }
     }
   } else {
-    buffer << static_cast<const uint8_t>(
+    buffer << static_cast<uint8_t>(
       *(reinterpret_cast<const bool *>(input + member->offset_)) == true);
   }
 }
@@ -294,15 +294,15 @@ void MessageSerializer::serialize_wchar(
       // Sequence
       auto seq =
         *(reinterpret_cast<const rosidl_runtime_c__wchar__Sequence *>(input + member->offset_));
-      buffer << static_cast<const uint32_t>(seq.size);
+      buffer << static_cast<uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
-        buffer << static_cast<const uint32_t>(seq.data[i]);
+        buffer << static_cast<uint32_t>(seq.data[i]);
       }
     }
   } else {
     buffer <<
-      static_cast<const uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
+      static_cast<uint32_t>(*(reinterpret_cast<const uint16_t *>(input + member->offset_)));
   }
 }
 
@@ -316,7 +316,7 @@ void MessageSerializer::serialize_string(
       // Sequence
       auto seq =
         *(reinterpret_cast<const rosidl_runtime_c__String__Sequence *>(input + member->offset_));
-      buffer << static_cast<const uint32_t>(seq.size);
+      buffer << static_cast<uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
         buffer << seq.data[i];
@@ -344,7 +344,7 @@ void MessageSerializer::serialize_wstring(
       auto seq =
         *(reinterpret_cast<const rosidl_runtime_c__U16String__Sequence *>(
           input + member->offset_));
-      buffer << static_cast<const uint32_t>(seq.size);
+      buffer << static_cast<uint32_t>(seq.size);
 
       for (uint32_t i = 0; i < seq.size; i++) {
         buffer << seq.data[i];
@@ -369,7 +369,7 @@ void MessageSerializer::serialize_struct_arr(
   if (member->is_array_) {
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
-      buffer << static_cast<const uint32_t>(member->size_function(input + member->offset_));
+      buffer << static_cast<uint32_t>(member->size_function(input + member->offset_));
       for (uint32_t i = 0; i < member->size_function(input + member->offset_); i++) {
         serialize(
           reinterpret_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(
