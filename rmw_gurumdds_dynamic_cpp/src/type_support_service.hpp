@@ -211,7 +211,7 @@ _serialize_service(
     buffer << *(reinterpret_cast<uint64_t *>(&sequence_number));
     buffer << *(reinterpret_cast<const uint64_t *>(client_guid));
     buffer << *(reinterpret_cast<const uint64_t *>(client_guid + 8));
-  } catch (std::runtime_error e) {
+  } catch (std::runtime_error &e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to serialize ros message: %s", e.what());
     return false;
   }
@@ -397,7 +397,7 @@ _deserialize_service(
     buffer >> *(reinterpret_cast<uint64_t *>(sequence_number));
     buffer >> *(reinterpret_cast<uint64_t *>(client_guid));
     buffer >> *(reinterpret_cast<uint64_t *>(client_guid + 8));
-  } catch (std::runtime_error e) {
+  } catch (std::runtime_error &e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
     return false;
   }

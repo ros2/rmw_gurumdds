@@ -106,20 +106,6 @@ set_entity_qos_from_profile_generic(
     entity_qos->liveliness.lease_duration = rmw_time_to_dds(qos_profile->liveliness_lease_duration);
   }
 
-  // ensure the history depth is at least the requested queue size
-  assert(entity_qos->history.depth >= 0 || entity_qos->history.depth == dds_LENGTH_UNLIMITED);
-  if (
-    entity_qos->history.kind == dds_KEEP_LAST_HISTORY_QOS &&
-    static_cast<size_t>(entity_qos->history.depth) < qos_profile->depth)
-  {
-    if (qos_profile->depth > (std::numeric_limits<int32_t>::max)()) {
-      RMW_SET_ERROR_MSG(
-        "failed to set history depth since the requested queue size exceeds the DDS type");
-      return false;
-    }
-    entity_qos->history.depth = static_cast<int32_t>(qos_profile->depth);
-  }
-
   return true;
 }
 
