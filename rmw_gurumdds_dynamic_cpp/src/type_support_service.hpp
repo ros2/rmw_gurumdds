@@ -207,7 +207,7 @@ _serialize_service(
   try {
     auto buffer = CDRSerializationBuffer(dds_service, size);
     auto serializer = MessageSerializer(buffer);
-    serializer.serialize(members, ros_service);
+    serializer.serialize(members, ros_service, true);
     buffer << *(reinterpret_cast<uint64_t *>(&sequence_number));
     buffer << *(reinterpret_cast<const uint64_t *>(client_guid));
     buffer << *(reinterpret_cast<const uint64_t *>(client_guid + 8));
@@ -393,7 +393,7 @@ _deserialize_service(
   try {
     auto buffer = CDRDeserializationBuffer(dds_service, size);
     auto deserializer = MessageDeserializer(buffer);
-    deserializer.deserialize(members, ros_service);
+    deserializer.deserialize(members, ros_service, true);
     buffer >> *(reinterpret_cast<uint64_t *>(sequence_number));
     buffer >> *(reinterpret_cast<uint64_t *>(client_guid));
     buffer >> *(reinterpret_cast<uint64_t *>(client_guid + 8));

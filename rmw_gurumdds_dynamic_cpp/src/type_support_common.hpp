@@ -253,7 +253,7 @@ _allocate_message(
 
   auto buffer = CDRSerializationBuffer(nullptr, 0);
   auto serializer = MessageSerializer(buffer);
-  serializer.serialize(members, ros_message);
+  serializer.serialize(members, ros_message, true);
   if (is_service) {
     uint64_t dummy = 0;
     buffer << dummy;  // suquence_number
@@ -319,7 +319,7 @@ _get_serialized_size(
 
   auto buffer = CDRSerializationBuffer(nullptr, 0);
   auto serializer = MessageSerializer(buffer);
-  serializer.serialize(members, ros_message);
+  serializer.serialize(members, ros_message, true);
 
   return static_cast<ssize_t>(buffer.get_offset() + 4);
 }
@@ -364,7 +364,7 @@ _serialize_ros_to_cdr(
   try {
     auto buffer = CDRSerializationBuffer(dds_message, size);
     auto serializer = MessageSerializer(buffer);
-    serializer.serialize(members, ros_message);
+    serializer.serialize(members, ros_message, true);
   } catch (std::runtime_error &e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to serialize ros message: %s", e.what());
     return false;
@@ -419,7 +419,7 @@ _deserialize_cdr_to_ros(
   try {
     auto buffer = CDRDeserializationBuffer(dds_message, size);
     auto deserializer = MessageDeserializer(buffer);
-    deserializer.deserialize(members, ros_message);
+    deserializer.deserialize(members, ros_message, true);
   } catch (std::runtime_error &e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
     return false;
