@@ -236,7 +236,8 @@ void MessageSerializer::serialize_struct_arr(
         ),
         reinterpret_cast<const uint8_t *>(
           member->get_const_function(input + member->offset_, i)
-        )
+        ),
+        false
       );
     }
   } else {
@@ -246,7 +247,8 @@ void MessageSerializer::serialize_struct_arr(
       ),
       reinterpret_cast<const uint8_t *>(
         input + member->offset_
-      )
+      ),
+      false
     );
   }
 }
@@ -377,7 +379,8 @@ void MessageSerializer::serialize_struct_arr(
           ),
           reinterpret_cast<const uint8_t *>(
             member->get_const_function(input + member->offset_, i)
-          )
+          ),
+          false
         );
       }
     } else {
@@ -389,7 +392,8 @@ void MessageSerializer::serialize_struct_arr(
           ),
           reinterpret_cast<const uint8_t *>(
             member->get_const_function(&tmp, i)
-          )
+          ),
+          false
         );
       }
     }
@@ -400,7 +404,8 @@ void MessageSerializer::serialize_struct_arr(
       ),
       reinterpret_cast<const uint8_t *>(
         input + member->offset_
-      )
+      ),
+      false
     );
   }
 }
@@ -537,7 +542,8 @@ void MessageDeserializer::deserialize_struct_arr(
         ),
         reinterpret_cast<uint8_t *>(
           member->get_function(output + member->offset_, j)
-        )
+        ),
+        false
       );
     }
   } else {
@@ -547,7 +553,8 @@ void MessageDeserializer::deserialize_struct_arr(
       ),
       reinterpret_cast<uint8_t *>(
         output + member->offset_
-      )
+      ),
+      false
     );
   }
 }
@@ -762,7 +769,8 @@ void MessageDeserializer::deserialize_struct_arr(
           ),
           reinterpret_cast<uint8_t *>(
             member->get_function(output + member->offset_, j)
-          )
+          ),
+          false
         );
       }
     } else {
@@ -774,7 +782,8 @@ void MessageDeserializer::deserialize_struct_arr(
           ),
           reinterpret_cast<uint8_t *>(
             member->get_function(&tmp, j)
-          )
+          ),
+          false
         );
       }
     }
@@ -785,7 +794,8 @@ void MessageDeserializer::deserialize_struct_arr(
       ),
       reinterpret_cast<uint8_t *>(
         output + member->offset_
-      )
+      ),
+      false
     );
   }
 }

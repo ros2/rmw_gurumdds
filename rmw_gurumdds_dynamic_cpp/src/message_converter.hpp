@@ -38,7 +38,7 @@ public:
   : buffer(a_buffer) {}
 
   template<typename MessageMembersT>
-  void serialize(const MessageMembersT * members, const uint8_t * input)
+  void serialize(const MessageMembersT * members, const uint8_t * input, bool roundup_)
   {
     for (uint32_t i = 0; i < members->member_count_; i++) {
       auto member = members->members_ + i;
@@ -85,7 +85,8 @@ public:
       }
     }
 
-    buffer.roundup(4);
+    if(roundup_)
+      buffer.roundup(4);
   }
 
 private:
@@ -130,7 +131,7 @@ public:
   : buffer(a_buffer) {}
 
   template<typename MessageMembersT>
-  void deserialize(const MessageMembersT * members, uint8_t * output)
+  void deserialize(const MessageMembersT * members, uint8_t * output, bool roundup_)
   {
     for (uint32_t i = 0; i < members->member_count_; i++) {
       auto member = members->members_ + i;
@@ -176,7 +177,8 @@ public:
       }
     }
 
-    buffer.roundup(4);
+    if(roundup_)
+      buffer.roundup(4);
   }
 
 private:
