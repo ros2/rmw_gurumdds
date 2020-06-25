@@ -199,6 +199,9 @@ public:
 
   void copy_arr(const uint8_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(1);
     if (buf != nullptr) {
       if (offset + cnt > size) {
@@ -211,6 +214,9 @@ public:
 
   void copy_arr(const uint16_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(2);
     if (buf != nullptr) {
       if (offset + cnt * 2 > size) {
@@ -223,6 +229,9 @@ public:
 
   void copy_arr(const uint32_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(4);
     if (buf != nullptr) {
       if (offset + cnt * 4 > size) {
@@ -235,6 +244,9 @@ public:
 
   void copy_arr(const uint64_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(8);
     if (buf != nullptr) {
       if (offset + cnt * 8 > size) {
@@ -397,6 +409,9 @@ public:
 
   void copy_arr(uint8_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(1);
     if (buf != nullptr) {
       if (offset + cnt > size) {
@@ -409,6 +424,9 @@ public:
 
   void copy_arr(uint16_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(2);
     if (buf != nullptr) {
       if (offset + cnt * 2 > size) {
@@ -427,6 +445,9 @@ public:
 
   void copy_arr(uint32_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(4);
     if (buf != nullptr) {
       if (offset + cnt * 4 > size) {
@@ -445,6 +466,9 @@ public:
 
   void copy_arr(uint64_t * arr, size_t cnt)
   {
+    if(cnt == 0)
+      return;
+
     align(8);
     if (buf != nullptr) {
       if (offset + cnt * 8 > size) {
