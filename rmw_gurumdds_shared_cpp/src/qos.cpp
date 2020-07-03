@@ -88,6 +88,15 @@ set_entity_qos_from_profile_generic(
 
   if (qos_profile->depth != RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT) {
     entity_qos->history.depth = static_cast<int32_t>(qos_profile->depth);
+
+    entity_qos->resource_limits.max_samples = entity_qos->history.depth;
+    entity_qos->resource_limits.max_instances = 1;
+    entity_qos->resource_limits.max_samples_per_instance = entity_qos->history.depth;
+  } else if (qos_profile->history == RMW_QOS_POLICY_HISTORY_KEEP_ALL) {
+    // NOTE: These values might be changed after further insepction
+    entity_qos->resource_limits.max_samples = 4096;
+    entity_qos->resource_limits.max_instances = 1;
+    entity_qos->resource_limits.max_samples_per_instance = 4096;
   }
 
   if (!is_time_default(qos_profile->deadline)) {
