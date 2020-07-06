@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.6 (2020-07-06)
+------------------
+* Set resource_limit explicitly
+* Fixed compile warnings
+* Contributors: junho
+
 0.8.5 (2020-06-04)
 ------------------
 * Updated packages to use gurumdds-2.6
