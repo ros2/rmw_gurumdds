@@ -20,6 +20,11 @@
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_shared_cpp/dds_include.hpp"
 
+struct rmw_context_impl_t
+{
+  bool is_shutdown;
+};
+
 extern "C"
 {
 rmw_ret_t
@@ -97,16 +102,29 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   context->instance_id = options->instance_id;
   context->implementation_identifier = gurum_gurumdds_identifier;
-  context->impl = nullptr;
+  context->impl = new (std::nothrow) rmw_context_impl_t();
+  if (context->impl == nullptr) {
+    RMW_SET_ERROR_MSG("failed to allocate rmw context impl");
+    return RMW_RET_BAD_ALLOC;
+  }
+  context->impl->is_shutdown = false;
 
   rmw_ret_t ret = rmw_init_options_copy(options, &context->options);
   if (ret != RMW_RET_OK) {
+    delete context->impl;
+    context->impl = nullptr;
     return ret;
   }
 
   dds_DomainParticipantFactory * dpf = dds_DomainParticipantFactory_get_instance();
   if (dpf == nullptr) {
     RMW_SET_ERROR_MSG("failed to get domain participant factory");
+    ret = rmw_init_options_fini(&context->options);
+    if (ret != RMW_RET_OK) {
+      RMW_SAFE_FWRITE_TO_STDERR("failed to fini rmw init options");
+    }
+    delete context->impl;
+    context->impl = nullptr;
     return RMW_RET_ERROR;
   }
 
@@ -129,14 +147,14 @@ rmw_ret_t
 rmw_shutdown(rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context->impl, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     context,
     context->implementation_identifier,
     gurum_gurumdds_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  // Nothing to do here for now.
-  // This is just the middleware's notification that shutdown was called.
+  context->impl->is_shutdown = true;
   return RMW_RET_OK;
 }
 
@@ -144,12 +162,19 @@ rmw_ret_t
 rmw_context_fini(rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context->impl, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     context,
     context->implementation_identifier,
     gurum_gurumdds_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
+  if (!context->impl->is_shutdown) {
+    RCUTILS_SET_ERROR_MSG("rmw context has not been shutdown");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+
+  delete context->impl;
   *context = rmw_get_zero_initialized_context();
   return RMW_RET_OK;
 }
