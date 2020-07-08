@@ -25,6 +25,7 @@ static const std::unordered_map<rmw_event_type_t, dds_StatusKind, std::hash<int>
   {RMW_EVENT_LIVELINESS_LOST, dds_LIVELINESS_LOST_STATUS},
   {RMW_EVENT_OFFERED_DEADLINE_MISSED, dds_OFFERED_DEADLINE_MISSED_STATUS},
   {RMW_EVENT_OFFERED_QOS_INCOMPATIBLE, dds_OFFERED_INCOMPATIBLE_QOS_STATUS},
+  {RMW_EVENT_MESSAGE_LOST, dds_SAMPLE_LOST_STATUS},
 };
 
 dds_StatusKind get_status_kind_from_rmw(const rmw_event_type_t event_t)
