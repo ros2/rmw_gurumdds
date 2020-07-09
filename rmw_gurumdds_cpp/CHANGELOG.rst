@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.0 (2020-07-09)
+------------------
+* Removed parameters domain_id and localhost_only from rmw_create_node()
+* Updated init/shutdown/init option functions
+* Contributors: junho
+
 1.1.0 (2020-07-09)
 ------------------
 * Finalize rmw context only if it's shutdown
