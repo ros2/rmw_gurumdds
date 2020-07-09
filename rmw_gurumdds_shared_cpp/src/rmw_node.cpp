@@ -98,6 +98,8 @@ shared__rmw_create_node(
 
   // TODO(clemjh): Implement security features
 
+  dds_DomainId_t actual_domain_id =
+    (domain_id == RMW_DEFAULT_DOMAIN_ID ? 0 : static_cast<dds_DomainId_t>(domain_id));
   if (localhost_only) {
     dds_StringProperty props[] = {
       {const_cast<char *>("rtps.interface.ip"),
@@ -105,10 +107,10 @@ shared__rmw_create_node(
       {nullptr, nullptr},
     };
     participant = dds_DomainParticipantFactory_create_participant_w_props(
-      factory, domain_id, &participant_qos, nullptr, 0, props);
+      factory, actual_domain_id, &participant_qos, nullptr, 0, props);
   } else {
     participant = dds_DomainParticipantFactory_create_participant(
-      factory, domain_id, &participant_qos, nullptr, 0);
+      factory, actual_domain_id, &participant_qos, nullptr, 0);
   }
   graph_guard_condition = shared__rmw_create_guard_condition(implementation_identifier);
   if (graph_guard_condition == nullptr) {
