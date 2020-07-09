@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2020-07-09)
+------------------
+* Handle RMW_DEFAULT_DOMAIN_ID
+* Added support for sample_lost event
+* Set resource_limit explicitly
+* Fixed compile warnings
+* Contributors: junho
+
 1.0.0 (2020-06-04)
 ------------------
 * MANUAL_BY_NODE liveliness is deprecated

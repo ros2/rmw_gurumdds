@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2020-07-09)
+------------------
+* Finalize rmw context only if it's shutdown
+* Added support for sample_lost event
+* Renamed rmw_gurumdds_dynamic_cpp to rmw_gurumdds_cpp
+* Renamed rmw_gurumdds_cpp to rmw_gurumdds_static_cpp
+* Contributors: junho
+
 1.0.0 (2020-06-04)
 ------------------
 * Fixed wrong package version
