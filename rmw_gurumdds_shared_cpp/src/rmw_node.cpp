@@ -41,9 +41,7 @@ shared__rmw_create_node(
   const char * implementation_identifier,
   rmw_context_t * context,
   const char * name,
-  const char * namespace_,
-  size_t domain_id,
-  bool localhost_only)
+  const char * namespace_)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
@@ -98,19 +96,20 @@ shared__rmw_create_node(
 
   // TODO(clemjh): Implement security features
 
-  dds_DomainId_t actual_domain_id =
-    (domain_id == RMW_DEFAULT_DOMAIN_ID ? 0 : static_cast<dds_DomainId_t>(domain_id));
-  if (localhost_only) {
+  dds_DomainId_t domain_id =
+    (context->options.domain_id ==
+    RMW_DEFAULT_DOMAIN_ID ? 0 : static_cast<dds_DomainId_t>(context->options.domain_id));
+  if (context->options.localhost_only == RMW_LOCALHOST_ONLY_ENABLED) {
     dds_StringProperty props[] = {
       {const_cast<char *>("rtps.interface.ip"),
         const_cast<void *>(static_cast<const void *>("127.0.0.1"))},
       {nullptr, nullptr},
     };
     participant = dds_DomainParticipantFactory_create_participant_w_props(
-      factory, actual_domain_id, &participant_qos, nullptr, 0, props);
+      factory, domain_id, &participant_qos, nullptr, 0, props);
   } else {
     participant = dds_DomainParticipantFactory_create_participant(
-      factory, actual_domain_id, &participant_qos, nullptr, 0);
+      factory, domain_id, &participant_qos, nullptr, 0);
   }
   graph_guard_condition = shared__rmw_create_guard_condition(implementation_identifier);
   if (graph_guard_condition == nullptr) {

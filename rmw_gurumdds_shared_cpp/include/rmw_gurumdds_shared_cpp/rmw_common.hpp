@@ -46,9 +46,7 @@ shared__rmw_create_node(
   const char * implementation_identifier,
   rmw_context_t * context,
   const char * name,
-  const char * namespace_,
-  size_t domain_id,
-  bool localhost_only);
+  const char * namespace_);
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
