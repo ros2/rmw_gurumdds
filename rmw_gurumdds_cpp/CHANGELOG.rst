@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.7 (2020-07-29)
+------------------
+* Change maintainer
+* Contributors: junho
+
 0.8.6 (2020-07-06)
 ------------------
 * Renamed rmw_gurumdds_dynamic_cpp to rmw_gurumdds_cpp
