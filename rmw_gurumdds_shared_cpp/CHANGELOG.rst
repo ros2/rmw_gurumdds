@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.8 (2020-07-29)
+------------------
+* Change maintainer
+* Contributors: junho
+
 0.7.7 (2020-07-06)
 ------------------
 * Set resource_limit explicitly
