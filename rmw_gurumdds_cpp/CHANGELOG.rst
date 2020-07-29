@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2020-07-29)
+------------------
+* Change maintainer
+* Contributors: junho
+
 2.0.0 (2020-07-09)
 ------------------
 * Removed parameters domain_id and localhost_only from rmw_create_node()
