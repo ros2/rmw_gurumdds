@@ -4,7 +4,7 @@
   <name>rmw_gurumdds_shared_cpp</name>
   <version>2.0.0</version>
   <description>Code shared on static and dynamic type support of rmw_gurumdds_cpp.</description>
-  <maintainer email="junhui@gurum.cc">junhui</maintainer>
+  <maintainer email="junho@gurum.cc">Junho Lee</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
