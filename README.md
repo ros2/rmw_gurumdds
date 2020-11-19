@@ -8,6 +8,7 @@ Required version of GurumDDS depends on the version of this project.
 
 | rmw_gurumdds            | GurumDDS                    |
 |-------------------------|-----------------------------|
+| 0.7.9                   | 2.7.x                       |
 | 0.7.8<br>0.7.7<br>0.7.6 | 2.6.x                       |
 | 0.7.5<br>0.7.4          | 2.5.x, higher than 2.5.1861 |
 | 0.7.3 or lower          | 2.5.x                       |
