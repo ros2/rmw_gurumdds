@@ -6,16 +6,11 @@ This project requires `rosidl_typesupport_gurumdds` to be built. For more inform
 
 Required version of GurumDDS depends on the version of this project.
 
-+--------------+---------------------------+
-| rmw_gurumdds |         GurumDDS          |
-+--------------+---------------------------+
-|0.7.6         |2.6.1875 or higher         |
-+--------------+---------------------------+
-|0.7.5         |2.5.x, higher than 2.5.1861|
-|0.7.4         |                           |
-+--------------+---------------------------+
-|0.7.3 or lower|2.5.x                      |
-+--------------+---------------------------+
+| rmw_gurumdds            | GurumDDS                    |
+|-------------------------|-----------------------------|
+| 0.7.8<br>0.7.7<br>0.7.6 | 2.6.x                       |
+| 0.7.5<br>0.7.4          | 2.5.x, higher than 2.5.1861 |
+| 0.7.3 or lower          | 2.5.x                       |
 
 ## Packages
 This project consists of four packages, `rmw_gurumdds_cpp`, `rmw_gurumdds_static_cpp`, `rmw_gurumdds_shared_cpp` and `demo_nodes_cpp_native_gurumdds`.
