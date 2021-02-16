@@ -190,6 +190,12 @@ rmw_create_publisher(
       RMW_SET_ERROR_MSG("failed to create topic");
       goto fail;
     }
+
+    ret = dds_TopicQos_finalize(&topic_qos);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to finalize topic qos");
+      goto fail;
+    }
   } else {
     dds_Duration_t timeout;
     timeout.sec = 0;
@@ -209,6 +215,12 @@ rmw_create_publisher(
   topic_writer = dds_Publisher_create_datawriter(dds_publisher, topic, &datawriter_qos, nullptr, 0);
   if (topic_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
+    goto fail;
+  }
+
+  ret = dds_DataWriterQos_finalize(&datawriter_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize datawriter qos");
     goto fail;
   }
 
@@ -576,6 +588,12 @@ rmw_publisher_get_actual_qos(
       static_cast<uint64_t>(dds_qos.liveliness.lease_duration.sec);
     qos->liveliness_lease_duration.nsec =
       static_cast<uint64_t>(dds_qos.liveliness.lease_duration.nanosec);
+  }
+
+  ret = dds_DataWriterQos_finalize(&dds_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize datawriter qos");
+    return RMW_RET_ERROR;
   }
 
   return RMW_RET_OK;
