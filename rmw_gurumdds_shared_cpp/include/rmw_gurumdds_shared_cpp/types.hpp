@@ -15,6 +15,7 @@
 #ifndef RMW_GURUMDDS_SHARED_CPP__TYPES_HPP_
 #define RMW_GURUMDDS_SHARED_CPP__TYPES_HPP_
 
+#include <atomic>
 #include <cassert>
 #include <exception>
 #include <iostream>
@@ -26,7 +27,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <atomic>
+#include <utility>
 
 #include "rmw/rmw.h"
 #include "rmw/ret_types.h"
@@ -47,6 +48,13 @@ typedef struct _ListenerContext
   rmw_guard_condition_t * graph_guard_condition;
   const char * implementation_identifier;
 } ListenerContext;
+
+typedef struct _GurumddsMessage
+{
+  void * sample;
+  dds_SampleInfo * info;
+  dds_UnsignedLong size;
+} GurumddsMessage;
 
 static void pub_on_data_available(const dds_DataReader * a_reader)
 {
@@ -218,6 +226,67 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
   dds_SampleInfoSeq_delete(infos);
 
   dds_DataReader_set_listener_context(reader, context);
+}
+
+template<typename SubscriberInfo>
+static void reader_on_data_available(const dds_DataReader * a_reader)
+{
+  const uint32_t MAX_SAMPLES = 64;
+  dds_DataReader * reader = const_cast<dds_DataReader *>(a_reader);
+  SubscriberInfo * subscriber_info =
+    reinterpret_cast<SubscriberInfo *>(dds_DataReader_get_listener_context(reader));
+  if (subscriber_info == nullptr) {
+    RCUTILS_LOG_ERROR_NAMED("rmw_gurumdds_cpp", "Failed to take data: listener context is not set");
+    return;
+  }
+
+  dds_DataSeq * sample_seq = dds_DataSeq_create(MAX_SAMPLES);
+  if (sample_seq == nullptr) {
+    return;
+  }
+
+  dds_SampleInfoSeq * info_seq = dds_SampleInfoSeq_create(MAX_SAMPLES);
+  if (info_seq == nullptr) {
+    dds_DataSeq_delete(sample_seq);
+    return;
+  }
+
+  dds_UnsignedLongSeq * size_seq = dds_UnsignedLongSeq_create(MAX_SAMPLES);
+  if (size_seq == nullptr) {
+    dds_DataSeq_delete(sample_seq);
+    dds_SampleInfoSeq_delete(info_seq);
+    return;
+  }
+
+  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+    reader, dds_HANDLE_NIL, sample_seq, info_seq, size_seq, MAX_SAMPLES,
+    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  if (ret != dds_RETCODE_OK) {
+    if (ret != dds_RETCODE_NO_DATA) {
+      RCUTILS_LOG_ERROR_NAMED("rmw_gurumdds_cpp", "Failed to take data");
+    }
+    dds_DataSeq_delete(sample_seq);
+    dds_SampleInfoSeq_delete(info_seq);
+    dds_UnsignedLongSeq_delete(size_seq);
+    return;
+  }
+
+  subscriber_info->queue_mutex.lock();
+  dds_GuardCondition_set_trigger_value(subscriber_info->queue_guard_condition, true);
+  for (uint32_t i = 0; i < dds_DataSeq_length(sample_seq); i++) {
+    GurumddsMessage msg;
+    msg.sample = dds_DataSeq_get(sample_seq, i);
+    msg.info = dds_SampleInfoSeq_get(info_seq, i);
+    msg.size = dds_UnsignedLongSeq_get(size_seq, i);
+    subscriber_info->message_queue.push(std::move(msg));
+  }
+  subscriber_info->queue_mutex.unlock();
+
+  // return loan manually after deserialization
+  // or before destruction of the queue using free()
+  dds_DataSeq_delete(sample_seq);
+  dds_SampleInfoSeq_delete(info_seq);
+  dds_UnsignedLongSeq_delete(size_seq);
 }
 
 class GurumddsDataReaderListener
