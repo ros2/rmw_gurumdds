@@ -96,9 +96,7 @@ shared__rmw_create_node(
 
   // TODO(clemjh): Implement security features
 
-  dds_DomainId_t domain_id =
-    (context->options.domain_id ==
-    RMW_DEFAULT_DOMAIN_ID ? 0 : static_cast<dds_DomainId_t>(context->options.domain_id));
+  dds_DomainId_t domain_id = static_cast<dds_DomainId_t>(context->actual_domain_id);
   if (context->options.localhost_only == RMW_LOCALHOST_ONLY_ENABLED) {
     dds_StringProperty props[] = {
       {const_cast<char *>("rtps.interface.ip"),
@@ -148,7 +146,7 @@ shared__rmw_create_node(
 
   node_handle->namespace_ =
     reinterpret_cast<const char *>(rmw_allocate(sizeof(char) * strlen(namespace_) + 1));
-  if (node_handle->name == nullptr) {
+  if (node_handle->namespace_ == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for node namespace");
     goto fail;
   }
