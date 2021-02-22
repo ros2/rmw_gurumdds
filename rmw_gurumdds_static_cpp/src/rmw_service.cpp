@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "rcutils/logging_macros.h"
+#inlcude "rcutils/error_handling.h"
 
 #include "rmw/get_service_names_and_types.h"
 #include "rmw/names_and_types.h"
@@ -86,8 +87,10 @@ rmw_create_service(
   const rosidl_service_type_support_t * type_support =
     get_service_typesupport_handle(type_supports, RMW_GURUMDDS_STATIC_CPP_TYPESUPPORT_C);
   if (type_support == nullptr) {
+    rcutils_reset_error();
     type_support = get_service_typesupport_handle(type_supports, RMW_GURUMDDS_STATIC_CPP_TYPESUPPORT_CPP);
     if (type_support == nullptr) {
+      rcutils_reset_error();
       RMW_SET_ERROR_MSG("type support not from this implementation");
       return nullptr;
     }

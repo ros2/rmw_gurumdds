@@ -32,6 +32,7 @@
 #include "rmw_gurumdds_cpp/types.hpp"
 
 #include "rcutils/types.h"
+#include "rcutils/error_handling.h"
 
 #include "./type_support_common.hpp"
 
@@ -107,9 +108,11 @@ rmw_create_publisher(
   const rosidl_message_type_support_t * type_support =
     get_message_typesupport_handle(type_supports, rosidl_typesupport_introspection_c__identifier);
   if (type_support == nullptr) {
+    rcutils_reset_error();
     type_support = get_message_typesupport_handle(
       type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (type_support == nullptr) {
+      rcutils_reset_error();
       RMW_SET_ERROR_MSG("type support not from this implementation");
       return nullptr;
     }

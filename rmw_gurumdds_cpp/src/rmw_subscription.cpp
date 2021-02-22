@@ -23,6 +23,8 @@
 #include "rmw/serialized_message.h"
 #include "rmw/rmw.h"
 
+#include "rcutils/error_handling.h"
+
 #include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
 #include "rmw_gurumdds_shared_cpp/types.hpp"
 #include "rmw_gurumdds_shared_cpp/dds_include.hpp"
@@ -107,9 +109,11 @@ rmw_create_subscription(
   const rosidl_message_type_support_t * type_support =
     get_message_typesupport_handle(type_supports, rosidl_typesupport_introspection_c__identifier);
   if (type_support == nullptr) {
+    rcutils_reset_error();
     type_support = get_message_typesupport_handle(
       type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (type_support == nullptr) {
+      rcutils_reset_error();
       RMW_SET_ERROR_MSG("type support not from this implementation");
       return nullptr;
     }
