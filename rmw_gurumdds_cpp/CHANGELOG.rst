@@ -2,6 +2,13 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.8 (2021-03-02)
+------------------
+* Use DataReader listener for taking data samples
+* Change maintainer
+* Update packages to use gurumdds-2.7
+* Contributors: youngjin
+
 0.8.7 (2020-07-29)
 ------------------
 * Change maintainer
