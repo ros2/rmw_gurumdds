@@ -10,7 +10,7 @@
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
   <buildtool_depend>rosidl_cmake</buildtool_depend>
 
-  <build_depend>gurumdds-2.6</build_depend>
+  <build_depend>gurumdds-2.7</build_depend>
   <build_depend>gurumdds_cmake_module</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rmw</build_depend>
@@ -21,7 +21,7 @@
   <build_depend>rosidl_typesupport_introspection_c</build_depend>
   <build_depend>rosidl_typesupport_introspection_cpp</build_depend>
 
-  <build_export_depend>gurumdds-2.6</build_export_depend>
+  <build_export_depend>gurumdds-2.7</build_export_depend>
   <build_export_depend>gurumdds_cmake_module</build_export_depend>
   <build_export_depend>rosidl_generator_c</build_export_depend>
   <build_export_depend>rosidl_generator_cpp</build_export_depend>
