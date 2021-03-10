@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.10 (2021-03-10)
+-------------------
+* Change maintainer
+* fix typo
+* Use DataReader listener for taking data samples
+* Delete contained entities before deleting domain participant
+* Contributors: junho, youngjin
+
 0.7.9 (2020-11-19)
 ------------------
 * Update packages to use gurumdds-2.7
