@@ -266,9 +266,9 @@ shared__rmw_destroy_node(const char * identifier, rmw_node_t * node)
   }
 
   dds_InstanceHandleSeq * sub_seq = dds_InstanceHandleSeq_create(4);
-  if (pub_seq == nullptr) {
+  if (sub_seq == nullptr) {
     RMW_SET_ERROR_MSG("failed to create instance handle sequence");
-    dds_InstanceHandleSeq_delete(pub_seq);
+    dds_InstanceHandleSeq_delete(sub_seq);
     return RMW_RET_ERROR;
   }
 
