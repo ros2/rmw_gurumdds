@@ -4,7 +4,7 @@
   <name>demo_nodes_cpp_native_gurumdds</name>
   <version>1.0.0</version>
   <description>C++ nodes which access the native handles of the rmw implemenation.</description>
-  <maintainer email="junho@gurum.cc">Junho Lee</maintainer>
+  <maintainer email="youngjin@gurum.cc">Youngjin Yun</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
