@@ -309,7 +309,7 @@ shared__rmw_wait(
       }
 
       dds_ReturnCode_t ret = dds_WaitSet_attach_condition(
-        dds_wait_set, reinterpret_cast<dds_Condition *>(read_condition));
+        dds_wait_set, reinterpret_cast<dds_Condition *>(queue_guard_condition));
       CHECK_ATTACH(ret);
     }
   }

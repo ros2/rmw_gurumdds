@@ -198,7 +198,7 @@ rmw_create_publisher(
     }
 
     ret = dds_TopicQos_finalize(&topic_qos);
-    if (ret !- dds_RETCODE_OK) {
+    if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to finalize topic qos");
       goto fail;
     }
