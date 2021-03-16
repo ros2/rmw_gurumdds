@@ -613,7 +613,7 @@ _take(
   }
 
   if (!ignore_sample) {
-    if (msg.smaple == nullptr) {
+    if (msg.sample == nullptr) {
       RMW_SET_ERROR_MSG("Received invalid message");
       free(msg.info);
       return RMW_RET_ERROR;

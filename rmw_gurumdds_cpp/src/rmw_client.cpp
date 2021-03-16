@@ -511,7 +511,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
       if (msg.sample != nullptr) {
         free(msg.sample);
       }
-      if (msg.info !- nullptr) {
+      if (msg.info != nullptr) {
         free(msg.info);
       }
       client_info->message_queue.pop();
