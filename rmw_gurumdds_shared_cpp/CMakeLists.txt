@@ -26,6 +26,7 @@ endif()
 
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
+find_package(rmw_dds_common REQUIRED)
 
 include_directories(include)
 
@@ -50,6 +51,7 @@ add_library(
   src/rmw_logging.cpp
   src/rmw_node.cpp
   src/rmw_node_info_and_types.cpp
+  src/rmw_qos.cpp
   src/rmw_service_names_and_types.cpp
   src/rmw_topic_names_and_types.cpp
   src/rmw_wait.cpp
@@ -59,6 +61,7 @@ add_library(
 ament_target_dependencies(rmw_gurumdds_shared_cpp
   "rcutils"
   "rmw"
+  "rmw_dds_common"
   "GurumDDS")
 ament_export_libraries(rmw_gurumdds_shared_cpp)
 
