@@ -200,6 +200,7 @@ RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_set_log_severity(rmw_log_severity_t severity);
 
+RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_ret_t
 shared__rmw_init_event(
   const char * identifier,
