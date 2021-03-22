@@ -64,6 +64,7 @@ struct rmw_time_t
 convert_liveliness_lease_duration(
   dds_LivelinessQosPolicy policy);
 
+RMW_GURUMDDS_SHARED_CPP_PUBLIC
 rmw_qos_policy_kind_t
 convert_qos_policy(
   dds_QosPolicyId_t policy_id);

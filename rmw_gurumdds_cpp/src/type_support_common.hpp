@@ -15,6 +15,11 @@
 #ifndef TYPE_SUPPORT_COMMON_HPP_
 #define TYPE_SUPPORT_COMMON_HPP_
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include <string>
 #include <sstream>
 
