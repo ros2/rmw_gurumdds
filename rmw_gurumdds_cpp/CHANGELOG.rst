@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2021-04-12)
+------------------
+* Use dds_free instead of free for dll library
+* Contributors: Youngjin Yun
+
 1.0.4 (2021-03-10)
 ------------------
 * Change maintainer
