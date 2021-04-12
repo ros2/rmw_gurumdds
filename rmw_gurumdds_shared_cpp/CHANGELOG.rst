@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.11 (2021-04-12)
+-------------------
+* fix typo
+* Contributors: Youngjin Yun
+
 0.7.10 (2021-03-10)
 -------------------
 * Change maintainer
