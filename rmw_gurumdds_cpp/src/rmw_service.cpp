@@ -501,10 +501,10 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     while (!service_info->message_queue.empty()) {
       auto msg = service_info->message_queue.front();
       if (msg.sample != nullptr) {
-        free(msg.sample);
+        dds_free(msg.sample);
       }
       if (msg.info != nullptr) {
-        free(msg.info);
+        dds_free(msg.info);
       }
       service_info->message_queue.pop();
     }
