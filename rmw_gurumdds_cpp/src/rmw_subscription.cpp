@@ -538,10 +538,10 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     while (!subscriber_info->message_queue.empty()) {
       auto msg = subscriber_info->message_queue.front();
       if (msg.sample != nullptr) {
-        free(msg.sample);
+        dds_free(msg.sample);
       }
       if (msg.info != nullptr) {
-        free(msg.info);
+        dds_free(msg.info);
       }
       subscriber_info->message_queue.pop();
     }
@@ -615,7 +615,7 @@ _take(
   if (!ignore_sample) {
     if (msg.sample == nullptr) {
       RMW_SET_ERROR_MSG("Received invalid message");
-      free(msg.info);
+      dds_free(msg.info);
       return RMW_RET_ERROR;
     }
     bool result = deserialize_cdr_to_ros(
@@ -627,8 +627,8 @@ _take(
     );
     if (!result) {
       RMW_SET_ERROR_MSG("Failed to deserialize message");
-      free(msg.sample);
-      free(msg.info);
+      dds_free(msg.sample);
+      dds_free(msg.info);
       return RMW_RET_ERROR;
     }
 
@@ -656,10 +656,10 @@ _take(
   }
 
   if (msg.sample != nullptr) {
-    free(msg.sample);
+    dds_free(msg.sample);
   }
   if (msg.info != nullptr) {
-    free(msg.info);
+    dds_free(msg.info);
   }
 
   return RMW_RET_OK;
@@ -765,7 +765,7 @@ rmw_take_sequence(
     if (!ignore_sample) {
       if (msg.sample == nullptr) {
         RMW_SET_ERROR_MSG("Received invalid message");
-        free(msg.info);
+        dds_free(msg.info);
         return RMW_RET_ERROR;
       }
       bool result = deserialize_cdr_to_ros(
@@ -777,8 +777,8 @@ rmw_take_sequence(
       );
       if (!result) {
         RMW_SET_ERROR_MSG("Failed to deserialize message");
-        free(msg.sample);
-        free(msg.info);
+        dds_free(msg.sample);
+        dds_free(msg.info);
         return RMW_RET_ERROR;
       }
 
@@ -806,10 +806,10 @@ rmw_take_sequence(
     }
 
     if (msg.sample != nullptr) {
-      free(msg.sample);
+      dds_free(msg.sample);
     }
     if (msg.info != nullptr) {
-      free(msg.info);
+      dds_free(msg.info);
     }
   }
   info->queue_mutex.unlock();
@@ -866,7 +866,7 @@ _take_serialized(
   if (!ignore_sample) {
     if (msg.sample == nullptr) {
       RMW_SET_ERROR_MSG("Received invalid message");
-      free(msg.info);
+      dds_free(msg.info);
       return RMW_RET_ERROR;
     }
 
@@ -875,8 +875,8 @@ _take_serialized(
       rmw_ret_t rmw_ret = rmw_serialized_message_resize(serialized_message, msg.size);
       if (rmw_ret != RMW_RET_OK) {
         // Error message already set
-        free(msg.sample);
-        free(msg.info);
+        dds_free(msg.sample);
+        dds_free(msg.info);
         return rmw_ret;
       }
     }
@@ -907,10 +907,10 @@ _take_serialized(
   }
 
   if (msg.sample != nullptr) {
-    free(msg.sample);
+    dds_free(msg.sample);
   }
   if (msg.info != nullptr) {
-    free(msg.info);
+    dds_free(msg.info);
   }
 
   return RMW_RET_OK;

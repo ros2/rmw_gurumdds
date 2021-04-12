@@ -513,10 +513,10 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     while (!client_info->message_queue.empty()) {
       auto msg = client_info->message_queue.front();
       if (msg.sample != nullptr) {
-        free(msg.sample);
+        dds_free(msg.sample);
       }
       if (msg.info != nullptr) {
-        free(msg.info);
+        dds_free(msg.info);
       }
       client_info->message_queue.pop();
     }
