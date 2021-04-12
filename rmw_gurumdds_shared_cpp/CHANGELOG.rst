@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.9 (2021-04-12)
+------------------
+* fix typo
+* fix typo
+* Contributors: Youngjin Yun, donghee811
+
 0.8.8 (2021-03-02)
 ------------------
 * Use DataReader listener for taking data samples

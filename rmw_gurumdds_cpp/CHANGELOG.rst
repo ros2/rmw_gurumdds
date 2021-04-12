@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.9 (2021-04-12)
+------------------
+* Use dds_free instead of free for dll library
+* fix typo
+* Contributors: Youngjin Yun, donghee811
+
 0.8.8 (2021-03-02)
 ------------------
 * Use DataReader listener for taking data samples
