@@ -8,6 +8,11 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.1.3 (2021-04-12)
+------------------
+* fix typo
+* Contributors: Youngjin Yun
+
 2.1.2 (2021-03-22)
 ------------------
 * Update code about build error on windows
