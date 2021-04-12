@@ -183,8 +183,8 @@ rmw_take_request(
 
     if (!res) {
       // Error message already set
-      free(msg.sample);
-      free(msg.info);
+      dds_free(msg.sample);
+      dds_free(msg.info);
       return RMW_RET_ERROR;
     }
 
@@ -196,10 +196,10 @@ rmw_take_request(
   }
 
   if (msg.sample != nullptr) {
-    free(msg.sample);
+    dds_free(msg.sample);
   }
   if (msg.info != nullptr) {
-    free(msg.info);
+    dds_free(msg.info);
   }
 
   return RMW_RET_OK;

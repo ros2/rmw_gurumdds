@@ -102,8 +102,8 @@ rmw_take_response(
 
     if (!res) {
       // Error message already set
-      free(msg.sample);
-      free(msg.info);
+      dds_free(msg.sample);
+      dds_free(msg.info);
       return RMW_RET_ERROR;
     }
 
