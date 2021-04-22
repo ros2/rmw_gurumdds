@@ -94,6 +94,11 @@ rmw_create_subscription(
     return nullptr;
   }
 
+  if (subscription_options->require_unique_network_flow_endpoints == RMW_UNIQUE_NETWORK_FLOW_ENDPOINTS_STRICTLY_REQUIRED) {
+    RMW_SET_ERROR_MSG("Strict requirement on unique network flow endpoints for subscriptions not supported");
+    return nullptr;
+  }
+
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
   if (node_info == nullptr) {
     RMW_SET_ERROR_MSG("node info is null");
