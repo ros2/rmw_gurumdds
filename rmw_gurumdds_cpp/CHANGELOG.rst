@@ -7,6 +7,11 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.1.4 (2021-04-22)
+------------------
+* Indicate missing support for unique network flows
+* Contributors: Youngjin Yun
+
 2.1.3 (2021-04-12)
 ------------------
 * Use dds_free instead of free for dll library
