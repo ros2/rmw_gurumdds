@@ -93,8 +93,11 @@ rmw_create_publisher(
     return nullptr;
   }
 
-  if (publisher_options->require_unique_network_flow_endpoints == RMW_UNIQUE_NETWORK_FLOW_ENDPOINTS_STRICTLY_REQUIRED) {
-    RMW_SET_ERROR_MSG("Strict requirement on unique network flow endpoints for publishers not supported");
+  if (publisher_options->require_unique_network_flow_endpoints ==
+    RMW_UNIQUE_NETWORK_FLOW_ENDPOINTS_STRICTLY_REQUIRED)
+  {
+    RMW_SET_ERROR_MSG(
+      "Strict requirement on unique network flow endpoints for publishers not supported");
     return nullptr;
   }
 
