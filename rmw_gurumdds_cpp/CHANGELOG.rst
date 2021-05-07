@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.12 (2021-05-07)
+-------------------
+* Update code about build error on windows
+* Contributors: Youngjin Yun
+
 0.7.11 (2021-04-12)
 -------------------
 * Use dds_free instead of free for dll library
