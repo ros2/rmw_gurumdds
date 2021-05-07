@@ -147,7 +147,7 @@ shared__rmw_create_node(
 
   node_handle->namespace_ =
     reinterpret_cast<const char *>(rmw_allocate(sizeof(char) * strlen(namespace_) + 1));
-  if (node_handle->name == nullptr) {
+  if (node_handle->namespace_ == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for node namespace");
     goto fail;
   }
