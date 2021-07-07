@@ -155,6 +155,10 @@ rmw_take_request(
     return RMW_RET_ERROR;
   }
 
+  if (service_info->message_queue.empty()) {
+    return RMW_RET_OK;
+  }
+
   service_info->queue_mutex.lock();
   auto msg = service_info->message_queue.front();
   service_info->message_queue.pop();
