@@ -737,14 +737,19 @@ rmw_take_sequence(
     gurum_gurumdds_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
 
+  if (0u == count) {
+    RMW_SET_ERROR_MSG("count cannot be 0");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+
   if (message_sequence->capacity < count) {
     RMW_SET_ERROR_MSG("message sequence capacity is not sufficient");
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   if (message_info_sequence->capacity < count) {
     RMW_SET_ERROR_MSG("message info sequence capacity is not sufficient");
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   GurumddsSubscriberInfo * info = static_cast<GurumddsSubscriberInfo *>(subscription->data);
@@ -757,14 +762,18 @@ rmw_take_sequence(
     return RMW_RET_OK;
   }
 
+  *taken = 0;
+  size_t attempt = 0;
+
   info->queue_mutex.lock();
-  while (!info->message_queue.empty()) {
+  while (attempt < count && !info->message_queue.empty()) {
     auto msg = info->message_queue.front();
     info->message_queue.pop();
     if (info->message_queue.empty()) {
       dds_GuardCondition_set_trigger_value(info->queue_guard_condition, false);
     }
     bool ignore_sample = false;
+    attempt++;
 
     if (!msg.info->valid_data) {
       ignore_sample = true;
