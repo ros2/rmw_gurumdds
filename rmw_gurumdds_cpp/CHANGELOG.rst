@@ -7,6 +7,12 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.1.6 (2021-07-08)
+------------------
+* Use variable attempt to take the number of times equal to count
+* Check if the queue is empty before using it
+* Contributors: Youngjin Yun
+
 2.1.5 (2021-04-28)
 ------------------
 * Revise for lint
