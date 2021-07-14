@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.10 (2021-07-14)
+-------------------
+* Check if the queue is empty before using it
+* Update code about build error on windows
+* Contributors: Youngjin Yun
+
 0.8.9 (2021-04-12)
 ------------------
 * Use dds_free instead of free for dll library

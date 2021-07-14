@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.10 (2021-07-14)
+-------------------
+* fix typo: check namespace\_ allocate
+* Contributors: Youngjin Yun
+
 0.8.9 (2021-04-12)
 ------------------
 * fix typo
