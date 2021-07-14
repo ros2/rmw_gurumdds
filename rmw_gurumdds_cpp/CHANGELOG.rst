@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2021-07-14)
+------------------
+* Use variable attempt to take the number of times equal to count
+* Check if the queue is empty before using it
+* Contributors: Youngjin Yun
+
 1.0.6 (2021-05-07)
 ------------------
 * Update code about build error on windows

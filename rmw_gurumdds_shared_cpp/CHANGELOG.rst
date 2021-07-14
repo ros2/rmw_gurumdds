@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2021-07-14)
+------------------
+* Move handle sequence delte into right place
+* Contributors: Youngjin Yun
+
 1.0.6 (2021-05-07)
 ------------------
 * fix typo: check namespace\_ allocate
