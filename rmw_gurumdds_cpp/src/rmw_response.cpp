@@ -74,6 +74,10 @@ rmw_take_response(
     return RMW_RET_ERROR;
   }
 
+  if (client_info->message_queue.empty()) {
+    return RMW_RET_OK;
+  }
+
   client_info->queue_mutex.lock();
   auto msg = client_info->message_queue.front();
   client_info->message_queue.pop();
