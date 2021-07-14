@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.2 (2021-07-14)
+------------------
+* Move handle sequence delete into right place
+* Contributors: Youngjin Yun
+
 3.0.1 (2021-07-07)
 ------------------
 

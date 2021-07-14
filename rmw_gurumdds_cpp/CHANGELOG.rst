@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.2 (2021-07-14)
+------------------
+
 3.0.1 (2021-07-07)
 ------------------
 * Use variable attempt to take the number of times equal to count
