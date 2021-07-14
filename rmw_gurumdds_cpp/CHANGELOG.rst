@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.13 (2021-07-14)
+-------------------
+* Check if the queue is empty before using it
+* Contributors: Youngjin Yun
+
 0.7.12 (2021-05-07)
 -------------------
 * Update code about build error on windows
