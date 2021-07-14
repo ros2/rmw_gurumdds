@@ -8,6 +8,11 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.1.7 (2021-07-14)
+------------------
+* Move handle sequence delete into right place
+* Contributors: Youngjin Yun
+
 2.1.6 (2021-07-08)
 ------------------
 

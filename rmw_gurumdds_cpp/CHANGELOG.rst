@@ -7,6 +7,9 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.1.7 (2021-07-14)
+------------------
+
 2.1.6 (2021-07-08)
 ------------------
 * Use variable attempt to take the number of times equal to count
