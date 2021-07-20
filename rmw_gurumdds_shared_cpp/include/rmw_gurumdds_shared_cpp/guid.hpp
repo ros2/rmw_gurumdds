@@ -52,7 +52,7 @@ struct GuidPrefix_t
     memcpy(value, g.value, kSize);
   }
 
-  GuidPrefix_t(GuidPrefix_t && g)
+  GuidPrefix_t(GuidPrefix_t && g) noexcept
   {
     memmove(value, g.value, kSize);
   }
@@ -63,7 +63,7 @@ struct GuidPrefix_t
     return *this;
   }
 
-  GuidPrefix_t & operator=(GuidPrefix_t && guidpre)
+  GuidPrefix_t & operator=(GuidPrefix_t && guidpre) noexcept
   {
     memmove(value, guidpre.value, kSize);
     return *this;

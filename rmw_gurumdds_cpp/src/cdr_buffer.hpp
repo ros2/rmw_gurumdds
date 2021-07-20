@@ -139,7 +139,7 @@ public:
     advance(8);
   }
 
-  void operator<<(std::string src)
+  void operator<<(const std::string& src)
   {
     *this << static_cast<uint32_t>(src.size() + 1);
     align(1);  // align of char
@@ -152,23 +152,23 @@ public:
     advance(src.size() + 1);
   }
 
-  void operator<<(std::u16string src)
+  void operator<<(const std::u16string& src)
   {
-    *this << static_cast<uint32_t>(src.size() + 1);
-    align(4);  // align of wchar
+    *this << static_cast<uint32_t>(src.size());
+    align(2);  // align of wchar
     if (buf != nullptr) {
-      if (offset + ((src.size() + 1) * 4) > size) {
+      if (offset + (src.size() * 2) > size) {
         throw std::runtime_error("Out of buffer");
       }
-      auto dst = reinterpret_cast<uint32_t *>(buf + offset);
+      auto dst = reinterpret_cast<uint16_t *>(buf + offset);
       for (uint32_t i = 0; i < src.size(); i++) {
-        *(dst + i) = static_cast<uint32_t>(src[i]);
+        *(dst + i) = static_cast<uint16_t>(src[i]);
       }
     }
-    advance((src.size() + 1) * 4);
+    advance(src.size() * 2);
   }
 
-  void operator<<(rosidl_runtime_c__String src)
+  void operator<<(const rosidl_runtime_c__String& src)
   {
     *this << static_cast<uint32_t>(src.size + 1);
     align(1);  // align of char
@@ -181,20 +181,20 @@ public:
     advance(src.size + 1);
   }
 
-  void operator<<(rosidl_runtime_c__U16String src)
+  void operator<<(const rosidl_runtime_c__U16String& src)
   {
-    *this << static_cast<uint32_t>(src.size + 1);
-    align(4);  // align of wchar
+    *this << static_cast<uint32_t>(src.size);
+    align(2);  // align of wchar
     if (buf != nullptr) {
-      if (offset + (src.size + 1) * 4 > size) {
+      if (offset + src.size* 2 > size) {
         throw std::runtime_error("Out of buffer");
       }
-      auto dst = reinterpret_cast<uint32_t *>(buf + offset);
+      auto dst = reinterpret_cast<uint16_t *>(buf + offset);
       for (uint32_t i = 0; i < src.size; i++) {
-        *(dst + i) = static_cast<uint32_t>(src.data[i]);
+        *(dst + i) = static_cast<uint16_t>(src.data[i]);
       }
     }
-    advance((src.size + 1) * 4);
+    advance(src.size * 2);
   }
 
   void copy_arr(const uint8_t * arr, size_t cnt)
@@ -343,23 +343,23 @@ public:
   {
     uint32_t str_size = 0;
     *this >> str_size;
-    align(4);  // align of wchar
+    align(2);  // align of wchar
     if (str_size == 0) {
       throw std::runtime_error("Invalid wstring value");
     }
-    if (offset + str_size * 4 > size) {
+    if (offset + str_size * 2 > size) {
       throw std::runtime_error("Out of buffer");
     }
-    if (*(reinterpret_cast<uint32_t *>(buf + offset) + (str_size - 1)) != '\0') {
+    if (*(reinterpret_cast<uint16_t *>(buf + offset) + (str_size - 1)) != '\0') {
       throw std::runtime_error("Wstring is not null terminated");
     }
-    dst.resize(str_size - 1);
-    for (uint32_t i = 0; i < str_size - 1; i++) {
-      auto data = *(reinterpret_cast<uint32_t *>(buf + offset) + i);
-      data = swap ? bswap32(data) : data;
-      dst[i] = static_cast<uint16_t>(data);
+    dst.reserve(str_size + 1);
+    for (uint32_t i = 0; i < str_size; i++) {
+      auto data = *(reinterpret_cast<uint16_t *>(buf + offset) + i);
+      data = swap ? bswap16(data) : data;
+      dst.push_back(data);
     }
-    advance(str_size * 4);
+    advance(str_size * 2);
   }
 
   void operator>>(rosidl_runtime_c__String & dst)
@@ -387,28 +387,28 @@ public:
   {
     uint32_t str_size = 0;
     *this >> str_size;
-    align(4);  // align of wchar
+    align(2);  // align of wchar
     if (buf != nullptr) {
       if (str_size == 0) {
         throw std::runtime_error("Invalid wstring value");
       }
-      if (offset + str_size * 4 > size) {
+      if (offset + str_size * 2 > size) {
         throw std::runtime_error("Out of buffer");
       }
-      bool res = rosidl_runtime_c__U16String__resize(&dst, str_size - 1);
+      bool res = rosidl_runtime_c__U16String__resize(&dst, str_size + 1);
       if (!res) {
         throw std::runtime_error("Failed to resize wstring");
       }
       if (str_size >= 1) {
-        for (uint32_t i = 0; i < str_size - 1; i++) {
-          auto data = *(reinterpret_cast<uint32_t *>(buf + offset) + i);
-          data = swap ? bswap32(data) : data;
+        for (uint32_t i = 0; i < str_size; i++) {
+          auto data = *(reinterpret_cast<uint16_t *>(buf + offset) + i);
+          data = swap ? bswap16(data) : data;
           dst.data[i] = static_cast<uint16_t>(data);
         }
       }
-      dst.data[str_size - 1] = u'\0';
+      dst.data[str_size] = u'\0';
     }
-    advance(str_size * 4);
+    advance(str_size * 2);
   }
 
   void copy_arr(uint8_t * arr, size_t cnt)
