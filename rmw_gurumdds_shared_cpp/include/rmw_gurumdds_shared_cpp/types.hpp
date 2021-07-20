@@ -206,7 +206,7 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
         convert_liveliness_lease_duration(sbtd->liveliness),
         false,
       };
-      context->topic_cache->add_topic(participant_guid, guid, topic_name, type_name, qos);
+      context->topic_cache->add_topic(participant_guid, guid, std::move(topic_name), std::move(type_name), qos);
     } else {
       context->topic_cache->remove_topic(guid);
     }

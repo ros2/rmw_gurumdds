@@ -159,13 +159,14 @@ rmw_create_client(
   // Create topic and type name strings
   request_type_name = _create_type_name(request_callbacks);
   response_type_name = _create_type_name(response_callbacks);
+  request_topic_name.reserve(256);
+  response_topic_name.reserve(256);
   if (!qos_policies->avoid_ros_namespace_conventions) {
-    request_topic_name = std::string(ros_service_requester_prefix) + service_name;
-    response_topic_name = std::string(ros_service_response_prefix) + service_name;
-  } else {
-    request_topic_name = service_name;
-    response_topic_name = service_name;
+    request_topic_name += ros_service_requester_prefix;
+    response_topic_name += ros_service_response_prefix;
   }
+  request_topic_name += service_name;
+  response_topic_name += service_name;
   request_topic_name += "Request";
   response_topic_name += "Reply";
 

@@ -66,7 +66,7 @@ _demangle_service_from_topic(const std::string & topic_name)
     ros_service_requester_prefix,
   };
   if (
-    std::none_of(prefixes.cbegin(), prefixes.cend(), [&prefix](auto x) {return prefix == x;}))
+    std::none_of(prefixes.cbegin(), prefixes.cend(), [&prefix](auto& x) {return prefix == x;}))
   { // not a ROS service topic
     return "";
   }
@@ -75,7 +75,7 @@ _demangle_service_from_topic(const std::string & topic_name)
     {ros_service_response_prefix, "Reply"},
     {ros_service_requester_prefix, "Request"},
   };
-  auto suffix = suffixes[prefix];
+  auto & suffix = suffixes[prefix];
   size_t suffix_position = topic_name.rfind(suffix);
   if (suffix_position == std::string::npos) {
     RCUTILS_LOG_WARN_NAMED(
@@ -100,13 +100,13 @@ _demangle_service_type_only(const std::string & dds_type_name)
     return "";
   }
 
-  auto suffixes = {
+  static const std::string suffixes[] = {
     std::string("_Response_"),
     std::string("_Request_"),
   };
   std::string found_suffix = "";
   size_t suffix_position = std::string::npos;
-  for (auto suffix : suffixes) {
+  for (const auto & suffix : suffixes) {
     suffix_position = dds_type_name.rfind(suffix);
     if (suffix_position != std::string::npos) {
       if (dds_type_name.length() - suffix_position - suffix.length() != 0) {
