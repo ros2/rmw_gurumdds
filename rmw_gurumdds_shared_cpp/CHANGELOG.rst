@@ -2,6 +2,13 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-07-22)
+------------------
+* Remove datareader listener patch
+* Remove attached waitset conditions on destructor
+* Remove unnecessary operation
+* Contributors: Kumazuma, Youngjin Yun
+
 1.0.7 (2021-07-14)
 ------------------
 * Move handle sequence delete into right place

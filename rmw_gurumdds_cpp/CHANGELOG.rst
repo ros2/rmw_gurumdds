@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-07-22)
+------------------
+* Remove datareader listener patch
+* Remove unnecessary operation
+* Contributors: Kumazuma, Youngjin Yun
+
 1.0.7 (2021-07-14)
 ------------------
 * Use variable attempt to take the number of times equal to count
