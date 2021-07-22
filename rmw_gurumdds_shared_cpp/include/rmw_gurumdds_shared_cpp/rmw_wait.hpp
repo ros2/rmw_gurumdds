@@ -189,6 +189,10 @@ shared__rmw_wait(
           RMW_SET_ERROR_MSG("failed to detach condition from wait set");
         }
       }
+
+      while(dds_ConditionSeq_length(attached_conditions) > 0) {
+        dds_ConditionSeq_remove(attached_conditions, 0);
+      }
     }
     rmw_wait_set_t * wait_set = nullptr;
     const char * implementation_identifier = nullptr;
