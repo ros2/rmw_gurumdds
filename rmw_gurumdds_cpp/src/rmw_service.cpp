@@ -91,13 +91,12 @@ rmw_create_service(
   dds_PublisherQos publisher_qos;
   dds_DataReaderQos datareader_qos;
   dds_DataWriterQos datawriter_qos;
-  dds_DataReaderListener datareader_listener = {};
 
   dds_Subscriber * dds_subscriber = nullptr;
   dds_Publisher * dds_publisher = nullptr;
   dds_DataReader * request_reader = nullptr;
   dds_DataWriter * response_writer = nullptr;
-  dds_GuardCondition * queue_guard_condition = nullptr;
+  dds_ReadCondition * read_condition = nullptr;
   dds_TypeSupport * request_typesupport = nullptr;
   dds_TypeSupport * response_typesupport = nullptr;
 
@@ -285,11 +284,8 @@ rmw_create_service(
     goto fail;
   }
 
-  datareader_listener.on_data_available = reader_on_data_available<GurumddsServiceInfo>;
-
   request_reader = dds_Subscriber_create_datareader(
-    dds_subscriber, request_topic, &datareader_qos, &datareader_listener,
-    dds_DATA_AVAILABLE_STATUS);
+    dds_subscriber, request_topic, &datareader_qos, nullptr, 0);
   if (request_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
     goto fail;
@@ -302,12 +298,13 @@ rmw_create_service(
     goto fail;
   }
 
-  queue_guard_condition = dds_GuardCondition_create();
-  if (queue_guard_condition == nullptr) {
-    RMW_SET_ERROR_MSG("failed to create guard condition");
+  read_condition = dds_DataReader_create_readcondition(
+    request_reader, dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  if (read_condition == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create read condition");
     goto fail;
   }
-  service_info->queue_guard_condition = queue_guard_condition;
+  service_info->read_condition = read_condition;
 
   // Create datawriter for response
   ret = dds_DomainParticipant_get_default_publisher_qos(participant, &publisher_qos);
@@ -348,9 +345,6 @@ rmw_create_service(
     RMW_SET_ERROR_MSG("failed to finalize datawriter qos");
     goto fail;
   }
-
-  dds_DataReader_set_listener_context(service_info->request_reader, service_info);
-
   rmw_service = rmw_service_allocate();
   if (rmw_service == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for service");
@@ -395,8 +389,8 @@ fail:
 
   if (dds_subscriber != nullptr) {
     if (request_reader != nullptr) {
-      if (queue_guard_condition != nullptr) {
-        dds_GuardCondition_delete(queue_guard_condition);
+      if (read_condition != nullptr) {
+        dds_DataReader_delete_readcondition(request_reader, read_condition);
       }
       dds_Subscriber_delete_datareader(dds_subscriber, request_reader);
     }
@@ -452,12 +446,23 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     if (service_info->participant != nullptr) {
       if (service_info->dds_subscriber != nullptr) {
         if (service_info->request_reader != nullptr) {
+          if (service_info->read_condition != nullptr) {
+            ret = dds_DataReader_delete_readcondition(
+              service_info->request_reader, service_info->read_condition);
+            if (ret != dds_RETCODE_OK) {
+              RMW_SET_ERROR_MSG("failed to delete readcondition");
+              rmw_ret = RMW_RET_ERROR;
+            }
+          }
           ret = dds_Subscriber_delete_datareader(
             service_info->dds_subscriber, service_info->request_reader);
           if (ret != dds_RETCODE_OK) {
             RMW_SET_ERROR_MSG("failed to delete datareader");
             rmw_ret = RMW_RET_ERROR;
           }
+        } else if (service_info->read_condition != nullptr) {
+          RMW_SET_ERROR_MSG("cannot delete readcondition because the datareader is null");
+          rmw_ret = RMW_RET_ERROR;
         }
         ret = dds_DomainParticipant_delete_subscriber(
           service_info->participant, service_info->dds_subscriber);
@@ -494,22 +499,6 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
       RMW_SET_ERROR_MSG(
         "cannot delete publisher and subscriber because the domain participant is null");
       rmw_ret = RMW_RET_ERROR;
-    }
-
-    if (service_info->queue_guard_condition != nullptr) {
-      dds_GuardCondition_delete(service_info->queue_guard_condition);
-      service_info->queue_guard_condition = nullptr;
-    }
-
-    while (!service_info->message_queue.empty()) {
-      auto msg = service_info->message_queue.front();
-      if (msg.sample != nullptr) {
-        dds_free(msg.sample);
-      }
-      if (msg.info != nullptr) {
-        dds_free(msg.info);
-      }
-      service_info->message_queue.pop();
     }
 
     delete service_info;
