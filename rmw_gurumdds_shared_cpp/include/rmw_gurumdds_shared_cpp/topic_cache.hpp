@@ -73,7 +73,8 @@ public:
     std::string && topic_name,
     std::string && type_name,
     rmw_qos_profile_t & qos
-  ) {
+  )
+  {
     initialize_participant_map(participant_to_entity_guids_, participant_guid);
     if (rcutils_logging_logger_is_enabled_for(
         "rmw_gurumdds_shared_cpp", RCUTILS_LOG_SEVERITY_DEBUG))
@@ -106,7 +107,9 @@ public:
     const std::string & type_name,
     rmw_qos_profile_t & qos)
   {
-    return add_topic(participant_guid, entity_guid, std::string(topic_name), std::string(type_name), qos);
+    return add_topic(
+      participant_guid, entity_guid, std::string(topic_name),
+      std::string(type_name), qos);
   }
 
   bool get_topic(const GUID_t & entity_guid, TopicInfo & topic_info) const

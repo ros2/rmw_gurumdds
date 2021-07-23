@@ -139,7 +139,7 @@ public:
     advance(8);
   }
 
-  void operator<<(const std::string& src)
+  void operator<<(const std::string & src)
   {
     *this << static_cast<uint32_t>(src.size() + 1);
     align(1);  // align of char
@@ -152,7 +152,7 @@ public:
     advance(src.size() + 1);
   }
 
-  void operator<<(const std::u16string& src)
+  void operator<<(const std::u16string & src)
   {
     *this << static_cast<uint32_t>(src.size());
     align(2);  // align of wchar
@@ -168,7 +168,7 @@ public:
     advance(src.size() * 2);
   }
 
-  void operator<<(const rosidl_runtime_c__String& src)
+  void operator<<(const rosidl_runtime_c__String & src)
   {
     *this << static_cast<uint32_t>(src.size + 1);
     align(1);  // align of char
@@ -181,12 +181,12 @@ public:
     advance(src.size + 1);
   }
 
-  void operator<<(const rosidl_runtime_c__U16String& src)
+  void operator<<(const rosidl_runtime_c__U16String & src)
   {
     *this << static_cast<uint32_t>(src.size);
     align(2);  // align of wchar
     if (buf != nullptr) {
-      if (offset + src.size* 2 > size) {
+      if (offset + src.size * 2 > size) {
         throw std::runtime_error("Out of buffer");
       }
       auto dst = reinterpret_cast<uint16_t *>(buf + offset);

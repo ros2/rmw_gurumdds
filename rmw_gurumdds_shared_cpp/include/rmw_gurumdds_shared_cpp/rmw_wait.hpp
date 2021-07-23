@@ -190,7 +190,7 @@ shared__rmw_wait(
         }
       }
 
-      while(dds_ConditionSeq_length(attached_conditions) > 0) {
+      while (dds_ConditionSeq_length(attached_conditions) > 0) {
         dds_ConditionSeq_remove(attached_conditions, 0);
       }
     }
