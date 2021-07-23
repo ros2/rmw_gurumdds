@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2021-07-23)
+------------------
+* Revise for lint
+* Contributors: Youngjin Yun
+
 1.0.8 (2021-07-22)
 ------------------
 * Remove datareader listener patch
