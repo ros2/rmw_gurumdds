@@ -66,10 +66,16 @@ shared__rmw_create_node(
   }
 
   // This is used to get node name from discovered participants
-  std::string node_user_data =
-    std::string("name=") + std::string(name) + std::string(";namespace=") +
-    std::string(namespace_) + std::string(";securitycontext=") +
-    std::string(context->options.enclave) + std::string(";");
+  std::string node_user_data;
+  node_user_data.reserve(256);
+  node_user_data += "name=";
+  node_user_data += name;
+  node_user_data += ";namespace=";
+  node_user_data += namespace_;
+  node_user_data += ";securitycontext=";
+  node_user_data += context->options.enclave;
+  node_user_data += ";";
+
   if (node_user_data.size() > sizeof(participant_qos.user_data.value)) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_gurumdds_shared_cpp",
