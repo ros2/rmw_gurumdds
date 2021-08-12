@@ -62,9 +62,6 @@ public:
   {
     TopicNameToInfo tnti;
     for (auto & i : entity_guid_to_info_) {
-      if (tnti.find(i.second.name) == tnti.end()) {
-        tnti[i.second.name] = std::vector<TopicInfo>();
-      }
       tnti[i.second.name].push_back(i.second);
     }
     return tnti;
@@ -73,8 +70,8 @@ public:
   bool add_topic(
     const GUID_t & participant_guid,
     const GUID_t & entity_guid,
-    const std::string & topic_name,
-    const std::string & type_name,
+    std::string && topic_name,
+    std::string && type_name,
     rmw_qos_profile_t & qos)
   {
     initialize_participant_map(participant_to_entity_guids_, participant_guid);
@@ -97,9 +94,21 @@ public:
       return false;
     }
     entity_guid_to_info_[entity_guid] =
-      TopicInfo {participant_guid, entity_guid, topic_name, type_name, qos};
+      TopicInfo {participant_guid, entity_guid, std::move(topic_name), std::move(type_name), qos};
     participant_to_entity_guids_[participant_guid].insert(entity_guid);
     return true;
+  }
+
+  bool add_topic(
+    const GUID_t & participant_guid,
+    const GUID_t & entity_guid,
+    const std::string & topic_name,
+    const std::string & type_name,
+    rmw_qos_profile_t & qos)
+  {
+    return add_topic(
+      participant_guid, entity_guid, std::string(topic_name),
+      std::string(type_name), qos);
   }
 
   bool get_topic(const GUID_t & entity_guid, TopicInfo & topic_info) const
@@ -111,6 +120,7 @@ public:
         "topic not available");
       return false;
     }
+    topic_info = topic_info_it->second;
     return true;
   }
 
@@ -124,10 +134,10 @@ public:
       return false;
     }
 
-    std::string topic_name = topic_info_it->second.name;
-    std::string type_name = topic_info_it->second.type;
+    std::string & topic_name = topic_info_it->second.name;
+    std::string & type_name = topic_info_it->second.type;
 
-    auto participant_guid = topic_info_it->second.participant_guid;
+    auto & participant_guid = topic_info_it->second.participant_guid;
     auto participant_to_entity_guid = participant_to_entity_guids_.find(participant_guid);
     if (participant_to_entity_guid == participant_to_entity_guids_.end()) {
       RCUTILS_LOG_WARN_NAMED(
@@ -150,7 +160,7 @@ public:
 
     entity_guid_to_info_.erase(topic_info_it);
     participant_to_entity_guid->second.erase(entity_guid_to_remove);
-    if (participant_to_entity_guids_.empty()) {
+    if (participant_to_entity_guid->second.empty()) {
       participant_to_entity_guids_.erase(participant_to_entity_guid);
     }
 
@@ -170,11 +180,7 @@ public:
       if (topic_info == entity_guid_to_info_.end()) {
         continue;
       }
-      auto topic_name = topic_info->second.name;
-      auto topic_entry = topics_types.find(topic_name);
-      if (topic_entry == topics_types.end()) {
-        topics_types[topic_name] = std::set<std::string>();
-      }
+      auto & topic_name = topic_info->second.name;
       topics_types[topic_name].insert(topic_info->second.type);
     }
     return topics_types;
