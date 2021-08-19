@@ -15,8 +15,6 @@
 #ifndef RMW_GURUMDDS_CPP__TYPES_HPP_
 #define RMW_GURUMDDS_CPP__TYPES_HPP_
 
-#include <queue>
-
 #include "rmw/rmw.h"
 #include "rmw_gurumdds_shared_cpp/types.hpp"
 
@@ -43,9 +41,7 @@ typedef struct _GurumddsSubscriberInfo : GurumddsEventInfo
 {
   dds_Subscriber * subscriber;
   dds_DataReader * topic_reader;
-  std::queue<GurumddsMessage> message_queue;
-  dds_GuardCondition * queue_guard_condition;
-  std::mutex queue_mutex;
+  dds_ReadCondition * read_condition;
   dds_TypeSupport * dds_typesupport;
   const rosidl_message_type_support_t * rosidl_message_typesupport;
   const char * implementation_identifier;
@@ -59,16 +55,13 @@ typedef struct _GurumddsServiceInfo
 {
   const rosidl_service_type_support_t * service_typesupport;
 
-  std::queue<GurumddsMessage> message_queue;
-  dds_GuardCondition * queue_guard_condition;
-  std::mutex queue_mutex;
-
   dds_Subscriber * dds_subscriber;
   dds_DataReader * request_reader;
 
   dds_Publisher * dds_publisher;
   dds_DataWriter * response_writer;
 
+  dds_ReadCondition * read_condition;
   dds_DomainParticipant * participant;
   const char * implementation_identifier;
 } GurumddsServiceInfo;
@@ -77,16 +70,13 @@ typedef struct _GurumddsClientInfo
 {
   const rosidl_service_type_support_t * service_typesupport;
 
-  std::queue<GurumddsMessage> message_queue;
-  dds_GuardCondition * queue_guard_condition;
-  std::mutex queue_mutex;
-
   dds_Publisher * dds_publisher;
   dds_DataWriter * request_writer;
 
   dds_Subscriber * dds_subscriber;
   dds_DataReader * response_reader;
 
+  dds_ReadCondition * read_condition;
   dds_DomainParticipant * participant;
   const char * implementation_identifier;
 
