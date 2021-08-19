@@ -133,10 +133,9 @@ rmw_create_subscription(
   dds_SubscriberQos subscriber_qos;
   dds_DataReader * topic_reader = nullptr;
   dds_DataReaderQos datareader_qos;
-  dds_DataReaderListener datareader_listener = {};
   dds_Topic * topic = nullptr;
   dds_TopicDescription * topic_desc = nullptr;
-  dds_GuardCondition * queue_guard_condition = nullptr;
+  dds_ReadCondition * read_condition = nullptr;
   dds_TypeSupport * dds_typesupport = nullptr;
   dds_ReturnCode_t ret = dds_RETCODE_OK;
   rmw_ret_t rmw_ret = RMW_RET_OK;
@@ -233,11 +232,8 @@ rmw_create_subscription(
     goto fail;
   }
 
-  datareader_listener.on_data_available = reader_on_data_available<GurumddsSubscriberInfo>;
-
-  topic_reader = dds_Subscriber_create_datareader(
-    dds_subscriber, topic, &datareader_qos, &datareader_listener,
-    dds_DATA_AVAILABLE_STATUS);
+  topic_reader =
+    dds_Subscriber_create_datareader(dds_subscriber, topic, &datareader_qos, nullptr, 0);
   if (topic_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
     goto fail;
@@ -249,9 +245,10 @@ rmw_create_subscription(
     goto fail;
   }
 
-  queue_guard_condition = dds_GuardCondition_create();
-  if (queue_guard_condition == nullptr) {
-    RMW_SET_ERROR_MSG("failed to create guard condition");
+  read_condition = dds_DataReader_create_readcondition(
+    topic_reader, dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  if (read_condition == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create read condition");
     goto fail;
   }
 
@@ -264,11 +261,9 @@ rmw_create_subscription(
   subscriber_info->implementation_identifier = gurum_gurumdds_identifier;
   subscriber_info->subscriber = dds_subscriber;
   subscriber_info->topic_reader = topic_reader;
-  subscriber_info->queue_guard_condition = queue_guard_condition;
+  subscriber_info->read_condition = read_condition;
   subscriber_info->dds_typesupport = dds_typesupport;
   subscriber_info->rosidl_message_typesupport = type_support;
-
-  dds_DataReader_set_listener_context(subscriber_info->topic_reader, subscriber_info);
 
   subscription = rmw_subscription_allocate();
   if (subscription == nullptr) {
@@ -313,8 +308,8 @@ fail:
 
   if (dds_subscriber != nullptr) {
     if (topic_reader != nullptr) {
-      if (queue_guard_condition != nullptr) {
-        dds_GuardCondition_delete(queue_guard_condition);
+      if (read_condition != nullptr) {
+        dds_DataReader_delete_readcondition(topic_reader, read_condition);
       }
       dds_Subscriber_delete_datareader(dds_subscriber, topic_reader);
     }
@@ -520,12 +515,25 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     if (dds_subscriber != nullptr) {
       dds_DataReader * topic_reader = subscriber_info->topic_reader;
       if (topic_reader != nullptr) {
+        dds_ReadCondition * read_condition = subscriber_info->read_condition;
+        if (read_condition != nullptr) {
+          ret = dds_DataReader_delete_readcondition(topic_reader, read_condition);
+          if (ret != dds_RETCODE_OK) {
+            RMW_SET_ERROR_MSG("failed to delete readcondition");
+            rmw_ret = RMW_RET_ERROR;
+          }
+          subscriber_info->read_condition = nullptr;
+        }
+
         ret = dds_Subscriber_delete_datareader(dds_subscriber, topic_reader);
         if (ret != dds_RETCODE_OK) {
           RMW_SET_ERROR_MSG("failed to delete datareader");
           rmw_ret = RMW_RET_ERROR;
         }
         subscriber_info->topic_reader = nullptr;
+      } else if (subscriber_info->read_condition != nullptr) {
+        RMW_SET_ERROR_MSG("cannot delete readcondition because the datareader is null");
+        rmw_ret = RMW_RET_ERROR;
       }
 
       ret = dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
@@ -536,22 +544,6 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     } else if (subscriber_info->topic_reader != nullptr) {
       RMW_SET_ERROR_MSG("cannot delte datareader because the subscriber is null");
       rmw_ret = RMW_RET_ERROR;
-    }
-
-    if (subscriber_info->queue_guard_condition != nullptr) {
-      dds_GuardCondition_delete(subscriber_info->queue_guard_condition);
-      subscriber_info->queue_guard_condition = nullptr;
-    }
-
-    while (!subscriber_info->message_queue.empty()) {
-      auto msg = subscriber_info->message_queue.front();
-      if (msg.sample != nullptr) {
-        dds_free(msg.sample);
-      }
-      if (msg.info != nullptr) {
-        dds_free(msg.info);
-      }
-      subscriber_info->message_queue.pop();
     }
 
     if (subscriber_info->dds_typesupport != nullptr) {
@@ -602,41 +594,88 @@ _take(
   dds_DataReader * topic_reader = info->topic_reader;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(topic_reader, "topic reader is null", return RMW_RET_ERROR);
 
-  if (info->message_queue.empty()) {
-    return RMW_RET_OK;
+  dds_DataSeq * data_values = dds_DataSeq_create(1);
+  if (data_values == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create data sequence");
+    return RMW_RET_ERROR;
   }
 
-  info->queue_mutex.lock();
-  auto msg = info->message_queue.front();
-  info->message_queue.pop();
-  if (info->message_queue.empty()) {
-    dds_GuardCondition_set_trigger_value(info->queue_guard_condition, false);
+  dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    return RMW_RET_ERROR;
   }
-  info->queue_mutex.unlock();
+
+  dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample size sequence");
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    return RMW_RET_ERROR;
+  }
+
+  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+    topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+
+  if (ret == dds_RETCODE_NO_DATA) {
+    const char * topic_name =
+      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+    RCUTILS_LOG_DEBUG_NAMED(
+      "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_OK;
+  }
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to take data");
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_ERROR;
+  }
+
+  dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
   bool ignore_sample = false;
 
-  if (!msg.info->valid_data) {
+  if (!sample_info->valid_data) {
     ignore_sample = true;
   }
 
   if (!ignore_sample) {
-    if (msg.sample == nullptr) {
-      RMW_SET_ERROR_MSG("Received invalid message");
-      dds_free(msg.info);
+    void * sample = dds_DataSeq_get(data_values, 0);
+    if (sample == nullptr) {
+      RMW_SET_ERROR_MSG("failed to get message");
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_ERROR;
     }
+    uint32_t sample_size = dds_UnsignedLongSeq_get(sample_sizes, 0);
     bool result = deserialize_cdr_to_ros(
       info->rosidl_message_typesupport->data,
       info->rosidl_message_typesupport->typesupport_identifier,
       ros_message,
-      msg.sample,
-      static_cast<size_t>(msg.size)
+      sample,
+      static_cast<size_t>(sample_size)
     );
     if (!result) {
-      RMW_SET_ERROR_MSG("Failed to deserialize message");
-      dds_free(msg.sample);
-      dds_free(msg.info);
+      RMW_SET_ERROR_MSG("failed to deserialize message");
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_ERROR;
     }
 
@@ -644,8 +683,8 @@ _take(
 
     if (message_info != nullptr) {
       message_info->source_timestamp =
-        msg.info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-        msg.info->source_timestamp.nanosec;
+        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
@@ -653,7 +692,7 @@ _take(
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<GurumddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
-        topic_reader, msg.info->publication_handle, custom_gid->publication_handle);
+        topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
           RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
@@ -663,12 +702,10 @@ _take(
     }
   }
 
-  if (msg.sample != nullptr) {
-    dds_free(msg.sample);
-  }
-  if (msg.info != nullptr) {
-    dds_free(msg.info);
-  }
+  dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+  dds_DataSeq_delete(data_values);
+  dds_SampleInfoSeq_delete(sample_infos);
+  dds_UnsignedLongSeq_delete(sample_sizes);
 
   return RMW_RET_OK;
 }
@@ -758,52 +795,100 @@ rmw_take_sequence(
   dds_DataReader * topic_reader = info->topic_reader;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(topic_reader, "topic reader is null", return RMW_RET_ERROR);
 
-  if (info->message_queue.empty()) {
-    return RMW_RET_OK;
+  dds_DataSeq * data_values = dds_DataSeq_create(count);
+  if (data_values == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create data sequence");
+    return RMW_RET_ERROR;
+  }
+
+  dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(count);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    return RMW_RET_ERROR;
+  }
+
+  dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(count);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample size sequence");
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    return RMW_RET_ERROR;
   }
 
   *taken = 0;
-  size_t attempt = 0;
 
-  info->queue_mutex.lock();
-  while (attempt < count && !info->message_queue.empty()) {
-    auto msg = info->message_queue.front();
-    info->message_queue.pop();
-    if (info->message_queue.empty()) {
-      dds_GuardCondition_set_trigger_value(info->queue_guard_condition, false);
-    }
+  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+    topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, count,
+    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+
+  if (ret == dds_RETCODE_NO_DATA) {
+    const char * topic_name =
+      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+    RCUTILS_LOG_DEBUG_NAMED(
+      "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_OK;
+  }
+
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to take data");
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_ERROR;
+  }
+
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+
+  for (uint32_t i = 0; i < dds_SampleInfoSeq_length(sample_infos); i++) {
+    dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, i);
+
     bool ignore_sample = false;
-    attempt++;
 
-    if (!msg.info->valid_data) {
+    if (!sample_info->valid_data) {
       ignore_sample = true;
     }
 
     if (!ignore_sample) {
-      if (msg.sample == nullptr) {
-        RMW_SET_ERROR_MSG("Received invalid message");
-        dds_free(msg.info);
+      void * sample = dds_DataSeq_get(data_values, i);
+      if (sample == nullptr) {
+        RMW_SET_ERROR_MSG("failed to get message");
+        dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+        dds_DataSeq_delete(data_values);
+        dds_SampleInfoSeq_delete(sample_infos);
+        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
+      uint32_t sample_size = dds_UnsignedLongSeq_get(sample_sizes, i);
       bool result = deserialize_cdr_to_ros(
         info->rosidl_message_typesupport->data,
         info->rosidl_message_typesupport->typesupport_identifier,
         message_sequence->data[*taken],
-        msg.sample,
-        static_cast<size_t>(msg.size)
+        sample,
+        static_cast<size_t>(sample_size)
       );
       if (!result) {
-        RMW_SET_ERROR_MSG("Failed to deserialize message");
-        dds_free(msg.sample);
-        dds_free(msg.info);
+        RMW_SET_ERROR_MSG("failed to deserialize message");
+        dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+        dds_DataSeq_delete(data_values);
+        dds_SampleInfoSeq_delete(sample_infos);
+        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
 
       auto message_info = &(message_info_sequence->data[*taken]);
 
       message_info->source_timestamp =
-        msg.info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-        msg.info->source_timestamp.nanosec;
+        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
@@ -811,7 +896,7 @@ rmw_take_sequence(
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<GurumddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
-        topic_reader, msg.info->publication_handle, custom_gid->publication_handle);
+        topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
           RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
@@ -821,20 +906,15 @@ rmw_take_sequence(
 
       (*taken)++;
     }
-
-    if (msg.sample != nullptr) {
-      dds_free(msg.sample);
-    }
-    if (msg.info != nullptr) {
-      dds_free(msg.info);
-    }
   }
-  info->queue_mutex.unlock();
-
-  // =============================================================================================
 
   message_sequence->size = *taken;
   message_info_sequence->size = *taken;
+
+  dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+  dds_DataSeq_delete(data_values);
+  dds_SampleInfoSeq_delete(sample_infos);
+  dds_UnsignedLongSeq_delete(sample_sizes);
 
   return RMW_RET_OK;
 }
@@ -862,50 +942,97 @@ _take_serialized(
   dds_DataReader * topic_reader = info->topic_reader;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(topic_reader, "topic reader is null", return RMW_RET_ERROR);
 
-  if (info->message_queue.empty()) {
-    return RMW_RET_OK;
+  dds_DataSeq * data_values = dds_DataSeq_create(1);
+  if (data_values == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create data sequence");
+    return RMW_RET_ERROR;
   }
 
-  info->queue_mutex.lock();
-  auto msg = info->message_queue.front();
-  info->message_queue.pop();
-  if (info->message_queue.empty()) {
-    dds_GuardCondition_set_trigger_value(info->queue_guard_condition, false);
+  dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+    dds_DataSeq_delete(data_values);
+    return RMW_RET_ERROR;
   }
-  info->queue_mutex.unlock();
+
+  dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
+  if (sample_infos == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample size sequence");
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    return RMW_RET_ERROR;
+  }
+
+  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+    topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+
+  if (ret == dds_RETCODE_NO_DATA) {
+    const char * topic_name =
+      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+    RCUTILS_LOG_DEBUG_NAMED(
+      "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_OK;
+  }
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to take data");
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataSeq_delete(data_values);
+    dds_SampleInfoSeq_delete(sample_infos);
+    dds_UnsignedLongSeq_delete(sample_sizes);
+    return RMW_RET_ERROR;
+  }
+
+  dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
   bool ignore_sample = false;
 
-  if (!msg.info->valid_data) {
+  if (!sample_info->valid_data) {
     ignore_sample = true;
   }
 
   if (!ignore_sample) {
-    if (msg.sample == nullptr) {
-      RMW_SET_ERROR_MSG("Received invalid message");
-      dds_free(msg.info);
+    void * sample = dds_DataSeq_get(data_values, 0);
+    if (sample == nullptr) {
+      RMW_SET_ERROR_MSG("failed to take data");
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_ERROR;
     }
 
-    serialized_message->buffer_length = msg.size;
-    if (serialized_message->buffer_capacity < msg.size) {
-      rmw_ret_t rmw_ret = rmw_serialized_message_resize(serialized_message, msg.size);
+    uint32_t sample_size = dds_UnsignedLongSeq_get(sample_sizes, 0);
+    serialized_message->buffer_length = sample_size;
+    if (serialized_message->buffer_capacity < sample_size) {
+      rmw_ret_t rmw_ret = rmw_serialized_message_resize(serialized_message, sample_size);
       if (rmw_ret != RMW_RET_OK) {
         // Error message already set
-        dds_free(msg.sample);
-        dds_free(msg.info);
+        dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+        dds_DataSeq_delete(data_values);
+        dds_SampleInfoSeq_delete(sample_infos);
+        dds_UnsignedLongSeq_delete(sample_sizes);
         return rmw_ret;
       }
     }
 
-    memcpy(serialized_message->buffer, msg.sample, msg.size);
+    memcpy(serialized_message->buffer, sample, sample_size);
 
     *taken = true;
 
     if (message_info != nullptr) {
       message_info->source_timestamp =
-        msg.info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-        msg.info->source_timestamp.nanosec;
+        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
@@ -913,7 +1040,7 @@ _take_serialized(
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<GurumddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
-        topic_reader, msg.info->publication_handle, custom_gid->publication_handle);
+        topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
           RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
@@ -923,12 +1050,10 @@ _take_serialized(
     }
   }
 
-  if (msg.sample != nullptr) {
-    dds_free(msg.sample);
-  }
-  if (msg.info != nullptr) {
-    dds_free(msg.info);
-  }
+  dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+  dds_DataSeq_delete(data_values);
+  dds_SampleInfoSeq_delete(sample_infos);
+  dds_UnsignedLongSeq_delete(sample_sizes);
 
   return RMW_RET_OK;
 }
