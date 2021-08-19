@@ -15,6 +15,8 @@
 #include <map>
 #include <set>
 #include <string>
+#include <chrono>
+#include <thread>
 
 #include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
@@ -70,6 +72,7 @@ shared__rmw_get_topic_names_and_types(
     return RMW_RET_ERROR;
   }
 
+  std::this_thread::sleep_for(std::chrono::microseconds(100));
   std::map<std::string, std::set<std::string>> topics;
   node_info->pub_listener->fill_topic_names_and_types(no_demangle, topics);
   node_info->sub_listener->fill_topic_names_and_types(no_demangle, topics);
