@@ -8,6 +8,14 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.1.8 (2021-08-19)
+------------------
+* Wait for state change of topic cache
+* Remove datareader listener patch
+* Remove attached waitset conditions on destructor
+* Remove unnecessary operation
+* Contributors: Youngjin Yun
+
 2.1.7 (2021-07-14)
 ------------------
 * Move handle sequence delete into right place

@@ -7,6 +7,12 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.1.8 (2021-08-19)
+------------------
+* Remove datareader listener patch
+* Remove unnecessary operation
+* Contributors: Youngjin Yun
+
 2.1.7 (2021-07-14)
 ------------------
 
