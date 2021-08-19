@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.3 (2021-08-19)
+------------------
+* Wait for state change of topic cache
+* Remove datareader listener patch
+* Remove attached waitset conditions on destructor
+* Remove unnecessary operation
+* Contributors: Youngjin Yun
+
 3.0.2 (2021-07-14)
 ------------------
 * Move handle sequence delete into right place

@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.3 (2021-08-19)
+------------------
+* Remove datareader listener patch
+* Remove unnecessary operation
+* Contributors: Youngjin Yun
+
 3.0.2 (2021-07-14)
 ------------------
 
