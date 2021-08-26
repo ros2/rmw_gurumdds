@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.14 (2021-08-26)
+-------------------
+* Remove datareader listener patch
+* Remove unnecessary operation
+* Contributors: Youngjin Yun
+
 0.7.13 (2021-07-14)
 -------------------
 * Check if the queue is empty before using it
