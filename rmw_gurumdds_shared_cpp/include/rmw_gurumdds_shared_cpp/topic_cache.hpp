@@ -55,8 +55,8 @@ public:
   bool add_topic(
     const GUID_t & participant_guid,
     const GUID_t & topic_guid,
-    const std::string & topic_name,
-    const std::string & type_name)
+    std::string && topic_name,
+    std::string && type_name)
   {
     initialize_participant_map(participant_to_topic_guids_, participant_guid);
     if (rcutils_logging_logger_is_enabled_for(
@@ -78,9 +78,20 @@ public:
       return false;
     }
     topic_guid_to_info_[topic_guid] =
-      TopicInfo {participant_guid, topic_guid, topic_name, type_name};
+      TopicInfo {participant_guid, topic_guid, std::move(topic_name), std::move(type_name)};
     participant_to_topic_guids_[participant_guid].insert(topic_guid);
     return true;
+  }
+
+  bool add_topic(
+    const GUID_t & participant_guid,
+    const GUID_t & topic_guid,
+    const std::string & topic_name,
+    const std::string & type_name)
+  {
+    return add_topic(
+      participant_guid, topic_guid, std::string(topic_name),
+      std::string(type_name));
   }
 
   bool get_topic(const GUID_t & topic_guid, TopicInfo & topic_info) const
@@ -92,6 +103,7 @@ public:
         "topic not available");
       return false;
     }
+    topic_info = topic_info_it->second;
     return true;
   }
 
@@ -105,10 +117,10 @@ public:
       return false;
     }
 
-    std::string topic_name = topic_info_it->second.name;
-    std::string type_name = topic_info_it->second.type;
+    std::string & topic_name = topic_info_it->second.name;
+    std::string & type_name = topic_info_it->second.type;
 
-    auto participant_guid = topic_info_it->second.participant_guid;
+    auto & participant_guid = topic_info_it->second.participant_guid;
     auto participant_to_topic_guid = participant_to_topic_guids_.find(participant_guid);
     if (participant_to_topic_guid == participant_to_topic_guids_.end()) {
       RCUTILS_LOG_WARN_NAMED(
@@ -131,7 +143,7 @@ public:
 
     topic_guid_to_info_.erase(topic_info_it);
     participant_to_topic_guid->second.erase(topic_guid_to_remove);
-    if (participant_to_topic_guids_.empty()) {
+    if (participant_to_topic_guid->second.empty()) {
       participant_to_topic_guids_.erase(participant_to_topic_guid);
     }
 
@@ -151,11 +163,7 @@ public:
       if (topic_info == topic_guid_to_info_.end()) {
         continue;
       }
-      auto topic_name = topic_info->second.name;
-      auto topic_entry = topics_types.find(topic_name);
-      if (topic_entry == topics_types.end()) {
-        topics_types[topic_name] = std::set<std::string>();
-      }
+      auto & topic_name = topic_info->second.name;
       topics_types[topic_name].insert(topic_info->second.type);
     }
     return topics_types;

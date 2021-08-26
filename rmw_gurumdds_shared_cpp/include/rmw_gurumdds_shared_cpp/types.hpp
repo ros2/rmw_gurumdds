@@ -108,7 +108,9 @@ static void pub_on_data_available(const dds_DataReader * a_reader)
       dds_BuiltinTopicKey_to_GUID(&participant_guid, pbtd->participant_key);
       topic_name = std::string(pbtd->topic_name);
       type_name = std::string(pbtd->type_name);
-      context->topic_cache->add_topic(participant_guid, guid, topic_name, type_name);
+      context->topic_cache->add_topic(
+        participant_guid, guid, std::move(topic_name),
+        std::move(type_name));
     } else {
       context->topic_cache->remove_topic(guid);
     }
@@ -183,7 +185,9 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
       dds_BuiltinTopicKey_to_GUID(&participant_guid, sbtd->participant_key);
       topic_name = sbtd->topic_name;
       type_name = sbtd->type_name;
-      context->topic_cache->add_topic(participant_guid, guid, topic_name, type_name);
+      context->topic_cache->add_topic(
+        participant_guid, guid, std::move(topic_name),
+        std::move(type_name));
     } else {
       context->topic_cache->remove_topic(guid);
     }
