@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.10 (2021-09-02)
+-------------------
+* Fix unbounded sequence size
+* Contributors: Youngjin Yun
+
 1.0.9 (2021-07-23)
 ------------------
 * Revise for lint
