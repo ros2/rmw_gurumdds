@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.4 (2021-09-02)
+------------------
+
 3.0.3 (2021-08-19)
 ------------------
 * Wait for state change of topic cache
