@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.15 (2021-09-02)
+-------------------
+
 0.7.14 (2021-08-26)
 -------------------
 * Remove datareader listener patch
