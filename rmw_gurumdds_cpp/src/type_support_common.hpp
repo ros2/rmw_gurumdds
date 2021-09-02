@@ -107,7 +107,7 @@ _parse_struct(const MessageMembersT * members, const char * field_name, bool is_
         }
       } else {
         // UnboundedSequence
-        metastring << "<(name=" << member->name_ << "_,maximum=128)";
+        metastring << "<(name=" << member->name_ << "_)";
       }
     }
 
