@@ -7,6 +7,11 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.1.9 (2021-09-02)
+------------------
+* Fix unbounded sequence size
+* Contributors: Youngjin Yun
+
 2.1.8 (2021-08-19)
 ------------------
 * Remove datareader listener patch

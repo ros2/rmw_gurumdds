@@ -8,6 +8,9 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.1.9 (2021-09-02)
+------------------
+
 2.1.8 (2021-08-19)
 ------------------
 * Wait for state change of topic cache
