@@ -2,6 +2,13 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.11 (2021-09-03)
+-------------------
+* Remove datareader listener patch
+* Remove attached waitset conditions on destructor
+* Remove unnecessary operation
+* Contributors: Youngjin Yun
+
 0.8.10 (2021-07-14)
 -------------------
 * fix typo: check namespace\_ allocate
