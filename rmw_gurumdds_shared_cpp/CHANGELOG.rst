@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.5 (2021-09-23)
+------------------
+* Stop double-defining structs
+* Add rmw_publisher_wait_for_all_acked
+* Contributors: Youngjin Yun
+
 3.0.4 (2021-09-02)
 ------------------
 
