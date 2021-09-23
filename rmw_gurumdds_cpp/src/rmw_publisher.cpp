@@ -398,7 +398,7 @@ rmw_publisher_wait_for_all_acked(const rmw_publisher_t * publisher, rmw_time_t w
     publisher,
     publisher->implementation_identifier, gurum_gurumdds_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  
+
   GurumddsPublisherInfo * publisher_info = static_cast<GurumddsPublisherInfo *>(publisher->data);
   if (publisher_info == nullptr) {
     RMW_SET_ERROR_MSG("publisher internal data is invalid");
@@ -406,14 +406,16 @@ rmw_publisher_wait_for_all_acked(const rmw_publisher_t * publisher, rmw_time_t w
   }
 
   dds_Duration_t timeout = rmw_time_to_dds(wait_timeout);
-  dds_ReturnCode_t ret = dds_DataWriter_wait_for_acknowledgments(publisher_info->topic_writer, &timeout);
+  dds_ReturnCode_t ret = dds_DataWriter_wait_for_acknowledgments(
+    publisher_info->topic_writer, &timeout);
 
-  if (ret == dds_RETCODE_OK)
+  if (ret == dds_RETCODE_OK) {
     return RMW_RET_OK;
-  else if (ret == dds_RETCODE_TIMEOUT)
+  } else if (ret == dds_RETCODE_TIMEOUT) {
     return RMW_RET_TIMEOUT;
-  else
+  } else {
     return RMW_RET_ERROR;
+  }
 }
 
 rmw_ret_t
