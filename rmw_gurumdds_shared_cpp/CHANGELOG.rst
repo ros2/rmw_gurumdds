@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.6 (2021-09-23)
+------------------
+
 3.0.5 (2021-09-23)
 ------------------
 * Stop double-defining structs
