@@ -391,6 +391,32 @@ rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 }
 
 rmw_ret_t
+rmw_publisher_wait_for_all_acked(const rmw_publisher_t * publisher, rmw_time_t wait_timeout)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    publisher,
+    publisher->implementation_identifier, gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  
+  GurumddsPublisherInfo * publisher_info = static_cast<GurumddsPublisherInfo *>(publisher->data);
+  if (publisher_info == nullptr) {
+    RMW_SET_ERROR_MSG("publisher internal data is invalid");
+    return RMW_RET_ERROR;
+  }
+
+  dds_Duration_t timeout = rmw_time_to_dds(wait_timeout);
+  dds_ReturnCode_t ret = dds_DataWriter_wait_for_acknowledgments(publisher_info->topic_writer, &timeout);
+
+  if (ret == dds_RETCODE_OK)
+    return RMW_RET_OK;
+  else if (ret == dds_RETCODE_TIMEOUT)
+    return RMW_RET_TIMEOUT;
+  else
+    return RMW_RET_ERROR;
+}
+
+rmw_ret_t
 rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 {
   if (node == nullptr) {

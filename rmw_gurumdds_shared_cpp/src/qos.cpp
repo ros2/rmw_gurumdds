@@ -20,7 +20,7 @@ static inline bool is_time_unspecified(const rmw_time_t & time)
   return rmw_time_equal(time, RMW_DURATION_UNSPECIFIED);
 }
 
-static dds_Duration_t
+dds_Duration_t
 rmw_time_to_dds(const rmw_time_t & time)
 {
   if (rmw_time_equal(time, RMW_DURATION_INFINITE)) {
@@ -35,7 +35,7 @@ rmw_time_to_dds(const rmw_time_t & time)
   return duration;
 }
 
-static rmw_time_t
+rmw_time_t
 dds_duration_to_rmw(const dds_Duration_t & duration)
 {
   if (duration.sec == dds_DURATION_INFINITE_SEC && duration.nanosec == dds_DURATION_INFINITE_NSEC) {

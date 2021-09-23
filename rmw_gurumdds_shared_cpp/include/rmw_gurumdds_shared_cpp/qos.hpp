@@ -69,4 +69,11 @@ rmw_qos_policy_kind_t
 convert_qos_policy(
   dds_QosPolicyId_t policy_id);
 
+RMW_GURUMDDS_SHARED_CPP_PUBLIC
+dds_Duration_t rmw_time_to_dds(
+  const rmw_time_t & time);
+
+RMW_GURUMDDS_SHARED_CPP_PUBLIC
+rmw_time_t dds_duration_to_rmw(
+  const dds_Duration_t & duration);
 #endif  // RMW_GURUMDDS_SHARED_CPP__QOS_HPP_
