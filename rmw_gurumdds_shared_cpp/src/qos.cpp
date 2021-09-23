@@ -170,7 +170,7 @@ bool get_datareader_qos(
   return true;
 }
 
-enum rmw_qos_reliability_policy_t
+rmw_qos_reliability_policy_t
 convert_reliability(
   dds_ReliabilityQosPolicy policy)
 {
@@ -184,7 +184,7 @@ convert_reliability(
   }
 }
 
-enum rmw_qos_durability_policy_t
+rmw_qos_durability_policy_t
 convert_durability(
   dds_DurabilityQosPolicy policy)
 {
@@ -198,21 +198,21 @@ convert_durability(
   }
 }
 
-struct rmw_time_t
+rmw_time_t
 convert_deadline(
   dds_DeadlineQosPolicy policy)
 {
   return dds_duration_to_rmw(policy.period);
 }
 
-struct rmw_time_t
+rmw_time_t
 convert_lifespan(
   dds_LifespanQosPolicy policy)
 {
   return dds_duration_to_rmw(policy.duration);
 }
 
-enum rmw_qos_liveliness_policy_t
+rmw_qos_liveliness_policy_t
 convert_liveliness(
   dds_LivelinessQosPolicy policy)
 {
@@ -226,7 +226,7 @@ convert_liveliness(
   }
 }
 
-struct rmw_time_t
+rmw_time_t
 convert_liveliness_lease_duration(
   dds_LivelinessQosPolicy policy)
 {
