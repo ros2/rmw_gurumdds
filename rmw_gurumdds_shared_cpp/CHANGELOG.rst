@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.7 (2021-09-27)
+------------------
+* Remove sleep before fill tnat
+* Contributors: Youngjin Yun
+
 3.0.6 (2021-09-23)
 ------------------
 
