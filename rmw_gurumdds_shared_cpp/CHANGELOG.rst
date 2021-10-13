@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.11 (2021-10-13)
+-------------------
+* Fix bug: condition of dw_seq delete
+* Support static discovery
+* Contributors: Youngjin Yun
+
 1.0.10 (2021-09-02)
 -------------------
 
