@@ -103,18 +103,28 @@ shared__rmw_create_node(
   dds_DomainParticipant * participant = nullptr;
 
   // TODO(clemjh): Implement security features
+  std::string static_discovery_id;
+  static_discovery_id += namespace_;
+  static_discovery_id += name;
 
   if (localhost_only) {
     dds_StringProperty props[] = {
       {const_cast<char *>("rtps.interface.ip"),
         const_cast<void *>(static_cast<const void *>("127.0.0.1"))},
+      {const_cast<char *>("gurumdds.static_discovery.id"),
+        const_cast<void *>(static_cast<const void *>(static_discovery_id.c_str()))},
       {nullptr, nullptr},
     };
     participant = dds_DomainParticipantFactory_create_participant_w_props(
       factory, domain_id, &participant_qos, nullptr, 0, props);
   } else {
-    participant = dds_DomainParticipantFactory_create_participant(
-      factory, domain_id, &participant_qos, nullptr, 0);
+    dds_StringProperty props[] = {
+      {const_cast<char *>("gurumdds.static_discovery.id"),
+        const_cast<void *>(static_cast<const void *>(static_discovery_id.c_str()))},
+      {nullptr, nullptr},
+    };
+    participant = dds_DomainParticipantFactory_create_participant_w_props(
+      factory, domain_id, &participant_qos, nullptr, 0, props);
   }
   graph_guard_condition = shared__rmw_create_guard_condition(implementation_identifier);
   if (graph_guard_condition == nullptr) {
