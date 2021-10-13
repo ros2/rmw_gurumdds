@@ -331,7 +331,7 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
       return RMW_RET_ERROR;
     }
 
-    if (dds_InstanceHandleSeq_length(dw_seq) > 1) {
+    if (dds_InstanceHandleSeq_length(dw_seq) == 0) {
       dds_InstanceHandleSeq_delete(dw_seq);
       continue;
     }
