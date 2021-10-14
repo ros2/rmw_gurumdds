@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.8 (2021-10-14)
+------------------
+* Fix bug: condition of dw/dr seq delete
+* Support static discovery
+* Contributors: Youngjin Yun
+
 3.0.7 (2021-09-27)
 ------------------
 * Remove sleep before fill tnat
