@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.12 (2021-10-14)
+-------------------
+* Fix bug: condition of dw/dr seq delete
+* Contributors: Youngjin Yun
+
 1.0.11 (2021-10-13)
 -------------------
 * Fix bug: condition of dw_seq delete
