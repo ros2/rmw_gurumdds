@@ -7,6 +7,9 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.1.11 (2021-10-14)
+-------------------
+
 2.1.10 (2021-09-27)
 -------------------
 
