@@ -339,6 +339,7 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
         dds_InstanceHandleSeq_delete(dw_seq);
         dds_InstanceHandleSeq_delete(pub_seq);
         dds_InstanceHandleSeq_delete(sub_seq);
+        return RMW_RET_ERROR;
       }
     }
 
