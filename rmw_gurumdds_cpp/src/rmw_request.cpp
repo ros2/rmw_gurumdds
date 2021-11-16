@@ -151,8 +151,8 @@ rmw_take_request(
   }
 
   dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
-  if (sample_infos == nullptr) {
-    RMW_SET_ERROR_MSG("failed to create sample info sequence");
+  if (sample_sizes == nullptr) {
+    RMW_SET_ERROR_MSG("failed to create sample size sequence");
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
     return RMW_RET_ERROR;
