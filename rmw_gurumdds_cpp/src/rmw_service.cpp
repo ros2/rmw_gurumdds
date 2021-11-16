@@ -202,6 +202,7 @@ rmw_create_service(
       participant, request_topic_name.c_str(), request_type_name.c_str(), &topic_qos, nullptr, 0);
     if (request_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
+      dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
@@ -237,6 +238,7 @@ rmw_create_service(
       participant, response_topic_name.c_str(), response_type_name.c_str(), &topic_qos, nullptr, 0);
     if (response_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
+      dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
@@ -288,6 +290,7 @@ rmw_create_service(
     dds_subscriber, request_topic, &datareader_qos, nullptr, 0);
   if (request_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
+    dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
   service_info->request_reader = request_reader;
@@ -336,6 +339,7 @@ rmw_create_service(
     dds_publisher, response_topic, &datawriter_qos, nullptr, 0);
   if (response_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
+    dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
   service_info->response_writer = response_writer;
@@ -404,6 +408,14 @@ fail:
     dds_DomainParticipant_delete_publisher(participant, dds_publisher);
   }
 
+  if (request_topic != nullptr) {
+    dds_DomainParticipant_delete_topic(participant, request_topic);
+  }
+
+  if (response_topic != nullptr) {
+    dds_DomainParticipant_delete_topic(participant, response_topic);
+  }
+
   if (request_typesupport != nullptr) {
     dds_TypeSupport_delete(request_typesupport);
   }
@@ -436,6 +448,10 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
+  if (node_info == nullptr) {
+    RMW_SET_ERROR_MSG("node info handle is null");
+    return RMW_RET_ERROR;
+  }
 
   rmw_ret_t rmw_ret = RMW_RET_OK;
   dds_ReturnCode_t ret = dds_RETCODE_OK;

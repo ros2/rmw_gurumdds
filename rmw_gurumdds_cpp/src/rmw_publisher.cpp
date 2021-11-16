@@ -194,6 +194,7 @@ rmw_create_publisher(
       participant, processed_topic_name.c_str(), type_name.c_str(), &topic_qos, nullptr, 0);
     if (topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
+      dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
@@ -221,6 +222,7 @@ rmw_create_publisher(
   topic_writer = dds_Publisher_create_datawriter(dds_publisher, topic, &datawriter_qos, nullptr, 0);
   if (topic_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
+    dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
 
@@ -233,7 +235,7 @@ rmw_create_publisher(
   publisher_info = new(std::nothrow) GurumddsPublisherInfo();
   if (publisher_info == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsPublisherInfo");
-    return nullptr;
+    goto fail;
   }
 
   publisher_info->implementation_identifier = gurum_gurumdds_identifier;
@@ -289,6 +291,10 @@ rmw_create_publisher(
 fail:
   if (rmw_publisher != nullptr) {
     rmw_publisher_free(rmw_publisher);
+  }
+
+  if (topic != nullptr) {
+    dds_DomainParticipant_delete_topic(participant, topic);
   }
 
   if (dds_publisher != nullptr) {
@@ -643,6 +649,7 @@ rmw_publish(
   );
   if (!result) {
     RMW_SET_ERROR_MSG("failed to serialize message");
+    free(dds_message);
     return RMW_RET_ERROR;
   }
 

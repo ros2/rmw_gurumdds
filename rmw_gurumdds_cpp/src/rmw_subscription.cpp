@@ -196,6 +196,7 @@ rmw_create_subscription(
       participant, processed_topic_name.c_str(), type_name.c_str(), &topic_qos, nullptr, 0);
     if (topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
+      dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
@@ -224,6 +225,7 @@ rmw_create_subscription(
     dds_Subscriber_create_datareader(dds_subscriber, topic, &datareader_qos, nullptr, 0);
   if (topic_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
+    dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
 
@@ -292,6 +294,10 @@ fail:
       rmw_free(const_cast<char *>(subscription->topic_name));
     }
     rmw_subscription_free(subscription);
+  }
+
+  if (topic != nullptr) {
+    dds_DomainParticipant_delete_topic(participant, topic);
   }
 
   if (dds_subscriber != nullptr) {
@@ -457,6 +463,11 @@ rmw_subscription_get_actual_qos(
       static_cast<uint64_t>(dds_qos.liveliness.lease_duration.nanosec);
   }
 
+  ret = dds_DataReaderQos_finalize(&dds_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to finalize datareader qos");
+    return RMW_RET_ERROR;
+  }
 
   return RMW_RET_OK;
 }

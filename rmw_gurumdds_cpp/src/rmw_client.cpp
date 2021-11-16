@@ -211,6 +211,7 @@ rmw_create_client(
       participant, request_topic_name.c_str(), request_type_name.c_str(), &topic_qos, nullptr, 0);
     if (request_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
+      dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
@@ -246,6 +247,7 @@ rmw_create_client(
       participant, response_topic_name.c_str(), response_type_name.c_str(), &topic_qos, nullptr, 0);
     if (response_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
+      dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
@@ -296,6 +298,7 @@ rmw_create_client(
     dds_publisher, request_topic, &datawriter_qos, nullptr, 0);
   if (request_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
+    dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
   client_info->request_writer = request_writer;
@@ -337,6 +340,7 @@ rmw_create_client(
     dds_subscriber, response_topic, &datareader_qos, nullptr, 0);
   if (response_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
+    dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
   client_info->response_reader = response_reader;
@@ -420,6 +424,22 @@ fail:
     dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
   }
 
+  if (request_topic != nullptr) {
+    dds_DomainParticipant_delete_topic(participant, request_topic);
+  }
+
+  if (response_topic != nullptr) {
+    dds_DomainParticipant_delete_topic(participant, response_topic);
+  }
+
+  if (request_typesupport != nullptr) {
+    dds_TypeSupport_delete(request_typesupport);
+  }
+
+  if (response_typesupport != nullptr) {
+    dds_TypeSupport_delete(response_typesupport);
+  }
+
   if (client_info != nullptr) {
     delete client_info;
   }
@@ -444,6 +464,10 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
+  if (node_info == nullptr) {
+    RMW_SET_ERROR_MSG("node info handle is null");
+    return RMW_RET_ERROR;
+  }
 
   rmw_ret_t rmw_ret = RMW_RET_OK;
   dds_ReturnCode_t ret = dds_RETCODE_OK;
