@@ -241,7 +241,6 @@ rmw_create_publisher(
   publisher_info->implementation_identifier = gurum_gurumdds_identifier;
   publisher_info->publisher = dds_publisher;
   publisher_info->topic_writer = topic_writer;
-  publisher_info->dds_typesupport = dds_typesupport;
   publisher_info->rosidl_message_typesupport = type_support;
   publisher_info->publisher_gid.implementation_identifier = gurum_gurumdds_identifier;
 
@@ -277,6 +276,9 @@ rmw_create_publisher(
     // Error message already set
     goto fail;
   }
+
+  dds_TypeSupport_delete(dds_typesupport);
+  dds_typesupport = nullptr;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
@@ -435,11 +437,6 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
     } else if (publisher_info->topic_writer != nullptr) {
       RMW_SET_ERROR_MSG("cannot delete datawriter because the publisher is null");
       return RMW_RET_ERROR;
-    }
-
-    if (publisher_info->dds_typesupport != nullptr) {
-      dds_TypeSupport_delete(publisher_info->dds_typesupport);
-      publisher_info->dds_typesupport = nullptr;
     }
 
     delete publisher_info;
