@@ -39,30 +39,14 @@ _get_endpoint_info_by_topic(
   rmw_topic_endpoint_info_array_t * endpoints_info,
   rmw_endpoint_type_t endpoint_type)
 {
-  if (implementation_identifier == NULL) {
-    RMW_SET_ERROR_MSG("implementation identifier is null");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-
-  if (node->implementation_identifier != implementation_identifier) {
-    RMW_SET_ERROR_MSG("node handle is not from this rmw implementation");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-
-  if (allocator == nullptr) {
-    RMW_SET_ERROR_MSG("allocator is null");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-
-  if (topic_name == nullptr) {
-    RMW_SET_ERROR_MSG("topic name is null");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node_handle,
+    node->implementation_identifier, implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "allocator is null", return RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
 
   if (endpoints_info == nullptr) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING(

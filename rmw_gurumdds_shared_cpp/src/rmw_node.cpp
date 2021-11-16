@@ -262,14 +262,11 @@ fail:
 rmw_ret_t
 shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * node)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node_handle,
     node->implementation_identifier, implementation_identifier,
-    return RMW_RET_ERROR);
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
   if (factory == nullptr) {
@@ -462,28 +459,23 @@ _get_node_names(
   rcutils_string_array_t * node_namespaces,
   rcutils_string_array_t * enclaves)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node_handle,
+    node->implementation_identifier, implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   if (rmw_check_zero_rmw_string_array(node_names) != RMW_RET_OK) {
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   if (rmw_check_zero_rmw_string_array(node_namespaces) != RMW_RET_OK) {
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   if (enclaves != nullptr &&
     rmw_check_zero_rmw_string_array(enclaves) != RMW_RET_OK)
   {
-    return RMW_RET_ERROR;
-  }
-
-  if (node->implementation_identifier != implementation_identifier) {
-    RMW_SET_ERROR_MSG("node handle not from this implementation");
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
