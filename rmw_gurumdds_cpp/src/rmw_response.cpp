@@ -93,7 +93,6 @@ rmw_take_response(
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
     dds_UnsignedLongSeq_delete(sample_sizes);
-    *taken = false;
     return RMW_RET_OK;
   }
 

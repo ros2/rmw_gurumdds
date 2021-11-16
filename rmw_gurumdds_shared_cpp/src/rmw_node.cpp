@@ -152,8 +152,6 @@ shared__rmw_create_node(
     goto fail;
   }
 
-  node_handle->implementation_identifier = implementation_identifier;
-  node_handle->data = participant;
   node_handle->name = reinterpret_cast<const char *>(rmw_allocate(sizeof(char) * strlen(name) + 1));
   if (node_handle->name == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for node name");
