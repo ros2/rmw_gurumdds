@@ -2,6 +2,16 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2021-11-17)
+------------------
+* Remove dds_typesupport from Publisher/Subscriber Info
+* Change the return time when destroying entities
+* Add ommited memory manage code
+* Modify unnecessary code
+* Fix typo
+* Update return value
+* Contributors: Youngjin Yun
+
 1.0.12 (2021-10-14)
 -------------------
 
