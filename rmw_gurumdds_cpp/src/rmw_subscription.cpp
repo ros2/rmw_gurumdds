@@ -513,7 +513,6 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     return RMW_RET_ERROR;
   }
 
-  rmw_ret_t rmw_ret = RMW_RET_OK;
   dds_ReturnCode_t ret = dds_RETCODE_OK;
   GurumddsSubscriberInfo * subscriber_info =
     static_cast<GurumddsSubscriberInfo *>(subscription->data);
@@ -527,7 +526,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
           ret = dds_DataReader_delete_readcondition(topic_reader, read_condition);
           if (ret != dds_RETCODE_OK) {
             RMW_SET_ERROR_MSG("failed to delete readcondition");
-            rmw_ret = RMW_RET_ERROR;
+            return RMW_RET_ERROR;
           }
           subscriber_info->read_condition = nullptr;
         }
@@ -535,27 +534,22 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
         ret = dds_Subscriber_delete_datareader(dds_subscriber, topic_reader);
         if (ret != dds_RETCODE_OK) {
           RMW_SET_ERROR_MSG("failed to delete datareader");
-          rmw_ret = RMW_RET_ERROR;
+          return RMW_RET_ERROR;
         }
         subscriber_info->topic_reader = nullptr;
       } else if (subscriber_info->read_condition != nullptr) {
         RMW_SET_ERROR_MSG("cannot delete readcondition because the datareader is null");
-        rmw_ret = RMW_RET_ERROR;
+        return RMW_RET_ERROR;
       }
 
       ret = dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to delete subscriber");
-        rmw_ret = RMW_RET_ERROR;
+        return RMW_RET_ERROR;
       }
     } else if (subscriber_info->topic_reader != nullptr) {
       RMW_SET_ERROR_MSG("cannot delte datareader because the subscriber is null");
-      rmw_ret = RMW_RET_ERROR;
-    }
-
-    if (subscriber_info->dds_typesupport != nullptr) {
-      dds_TypeSupport_delete(subscriber_info->dds_typesupport);
-      subscriber_info->dds_typesupport = nullptr;
+      return RMW_RET_ERROR;
     }
 
     delete subscriber_info;
@@ -573,7 +567,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
   rmw_subscription_free(subscription);
 
-  rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
+  rmw_ret_t rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
 
   return rmw_ret;
 }
