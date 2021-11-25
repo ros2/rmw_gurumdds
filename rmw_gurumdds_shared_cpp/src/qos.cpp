@@ -170,6 +170,20 @@ bool get_datareader_qos(
   return true;
 }
 
+rmw_qos_history_policy_t
+convert_history(
+  dds_HistoryQosPolicy policy)
+{
+  switch (policy.kind) {
+    case dds_KEEP_LAST_HISTORY_QOS:
+      return RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+    case dds_KEEP_ALL_HISTORY_QOS:
+      return RMW_QOS_POLICY_HISTORY_KEEP_ALL;
+    default:
+      return RMW_QOS_POLICY_HISTORY_UNKNOWN;
+  }
+}
+
 rmw_qos_reliability_policy_t
 convert_reliability(
   dds_ReliabilityQosPolicy policy)

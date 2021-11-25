@@ -40,6 +40,10 @@ get_datareader_qos(
   const rmw_qos_profile_t * qos_profile,
   dds_DataReaderQos * datareader_qos);
 
+rmw_qos_history_policy_t
+convert_history(
+  dds_HistoryQosPolicy policy);
+
 rmw_qos_reliability_policy_t
 convert_reliability(
   dds_ReliabilityQosPolicy policy);
