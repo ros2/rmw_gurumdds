@@ -393,23 +393,17 @@ rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 rmw_ret_t
 rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  if (publisher == nullptr) {
-    RMW_SET_ERROR_MSG("publisher handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     publisher handle,
     publisher->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto node_info = static_cast<GurumddsNodeInfo *>(node->data);
   if (node_info == nullptr) {
@@ -476,21 +470,13 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 rmw_ret_t
 rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid)
 {
-  if (publisher == nullptr) {
-    RMW_SET_ERROR_MSG("publisher is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(gid, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     publisher handle,
     publisher->implementation_identifier,
     gurum_gurumdds_identifier,
-    return RMW_RET_ERROR);
-
-  if (gid == nullptr) {
-    RMW_SET_ERROR_MSG("gid is null");
-    return RMW_RET_ERROR;
-  }
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   const GurumddsPublisherInfo * info =
     static_cast<const GurumddsPublisherInfo *>(publisher->data);
@@ -622,8 +608,17 @@ rmw_publish(
   rmw_publisher_allocation_t * allocation)
 {
   (void)allocation;
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    publisher, "publisher pointer is null",
+    return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    ros_message, "ros_message pointer is null",
+    return RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    publisher,
+    publisher->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto info = static_cast<GurumddsPublisherInfo *>(publisher->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "publisher info pointer is null", return RMW_RET_ERROR);
@@ -696,9 +691,17 @@ rmw_publish_serialized_message(
   rmw_publisher_allocation_t * allocation)
 {
   (void)allocation;
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    serialized_message, "serialized_message pointer is null", return RMW_RET_ERROR);
+    publisher, "publisher pointer is null",
+    return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    serialized_message, "serialized_message pointer is null",
+    return RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    publisher,
+    publisher->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto info = static_cast<GurumddsPublisherInfo *>(publisher->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "publisher info pointer is null", return RMW_RET_ERROR);

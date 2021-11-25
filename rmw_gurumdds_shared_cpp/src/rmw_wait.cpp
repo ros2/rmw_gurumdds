@@ -104,14 +104,10 @@ fail:
 rmw_ret_t
 shared__rmw_destroy_wait_set(const char * implementation_identifier, rmw_wait_set_t * wait_set)
 {
-  if (wait_set == nullptr) {
-    RMW_SET_ERROR_MSG("wait set handle is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_ERROR);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     wait_set handle, wait_set->implementation_identifier,
-    implementation_identifier, return RMW_RET_ERROR);
+    implementation_identifier, return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsWaitSetInfo * wait_set_info = static_cast<GurumddsWaitSetInfo *>(wait_set->data);
 

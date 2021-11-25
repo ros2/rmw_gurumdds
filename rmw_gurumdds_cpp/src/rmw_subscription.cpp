@@ -476,24 +476,20 @@ rmw_subscription_get_actual_qos(
 rmw_ret_t
 rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier,
     gurum_gurumdds_identifier,
-    return RMW_RET_ERROR
-  )
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION
+  );
 
-  if (subscription == nullptr) {
-    RMW_SET_ERROR_MSG("subscription handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    subscription handle, subscription->implementation_identifier,
-    gurum_gurumdds_identifier, return RMW_RET_ERROR)
+    subscription handle,
+    subscription->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto node_info = static_cast<GurumddsNodeInfo *>(node->data);
   if (node_info == nullptr) {
@@ -583,10 +579,10 @@ _take(
   (void)allocation;
   *taken = false;
 
-  if (subscription->implementation_identifier != identifier) {
-    RMW_SET_ERROR_MSG("subscription handle not from this implementation");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    subscription handle,
+    subscription->implementation_identifier, identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsSubscriberInfo * info = static_cast<GurumddsSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -718,11 +714,11 @@ rmw_take(
   rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+    subscription, "subscription pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
+    ros_message, "ros_message pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+    taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take(
     gurum_gurumdds_identifier, subscription, ros_message, taken, nullptr, allocation);
@@ -737,13 +733,13 @@ rmw_take_with_info(
   rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+    subscription, "subscription pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
+    ros_message, "ros_message pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+    taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    message_info, "message info pointer is null", return RMW_RET_ERROR);
+    message_info, "message info pointer is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take(
     gurum_gurumdds_identifier, subscription, ros_message, taken, message_info, allocation);
@@ -772,7 +768,7 @@ rmw_take_sequence(
     subscription handle,
     subscription->implementation_identifier,
     gurum_gurumdds_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (0u == count) {
     RMW_SET_ERROR_MSG("count cannot be 0");
@@ -931,10 +927,11 @@ _take_serialized(
   (void)allocation;
   *taken = false;
 
-  if (subscription->implementation_identifier != identifier) {
-    RMW_SET_ERROR_MSG("subscription handle not from this implementation");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    subscription handle,
+    subscription->implementation_identifier,
+    identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsSubscriberInfo * info = static_cast<GurumddsSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -1066,11 +1063,11 @@ rmw_take_serialized_message(
   rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+    subscription, "subscription pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    serialized_message, "serialized_message pointer is null", return RMW_RET_ERROR);
+    serialized_message, "serialized_message pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+    taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take_serialized(
     gurum_gurumdds_identifier, subscription,
@@ -1086,13 +1083,13 @@ rmw_take_serialized_message_with_info(
   rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+    subscription, "subscription pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    serialized_message, "serialized_message pointer is null", return RMW_RET_ERROR);
+    serialized_message, "serialized_message pointer is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+    taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    message_info, "message info pointer is null", return RMW_RET_ERROR);
+    message_info, "message info pointer is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take_serialized(
     gurum_gurumdds_identifier, subscription,

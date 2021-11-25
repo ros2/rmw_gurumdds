@@ -15,7 +15,8 @@
 #include <map>
 
 #include "rmw/error_handling.h"
-
+#include "rmw/impl/cpp/macros.hpp"
+#include "rmw/validate_full_topic_name.h"
 #include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
 #include "rmw_gurumdds_shared_cpp/demangle.hpp"
 #include "rmw_gurumdds_shared_cpp/types.hpp"
@@ -27,22 +28,24 @@ shared__rmw_count_publishers(
   const char * topic_name,
   size_t * count)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node handle,
+    node->implementation_identifier,
+    implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
+  int validation_result = RMW_TOPIC_VALID;
+  rmw_ret_t ret = rmw_validate_full_topic_name(topic_name, &validation_result, nullptr);
+  if (RMW_RET_OK != ret) {
+    return ret;
   }
-  if (node->implementation_identifier != implementation_identifier) {
-    RMW_SET_ERROR_MSG("node handle is not from this rmw implementation");
-    return RMW_RET_ERROR;
+  if (RMW_TOPIC_VALID != validation_result) {
+    const char * reason = rmw_full_topic_name_validation_result_string(validation_result);
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("topic_name argument is invalid: %s", reason);
+    return RMW_RET_INVALID_ARGUMENT;
   }
-  if (topic_name == nullptr) {
-    RMW_SET_ERROR_MSG("topic name is null");
-    return RMW_RET_ERROR;
-  }
-  if (count == nullptr) {
-    RMW_SET_ERROR_MSG("count handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(count, RMW_RET_INVALID_ARGUMENT);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
   if (node_info == nullptr) {
@@ -66,22 +69,24 @@ shared__rmw_count_subscribers(
   const char * topic_name,
   size_t * count)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node handle,
+    node->implementation_identifier,
+    implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
+  int validation_result = RMW_TOPIC_VALID;
+  rmw_ret_t ret = rmw_validate_full_topic_name(topic_name, &validation_result, nullptr);
+  if (RMW_RET_OK != ret) {
+    return ret;
   }
-  if (node->implementation_identifier != implementation_identifier) {
-    RMW_SET_ERROR_MSG("node handle is not from this rmw implementation");
-    return RMW_RET_ERROR;
+  if (RMW_TOPIC_VALID != validation_result) {
+    const char * reason = rmw_full_topic_name_validation_result_string(validation_result);
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("topic_name argument is invalid: %s", reason);
+    return RMW_RET_INVALID_ARGUMENT;
   }
-  if (topic_name == nullptr) {
-    RMW_SET_ERROR_MSG("topic name is null");
-    return RMW_RET_ERROR;
-  }
-  if (count == nullptr) {
-    RMW_SET_ERROR_MSG("count handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(count, RMW_RET_INVALID_ARGUMENT);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
   if (node_info == nullptr) {

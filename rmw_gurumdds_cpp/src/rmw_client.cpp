@@ -432,20 +432,19 @@ fail:
 rmw_ret_t
 rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node handle,
+    node->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  if (client == nullptr) {
-    RMW_SET_ERROR_MSG("client handle is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     client handle,
-    client->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
+    client->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
 
@@ -546,7 +545,7 @@ rmw_service_server_is_available(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (client == nullptr) {
     RMW_SET_ERROR_MSG("client handle is null");
@@ -556,7 +555,7 @@ rmw_service_server_is_available(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     client handle,
     client->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (is_available == nullptr) {
     RMW_SET_ERROR_MSG("is_available is null");

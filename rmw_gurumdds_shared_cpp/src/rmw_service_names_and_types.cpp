@@ -23,6 +23,7 @@
 
 #include "rmw/convert_rcutils_ret_to_rmw_ret.h"
 #include "rmw/error_handling.h"
+#include "rmw/impl/cpp/macros.hpp"
 
 #include "rmw_gurumdds_shared_cpp/demangle.hpp"
 #include "rmw_gurumdds_shared_cpp/names_and_types_helpers.hpp"
@@ -37,18 +38,14 @@ shared__rmw_get_service_names_and_types(
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * service_names_and_types)
 {
-  if (allocator == nullptr) {
-    RMW_SET_ERROR_MSG("allocator is null");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is nulll");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (node->implementation_identifier != implementation_identifier) {
-    RMW_SET_ERROR_MSG("node handle is not from this rmw implementation");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "allocator argument is invalid", return RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node,
+    node->implementation_identifier,
+    implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   rmw_ret_t ret = rmw_names_and_types_check_zero(service_names_and_types);
   if (ret != RMW_RET_OK) {

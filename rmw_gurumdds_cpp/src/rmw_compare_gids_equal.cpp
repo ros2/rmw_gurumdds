@@ -25,30 +25,19 @@ extern "C"
 rmw_ret_t
 rmw_compare_gids_equal(const rmw_gid_t * gid1, const rmw_gid_t * gid2, bool * result)
 {
-  if (gid1 == nullptr) {
-    RMW_SET_ERROR_MSG("gid1 is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(gid1, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     gid1,
     gid1->implementation_identifier,
     gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
-
-  if (gid1 == nullptr) {
-    RMW_SET_ERROR_MSG("gid1 is null");
-    return RMW_RET_ERROR;
-  }
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_ARGUMENT_FOR_NULL(gid2, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    gid1,
-    gid1->implementation_identifier,
+    gid2,
+    gid2->implementation_identifier,
     gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
-
-  if (result == nullptr) {
-    RMW_SET_ERROR_MSG("result is null");
-    return RMW_RET_ERROR;
-  }
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_ARGUMENT_FOR_NULL(result, RMW_RET_INVALID_ARGUMENT);
 
   const GurumddsPublisherGID * c_gid1 = reinterpret_cast<const GurumddsPublisherGID *>(gid1->data);
   if (c_gid1 == nullptr) {
