@@ -2,6 +2,18 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.0 (2021-11-25)
+------------------
+* Use convert api for publisher/subscription Qos getters
+* Add client/service Qos getters
+* Remove dds_typesupport from Publisher/Subscriber Info
+* Change the return time when destroying entities
+* Add ommited memory manage code
+* Modify unnecessary code
+* Fix typo
+* Update return value
+* Contributors: Youngjin Yun
+
 3.0.9 (2021-10-14)
 ------------------
 
