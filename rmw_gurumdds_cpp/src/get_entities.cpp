@@ -110,7 +110,7 @@ get_request_data_writer(rmw_client_t * client)
 }
 
 dds_DataReader *
-get_response_data_writer(rmw_client_t * client)
+get_response_data_reader(rmw_client_t * client)
 {
   if (client == nullptr) {
     return nullptr;
