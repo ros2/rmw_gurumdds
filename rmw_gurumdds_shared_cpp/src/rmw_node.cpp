@@ -92,14 +92,17 @@ shared__rmw_create_node(
   rmw_node_t * node_handle = nullptr;
   GurumddsNodeInfo * node_info = nullptr;
   rmw_guard_condition_t * graph_guard_condition = nullptr;
+  GurumddsParticipantListener * participant_listener = nullptr;
   GurumddsPublisherListener * publisher_listener = nullptr;
   GurumddsSubscriberListener * subscriber_listener = nullptr;
   dds_Subscriber * builtin_subscriber = nullptr;
+  dds_DataReader * builtin_participant_datareader = nullptr;
   dds_DataReader * builtin_publication_datareader = nullptr;
   dds_DataReader * builtin_subscription_datareader = nullptr;
-
+  TopicCache<GuidPrefix_t> * topic_cache = nullptr;
   dds_DomainParticipant * participant = nullptr;
 
+  topic_cache = new(std::nothrow) TopicCache<GuidPrefix_t>();
   // TODO(clemjh): Implement security features
   std::string static_discovery_id;
   static_discovery_id += namespace_;
@@ -131,12 +134,21 @@ shared__rmw_create_node(
     goto fail;
   }
 
+  participant_listener =
+    new(std::nothrow) GurumddsParticipantListener(implementation_identifier, graph_guard_condition);
+  if (participant_listener == nullptr) {
+    RMW_SET_ERROR_MSG("failed to allocate GurumddsParticipantListener");
+    return nullptr;
+  }
+  participant_listener->context.graph_cache = topic_cache;
+
   publisher_listener =
     new(std::nothrow) GurumddsPublisherListener(implementation_identifier, graph_guard_condition);
   if (publisher_listener == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsPublisherListener");
     return nullptr;
   }
+  publisher_listener->context.graph_cache = topic_cache;
 
   subscriber_listener =
     new(std::nothrow) GurumddsSubscriberListener(implementation_identifier, graph_guard_condition);
@@ -144,6 +156,7 @@ shared__rmw_create_node(
     RMW_SET_ERROR_MSG("failed to allocate GurumddsSubscriberListener");
     return nullptr;
   }
+  subscriber_listener->context.graph_cache = topic_cache;
 
   node_handle = rmw_node_allocate();
   if (node_handle == nullptr) {
@@ -151,8 +164,6 @@ shared__rmw_create_node(
     goto fail;
   }
 
-  node_handle->implementation_identifier = implementation_identifier;
-  node_handle->data = participant;
   node_handle->name = reinterpret_cast<const char *>(rmw_allocate(sizeof(char) * strlen(name) + 1));
   if (node_handle->name == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for node name");
@@ -176,6 +187,7 @@ shared__rmw_create_node(
 
   node_info->participant = participant;
   node_info->graph_guard_condition = graph_guard_condition;
+  node_info->part_listener = participant_listener;
   node_info->pub_listener = publisher_listener;
   node_info->sub_listener = subscriber_listener;
 
@@ -185,6 +197,12 @@ shared__rmw_create_node(
 
   // set listeners
   builtin_subscriber = dds_DomainParticipant_get_builtin_subscriber(participant);
+  builtin_participant_datareader =
+    dds_Subscriber_lookup_datareader(builtin_subscriber, "BuiltinParticipant");
+  if (builtin_participant_datareader == nullptr) {
+    RMW_SET_ERROR_MSG("builtin participant datareader handle is null");
+    goto fail;
+  }
   builtin_publication_datareader =
     dds_Subscriber_lookup_datareader(builtin_subscriber, "BuiltinPublications");
   if (builtin_publication_datareader == nullptr) {
@@ -198,12 +216,20 @@ shared__rmw_create_node(
     goto fail;
   }
 
+  node_info->part_listener->dds_reader = builtin_participant_datareader;
+  dds_DataReader_set_listener(
+    builtin_participant_datareader,
+    &node_info->part_listener->dds_listener, dds_DATA_AVAILABLE_STATUS);
+  dds_DataReader_set_listener_context(
+    builtin_participant_datareader, &node_info->part_listener->context);
+
   node_info->pub_listener->dds_reader = builtin_publication_datareader;
   dds_DataReader_set_listener(
     builtin_publication_datareader,
     &node_info->pub_listener->dds_listener, dds_DATA_AVAILABLE_STATUS);
   dds_DataReader_set_listener_context(
     builtin_publication_datareader, &node_info->pub_listener->context);
+
   node_info->sub_listener->dds_reader = builtin_subscription_datareader;
   dds_DataReader_set_listener(
     builtin_subscription_datareader,
@@ -251,6 +277,10 @@ fail:
     delete subscriber_listener;
   }
 
+  if (participant_listener != nullptr) {
+    delete participant_listener;
+  }
+
   if (node_info != nullptr) {
     delete node_info;
   }
@@ -261,14 +291,11 @@ fail:
 rmw_ret_t
 shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * node)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node_handle,
     node->implementation_identifier, implementation_identifier,
-    return RMW_RET_ERROR);
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
   if (factory == nullptr) {
@@ -415,6 +442,11 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
     node_info->sub_listener = nullptr;
   }
 
+  if (node_info->part_listener != nullptr) {
+    delete node_info->part_listener;
+    node_info->part_listener = nullptr;
+  }
+
   if (node_info->graph_guard_condition != nullptr) {
     rmw_ret_t rmw_ret = shared__rmw_destroy_guard_condition(
       implementation_identifier, node_info->graph_guard_condition);
@@ -461,28 +493,23 @@ _get_node_names(
   rcutils_string_array_t * node_namespaces,
   rcutils_string_array_t * enclaves)
 {
-  if (node == nullptr) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node_handle,
+    node->implementation_identifier, implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   if (rmw_check_zero_rmw_string_array(node_names) != RMW_RET_OK) {
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   if (rmw_check_zero_rmw_string_array(node_namespaces) != RMW_RET_OK) {
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   if (enclaves != nullptr &&
     rmw_check_zero_rmw_string_array(enclaves) != RMW_RET_OK)
   {
-    return RMW_RET_ERROR;
-  }
-
-  if (node->implementation_identifier != implementation_identifier) {
-    RMW_SET_ERROR_MSG("node handle not from this implementation");
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);

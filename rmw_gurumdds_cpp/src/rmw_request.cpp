@@ -33,20 +33,13 @@ rmw_send_request(
   const void * ros_request,
   int64_t * sequence_id)
 {
-  if (client == nullptr) {
-    RMW_SET_ERROR_MSG("client handle is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     client handle,
     client->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
-
-  if (ros_request == nullptr) {
-    RMW_SET_ERROR_MSG("ros request handle is null");
-    return RMW_RET_ERROR;
-  }
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(sequence_id, RMW_RET_INVALID_ARGUMENT);
 
   GurumddsClientInfo * client_info = static_cast<GurumddsClientInfo *>(client->data);
   if (client_info == nullptr) {
@@ -115,25 +108,14 @@ rmw_take_request(
   void * ros_request,
   bool * taken)
 {
-  if (service == nullptr) {
-    RMW_SET_ERROR_MSG("service handle is null");
-    return RMW_RET_ERROR;
-  }
-
+  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     service handle,
     service->implementation_identifier, gurum_gurumdds_identifier,
-    return RMW_RET_ERROR)
-
-  if (ros_request == nullptr) {
-    RMW_SET_ERROR_MSG("ros request handle is null");
-    return RMW_RET_ERROR;
-  }
-
-  if (taken == nullptr) {
-    RMW_SET_ERROR_MSG("boolean flag for taken is null");
-    return RMW_RET_ERROR;
-  }
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
 
   *taken = false;
 
