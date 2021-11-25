@@ -615,9 +615,10 @@ _take(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+
   if (ret == dds_RETCODE_NO_DATA) {
-    const char * topic_name =
-      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
@@ -626,10 +627,6 @@ _take(
     dds_UnsignedLongSeq_delete(sample_sizes);
     return RMW_RET_OK;
   }
-  const char * topic_name =
-    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
 
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to take data");
@@ -640,15 +637,12 @@ _take(
     return RMW_RET_ERROR;
   }
 
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
-  bool ignore_sample = false;
-
-  if (!sample_info->valid_data) {
-    ignore_sample = true;
-  }
-
-  if (!ignore_sample) {
+  if (sample_info->valid_data) {
     void * sample = dds_DataSeq_get(data_values, 0);
     if (sample == nullptr) {
       RMW_SET_ERROR_MSG("failed to get message");
@@ -818,9 +812,10 @@ rmw_take_sequence(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, count,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+
   if (ret == dds_RETCODE_NO_DATA) {
-    const char * topic_name =
-      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
@@ -839,21 +834,13 @@ rmw_take_sequence(
     return RMW_RET_ERROR;
   }
 
-  const char * topic_name =
-    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
 
   for (uint32_t i = 0; i < dds_SampleInfoSeq_length(sample_infos); i++) {
     dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, i);
 
-    bool ignore_sample = false;
-
-    if (!sample_info->valid_data) {
-      ignore_sample = true;
-    }
-
-    if (!ignore_sample) {
+    if (sample_info->valid_data) {
       void * sample = dds_DataSeq_get(data_values, i);
       if (sample == nullptr) {
         RMW_SET_ERROR_MSG("failed to get message");
@@ -964,9 +951,10 @@ _take_serialized(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
+  const char * topic_name =
+    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
+
   if (ret == dds_RETCODE_NO_DATA) {
-    const char * topic_name =
-      dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
@@ -975,10 +963,6 @@ _take_serialized(
     dds_UnsignedLongSeq_delete(sample_sizes);
     return RMW_RET_OK;
   }
-  const char * topic_name =
-    dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
 
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to take data");
@@ -989,15 +973,12 @@ _take_serialized(
     return RMW_RET_ERROR;
   }
 
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
-  bool ignore_sample = false;
-
-  if (!sample_info->valid_data) {
-    ignore_sample = true;
-  }
-
-  if (!ignore_sample) {
+  if (sample_info->valid_data) {
     void * sample = dds_DataSeq_get(data_values, 0);
     if (sample == nullptr) {
       RMW_SET_ERROR_MSG("failed to take data");
