@@ -182,6 +182,13 @@ rmw_take_request(
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
   if (sample_info->valid_data) {
     void * sample = dds_DataSeq_get(data_values, 0);
+    if (sample == nullptr) {
+      dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
+      return RMW_RET_ERROR;
+    }
     uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
     int64_t sequence_number = 0;
     int8_t client_guid[16] = {0};
