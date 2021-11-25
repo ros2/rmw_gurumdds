@@ -124,6 +124,31 @@ public:
     return true;
   }
 
+  int remove_topic_by_puid(const GUID_t & participant_guid)
+  {
+    int removed_topic_count = 0;
+    auto participant_to_entity_guid = participant_to_entity_guids_.find(participant_guid);
+    if (participant_to_entity_guid == participant_to_entity_guids_.end()) {
+      return -1;
+    }
+
+    for (auto & entity_guid : participant_to_entity_guid->second) {
+      auto topic_info_iter = entity_guid_to_info_.find(entity_guid);
+      if (topic_info_iter == entity_guid_to_info_.end()) {
+        continue;
+      }
+      entity_guid_to_info_.erase(topic_info_iter);
+      removed_topic_count++;
+    }
+
+    participant_to_entity_guid->second.clear();
+    if (participant_to_entity_guid->second.empty()) {
+      participant_to_entity_guids_.erase(participant_to_entity_guid);
+    }
+
+    return removed_topic_count;
+  }
+
   bool remove_topic(const GUID_t & entity_guid)
   {
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);

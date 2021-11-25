@@ -45,9 +45,81 @@ typedef struct _ListenerContext
 {
   std::mutex * mutex_;
   TopicCache<GuidPrefix_t> * topic_cache;
+  TopicCache<GuidPrefix_t> * graph_cache;
   rmw_guard_condition_t * graph_guard_condition;
   const char * implementation_identifier;
 } ListenerContext;
+
+static void pdp_on_data_available(const dds_DataReader * a_reader)
+{
+  dds_DataReader * reader = const_cast<dds_DataReader *>(a_reader);
+  ListenerContext * context =
+    reinterpret_cast<ListenerContext *>(dds_DataReader_get_listener_context(reader));
+  if (context == nullptr) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(*context->mutex_);
+  dds_DataSeq * samples = dds_DataSeq_create(8);
+  if (samples == nullptr) {
+    fprintf(stderr, "failed to create data sample sequence\n");
+    return;
+  }
+  dds_SampleInfoSeq * infos = dds_SampleInfoSeq_create(8);
+  if (infos == nullptr) {
+    dds_DataSeq_delete(samples);
+    fprintf(stderr, "failed to create sample info sequence\n");
+    return;
+  }
+
+  dds_ReturnCode_t ret = dds_DataReader_take(
+    reader, samples, infos, 8,
+    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  if (ret == dds_RETCODE_NO_DATA) {
+    dds_DataReader_return_loan(reader, samples, infos);
+    dds_DataSeq_delete(samples);
+    dds_SampleInfoSeq_delete(infos);
+    return;
+  }
+  if (ret != dds_RETCODE_OK) {
+    fprintf(stderr, "failed to access data from the built-in participant reader\n");
+    dds_DataReader_return_loan(reader, samples, infos);
+    dds_DataSeq_delete(samples);
+    dds_SampleInfoSeq_delete(infos);
+    return;
+  }
+
+  for (dds_UnsignedLong i = 0; i < dds_DataSeq_length(samples); ++i) {
+    GuidPrefix_t participant_guid;
+    dds_SampleInfo * info = dds_SampleInfoSeq_get(infos, i);
+    if (reinterpret_cast<void *>(info->instance_handle) == NULL) {
+      continue;
+    }
+    memcpy(participant_guid.value, reinterpret_cast<void *>(info->instance_handle), 16);
+    if (info->valid_data && info->instance_state == dds_ALIVE_INSTANCE_STATE) {
+      continue;
+    } else {
+      if (context->graph_cache->remove_topic_by_puid(participant_guid) <= 0) {
+        continue;
+      }
+      rmw_ret_t rmw_ret = shared__rmw_trigger_guard_condition(
+        context->implementation_identifier, context->graph_guard_condition);
+      if (rmw_ret != RMW_RET_OK) {
+        fprintf(
+          stderr,
+          "failed to trigger graph guard condition: %s\n",
+          rmw_get_error_string().str);
+      }
+    }
+  }
+
+  dds_DataReader_return_loan(reader, samples, infos);
+
+  dds_DataSeq_delete(samples);
+  dds_SampleInfoSeq_delete(infos);
+
+  dds_DataReader_set_listener_context(reader, context);
+}
 
 static void pub_on_data_available(const dds_DataReader * a_reader)
 {
@@ -81,7 +153,7 @@ static void pub_on_data_available(const dds_DataReader * a_reader)
     return;
   }
   if (ret != dds_RETCODE_OK) {
-    fprintf(stderr, "failed to access data from the built-in reader\n");
+    fprintf(stderr, "failed to access data from the built-in publication reader\n");
     dds_DataReader_return_loan(reader, samples, infos);
     dds_DataSeq_delete(samples);
     dds_SampleInfoSeq_delete(infos);
@@ -116,8 +188,12 @@ static void pub_on_data_available(const dds_DataReader * a_reader)
       context->topic_cache->add_topic(
         participant_guid, guid, std::move(topic_name),
         std::move(type_name), qos);
+      context->graph_cache->add_topic(
+        participant_guid, guid, std::move(topic_name),
+        std::move(type_name), qos);
     } else {
       context->topic_cache->remove_topic(guid);
+      context->graph_cache->remove_topic(guid);
     }
   }
 
@@ -169,7 +245,7 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
     return;
   }
   if (ret != dds_RETCODE_OK) {
-    fprintf(stderr, "failed to access data from the built-in reader\n");
+    fprintf(stderr, "failed to access data from the built-in subscription reader\n");
     dds_DataReader_return_loan(reader, samples, infos);
     dds_DataSeq_delete(samples);
     dds_SampleInfoSeq_delete(infos);
@@ -204,8 +280,12 @@ static void sub_on_data_available(const dds_DataReader * a_reader)
       context->topic_cache->add_topic(
         participant_guid, guid, std::move(topic_name),
         std::move(type_name), qos);
+      context->graph_cache->add_topic(
+        participant_guid, guid, std::move(topic_name),
+        std::move(type_name), qos);
     } else {
       context->topic_cache->remove_topic(guid);
+      context->graph_cache->remove_topic(guid);
     }
   }
 
@@ -286,6 +366,23 @@ protected:
 private:
 };
 
+class GurumddsParticipantListener : public GurumddsDataReaderListener
+{
+public:
+  GurumddsParticipantListener(
+    const char * implementation_identifier, rmw_guard_condition_t * graph_guard_condition)
+  : GurumddsDataReaderListener(implementation_identifier, graph_guard_condition)
+  {
+    context.mutex_ = &(this->mutex_);
+    context.topic_cache = &(this->topic_cache);
+    context.graph_guard_condition = this->graph_guard_condition;
+    context.implementation_identifier = this->implementation_identifier;
+    dds_listener.on_data_available = pdp_on_data_available;
+  }
+
+  ~GurumddsParticipantListener() {}
+};
+
 class GurumddsPublisherListener : public GurumddsDataReaderListener
 {
 public:
@@ -324,6 +421,7 @@ typedef struct _GurumddsNodeInfo
 {
   dds_DomainParticipant * participant;
   rmw_guard_condition_t * graph_guard_condition;
+  GurumddsParticipantListener * part_listener;
   GurumddsPublisherListener * pub_listener;
   GurumddsSubscriberListener * sub_listener;
 } GurumddsNodeInfo;
