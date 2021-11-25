@@ -264,7 +264,6 @@ rmw_create_subscription(
   subscriber_info->subscriber = dds_subscriber;
   subscriber_info->topic_reader = topic_reader;
   subscriber_info->read_condition = read_condition;
-  subscriber_info->dds_typesupport = dds_typesupport;
   subscriber_info->rosidl_message_typesupport = type_support;
 
   subscription = rmw_subscription_allocate();
@@ -289,6 +288,9 @@ rmw_create_subscription(
     // Error message already set
     goto fail;
   }
+
+  dds_TypeSupport_delete(dds_typesupport);
+  dds_typesupport = nullptr;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
