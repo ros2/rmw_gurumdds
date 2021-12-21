@@ -417,13 +417,6 @@ rmw_subscription_get_actual_qos(
   qos->history = convert_history(dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
-
-
-
-
-
-
-
   ret = dds_DataReaderQos_finalize(&dds_qos);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to finalize datareader qos");
