@@ -5,10 +5,10 @@ Implementation of the ROS middleware interface using [GurumNetworks GurumDDS](ht
 This project requires `rosidl_typesupport_gurumdds` to be built. For more information, see README.md of the [project](https://github.com/ros2/rosidl_typesupport_gurumdds).
 Required version of GurumDDS depends on the version of this project.
 
-| rmw_gurumdds            | GurumDDS                    |
-|-------------------------|-----------------------------|
-| 2.1.0                   | 2.7.x                       |
-| 2.0.1 or lower          | 2.6.1875 or higher          |
+| rmw_gurumdds             | GurumDDS                    |
+|--------------------------|-----------------------------|
+| 3.1.2  or higher         | 2.8.x                       |
+| 3.1.1  or lower          | 2.7.x                       |
 
 ## Packages
 This project consists of four packages, `rmw_gurumdds_cpp`, `rmw_gurumdds_static_cpp`, `rmw_gurumdds_shared_cpp` and `demo_nodes_cpp_native_gurumdds`.
@@ -37,9 +37,9 @@ This package is disabled by default.
 This package is disabled by default.
 
 ## Branches
-There are four active branches in this project: master, foxy, eloquent and dashing.  
+There are three active branches in this project: master, galactic and foxy.
 New changes made in [ROS2 repository](https://github.com/ros2) will be applied to the master branch, so this branch might be unstable.
-If you want to use this project with ROS2 Foxy Fitzroy, Eloquent Elusor or Dashing Diademata, please use foxy, eloquent or dashing branch, respectively.  
+If you want to use this project with ROS2 Galactic Geochelone, Foxy Fitzroy, please use galactic or foxy branch, respectively.
 
 ## Implementation Status
 Currently some features are not fully implemented.
