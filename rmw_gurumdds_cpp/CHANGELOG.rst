@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2022-01-03)
+------------------
+* Update packages to use gurumdds-2.8 & Update README
+* Contributors: Youngjin Yun
+
 1.1.0 (2021-11-17)
 ------------------
 * Remove dds_typesupport from Publisher/Subscriber Info
