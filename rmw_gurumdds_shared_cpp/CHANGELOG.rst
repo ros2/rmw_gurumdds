@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.2 (2022-01-03)
+------------------
+* Update packages to use gurumdds-2.8 & Update README
+* Contributors: Youngjin Yun
+
 3.1.1 (2021-12-21)
 ------------------
 * Add public to qos convert api& fix for uncrustify
