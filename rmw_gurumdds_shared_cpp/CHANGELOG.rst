@@ -8,6 +8,12 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.2.0 (2022-01-04)
+------------------
+* Update packages to use gurumdds-2.8 & Update README
+* Update return value
+* Contributors: Youngjin Yun
+
 2.1.11 (2021-10-14)
 -------------------
 * Fix bug: condition of dw/dr seq delete

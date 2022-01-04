@@ -7,6 +7,17 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.2.0 (2022-01-04)
+------------------
+* Update packages to use gurumdds-2.8 & Update README
+* Remove dds_typesupport from Publisher/Subscriber Info
+* Change the return time when destroying entities
+* Add ommited memory manage code
+* Modify unnecessary code
+* Fix typo
+* Update return value
+* Contributors: Youngjin Yun
+
 2.1.11 (2021-10-14)
 -------------------
 
