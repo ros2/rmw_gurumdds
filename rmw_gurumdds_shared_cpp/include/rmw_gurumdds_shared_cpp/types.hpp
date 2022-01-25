@@ -324,6 +324,8 @@ typedef struct _GurumddsNodeInfo
   rmw_guard_condition_t * graph_guard_condition;
   GurumddsPublisherListener * pub_listener;
   GurumddsSubscriberListener * sub_listener;
+  std::list<dds_Publisher *> pub_list;
+  std::list<dds_Subscriber *> sub_list;
 } GurumddsNodeInfo;
 
 typedef struct _GurumddsWaitSetInfo
