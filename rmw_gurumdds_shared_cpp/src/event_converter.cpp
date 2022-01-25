@@ -13,28 +13,38 @@
 // limitations under the License.
 
 #include <unordered_map>
+#include <memory>
 #include <utility>
 
 #include "rmw_gurumdds_shared_cpp/event_converter.hpp"
 
 /// mapping of RMW_EVENT to the corresponding dds_StatusKind.
-static const std::unordered_map<rmw_event_type_t, dds_StatusKind, std::hash<int>> mask_map = {
-  {RMW_EVENT_LIVELINESS_CHANGED, dds_LIVELINESS_CHANGED_STATUS},
-  {RMW_EVENT_REQUESTED_DEADLINE_MISSED, dds_REQUESTED_DEADLINE_MISSED_STATUS},
-  {RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE, dds_REQUESTED_INCOMPATIBLE_QOS_STATUS},
-  {RMW_EVENT_LIVELINESS_LOST, dds_LIVELINESS_LOST_STATUS},
-  {RMW_EVENT_OFFERED_DEADLINE_MISSED, dds_OFFERED_DEADLINE_MISSED_STATUS},
-  {RMW_EVENT_OFFERED_QOS_INCOMPATIBLE, dds_OFFERED_INCOMPATIBLE_QOS_STATUS},
-};
+static std::shared_ptr<std::unordered_map<rmw_event_type_t, dds_StatusKind, std::hash<int>>>
+g_mask_map_ptr {new std::unordered_map<rmw_event_type_t, dds_StatusKind, std::hash<int>> {
+    {RMW_EVENT_LIVELINESS_CHANGED, dds_LIVELINESS_CHANGED_STATUS},
+    {RMW_EVENT_REQUESTED_DEADLINE_MISSED, dds_REQUESTED_DEADLINE_MISSED_STATUS},
+    {RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE, dds_REQUESTED_INCOMPATIBLE_QOS_STATUS},
+    {RMW_EVENT_LIVELINESS_LOST, dds_LIVELINESS_LOST_STATUS},
+    {RMW_EVENT_OFFERED_DEADLINE_MISSED, dds_OFFERED_DEADLINE_MISSED_STATUS},
+    {RMW_EVENT_OFFERED_QOS_INCOMPATIBLE, dds_OFFERED_INCOMPATIBLE_QOS_STATUS},
+  }};
 
 dds_StatusKind get_status_kind_from_rmw(const rmw_event_type_t event_t)
 {
-  return mask_map.at(event_t);
+  auto mask_map_ptr{g_mask_map_ptr};
+  if (mask_map_ptr == nullptr) {
+    return 0;
+  }
+  return mask_map_ptr->at(event_t);
 }
 
 bool is_event_supported(const rmw_event_type_t event_t)
 {
-  return mask_map.count(event_t) > 0;
+  auto mask_map_ptr{g_mask_map_ptr};
+  if (mask_map_ptr == nullptr) {
+    return false;
+  }
+  return mask_map_ptr->count(event_t) > 0;
 }
 
 rmw_ret_t check_dds_ret_code(const dds_ReturnCode_t dds_return_code)
