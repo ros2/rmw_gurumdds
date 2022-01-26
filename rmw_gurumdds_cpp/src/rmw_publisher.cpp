@@ -243,6 +243,8 @@ rmw_create_publisher(
     goto fail;
   }
 
+  node_info->pub_list.push_back(dds_publisher);
+
   publisher_info = new(std::nothrow) GurumddsPublisherInfo();
   if (publisher_info == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsPublisherInfo");
@@ -314,6 +316,7 @@ fail:
     if (topic_writer != nullptr) {
       dds_Publisher_delete_datawriter(dds_publisher, topic_writer);
     }
+    node_info->pub_list.remove(dds_publisher);
     dds_DomainParticipant_delete_publisher(participant, dds_publisher);
   }
 
@@ -467,6 +470,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
         publisher_info->topic_writer = nullptr;
       }
 
+      node_info->pub_list.remove(dds_publisher);
       ret = dds_DomainParticipant_delete_publisher(participant, dds_publisher);
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to delete publisher");

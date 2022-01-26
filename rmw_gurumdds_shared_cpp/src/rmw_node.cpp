@@ -17,6 +17,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <list>
 #include <thread>
 #include <chrono>
 
@@ -95,6 +96,8 @@ shared__rmw_create_node(
   GurumddsParticipantListener * participant_listener = nullptr;
   GurumddsPublisherListener * publisher_listener = nullptr;
   GurumddsSubscriberListener * subscriber_listener = nullptr;
+  std::list<dds_Publisher *> publisher_list;
+  std::list<dds_Subscriber *> subscription_list;
   dds_Subscriber * builtin_subscriber = nullptr;
   dds_DataReader * builtin_participant_datareader = nullptr;
   dds_DataReader * builtin_publication_datareader = nullptr;
@@ -190,6 +193,8 @@ shared__rmw_create_node(
   node_info->part_listener = participant_listener;
   node_info->pub_listener = publisher_listener;
   node_info->sub_listener = subscriber_listener;
+  node_info->pub_list = publisher_list;
+  node_info->sub_list = subscription_list;
 
   node_handle->implementation_identifier = implementation_identifier;
   node_handle->data = node_info;
@@ -327,24 +332,12 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret =
-    dds_DomainParticipant_get_contained_entities(participant, pub_seq, sub_seq, NULL, NULL);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to get contained entities of the domain participant");
-    dds_InstanceHandleSeq_delete(pub_seq);
-    dds_InstanceHandleSeq_delete(sub_seq);
-    return RMW_RET_ERROR;
-  }
-
-  int32_t cnt = static_cast<int32_t>(dds_InstanceHandleSeq_length(pub_seq));
-  for (int32_t i = cnt - 1; i >= 0; i--) {
-    dds_Publisher * pub =
-      reinterpret_cast<dds_Publisher *>(dds_InstanceHandleSeq_remove(pub_seq, i));
+  dds_ReturnCode_t ret;
+  while (!node_info->pub_list.empty()) {
+    dds_Publisher * pub = node_info->pub_list.front();
     dds_InstanceHandleSeq * dw_seq = dds_InstanceHandleSeq_create(1);
     if (dw_seq == nullptr) {
-      RMW_SET_ERROR_MSG("failed to create instance handle sequence");
-      dds_InstanceHandleSeq_delete(pub_seq);
-      dds_InstanceHandleSeq_delete(sub_seq);
+      RMW_SET_ERROR_MSG("failed to create datawriter sequence");
       return RMW_RET_ERROR;
     }
 
@@ -352,8 +345,6 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get contained entities of the publisher");
       dds_InstanceHandleSeq_delete(dw_seq);
-      dds_InstanceHandleSeq_delete(pub_seq);
-      dds_InstanceHandleSeq_delete(sub_seq);
       return RMW_RET_ERROR;
     }
 
@@ -364,8 +355,6 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to delete datawriter");
         dds_InstanceHandleSeq_delete(dw_seq);
-        dds_InstanceHandleSeq_delete(pub_seq);
-        dds_InstanceHandleSeq_delete(sub_seq);
         return RMW_RET_ERROR;
       }
     }
@@ -374,23 +363,18 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to delete Publisher");
       dds_InstanceHandleSeq_delete(dw_seq);
-      dds_InstanceHandleSeq_delete(pub_seq);
-      dds_InstanceHandleSeq_delete(sub_seq);
       return RMW_RET_ERROR;
     }
 
     dds_InstanceHandleSeq_delete(dw_seq);
+    node_info->pub_list.pop_front();
   }
-  dds_InstanceHandleSeq_delete(pub_seq);
 
-  cnt = static_cast<int32_t>(dds_InstanceHandleSeq_length(sub_seq));
-  for (int32_t i = cnt - 1; i >= 0; i--) {
-    dds_Subscriber * sub =
-      reinterpret_cast<dds_Subscriber *>(dds_InstanceHandleSeq_remove(sub_seq, i));
+  while (!node_info->sub_list.empty()) {
+    dds_Subscriber * sub = node_info->sub_list.front();
     dds_InstanceHandleSeq * dr_seq = dds_InstanceHandleSeq_create(1);
     if (dr_seq == nullptr) {
-      RMW_SET_ERROR_MSG("failed to create instance handle sequence");
-      dds_InstanceHandleSeq_delete(sub_seq);
+      RMW_SET_ERROR_MSG("failed to create datareader sequence");
       return RMW_RET_ERROR;
     }
 
@@ -398,7 +382,6 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get contained entities of the subscriber");
       dds_InstanceHandleSeq_delete(dr_seq);
-      dds_InstanceHandleSeq_delete(sub_seq);
       return RMW_RET_ERROR;
     }
 
@@ -409,7 +392,6 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to delete datareader");
         dds_InstanceHandleSeq_delete(dr_seq);
-        dds_InstanceHandleSeq_delete(sub_seq);
         return RMW_RET_ERROR;
       }
     }
@@ -418,13 +400,12 @@ shared__rmw_destroy_node(const char * implementation_identifier, rmw_node_t * no
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to delete Subscriber");
       dds_InstanceHandleSeq_delete(dr_seq);
-      dds_InstanceHandleSeq_delete(sub_seq);
       return RMW_RET_ERROR;
     }
 
     dds_InstanceHandleSeq_delete(dr_seq);
+    node_info->sub_list.pop_front();
   }
-  dds_InstanceHandleSeq_delete(sub_seq);
 
   ret = dds_DomainParticipantFactory_delete_participant(factory, participant);
   if (ret != dds_RETCODE_OK) {

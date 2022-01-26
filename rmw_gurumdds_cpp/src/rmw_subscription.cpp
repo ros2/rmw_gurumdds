@@ -254,6 +254,8 @@ rmw_create_subscription(
     goto fail;
   }
 
+  node_info->sub_list.push_back(dds_subscriber);
+
   subscriber_info = new(std::nothrow) GurumddsSubscriberInfo();
   if (subscriber_info == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate subscriber info handle");
@@ -321,6 +323,7 @@ fail:
       }
       dds_Subscriber_delete_datareader(dds_subscriber, topic_reader);
     }
+    node_info->sub_list.remove(dds_subscriber);
     dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
   }
 
@@ -483,6 +486,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
         return RMW_RET_ERROR;
       }
 
+      node_info->sub_list.remove(dds_subscriber);
       ret = dds_DomainParticipant_delete_subscriber(participant, dds_subscriber);
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to delete subscriber");

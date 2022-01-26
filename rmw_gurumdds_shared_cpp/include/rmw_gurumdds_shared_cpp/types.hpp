@@ -424,6 +424,8 @@ typedef struct _GurumddsNodeInfo
   GurumddsParticipantListener * part_listener;
   GurumddsPublisherListener * pub_listener;
   GurumddsSubscriberListener * sub_listener;
+  std::list<dds_Publisher *> pub_list;
+  std::list<dds_Subscriber *> sub_list;
 } GurumddsNodeInfo;
 
 typedef struct _GurumddsWaitSetInfo
