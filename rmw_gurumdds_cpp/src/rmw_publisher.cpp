@@ -294,6 +294,9 @@ rmw_create_publisher(
 
 fail:
   if (rmw_publisher != nullptr) {
+    if (rmw_publisher->topic_name != nullptr) {
+      rmw_free(const_cast<char *>(rmw_publisher->topic_name));
+    }
     rmw_publisher_free(rmw_publisher);
   }
 
