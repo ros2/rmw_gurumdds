@@ -149,7 +149,9 @@ rmw_create_subscription(
     return nullptr;
   }
 
-  dds_typesupport = dds_TypeSupport_create(metastring.c_str());
+  uint8_t typehash[16];
+  dds_DomainParticipant_generate_typehash(participant, metastring.c_str(), typehash);
+  dds_typesupport = dds_TypeSupport_raw_create_w_typehash(typehash, false);
   if (dds_typesupport == nullptr) {
     RMW_SET_ERROR_MSG("failed to create typesupport");
     goto fail;
