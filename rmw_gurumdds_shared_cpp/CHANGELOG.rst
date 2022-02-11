@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2022-02-11)
+------------------
+* Wrap up unordered_map with shared_ptr
+* Change to delete only the entities created by the user
+* Contributors: Youngjin Yun
+
 1.1.1 (2022-01-03)
 ------------------
 * Update packages to use gurumdds-2.8 & Update README
