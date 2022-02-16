@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.3 (2022-02-16)
+------------------
+* Add omitted free
+* Change to delete only the entities created by the user
+* Contributors: Youngjin Yun
+
 3.1.2 (2022-01-03)
 ------------------
 * Update packages to use gurumdds-2.8 & Update README
