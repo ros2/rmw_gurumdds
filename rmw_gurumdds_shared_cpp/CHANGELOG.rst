@@ -8,6 +8,9 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.2.2 (2022-02-16)
+------------------
+
 2.2.1 (2022-02-16)
 ------------------
 * Wrap up unordered_map with shared_ptr

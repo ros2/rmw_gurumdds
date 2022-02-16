@@ -7,6 +7,11 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.2.2 (2022-02-16)
+------------------
+* Use raw typesupport instead of typesupport
+* Contributors: Youngjin Yun
+
 2.2.1 (2022-02-16)
 ------------------
 * Add omitted free
