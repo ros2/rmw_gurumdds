@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.4 (2022-02-16)
+------------------
+
 3.1.3 (2022-02-16)
 ------------------
 * Wrap up unordered_map with shared_ptr
