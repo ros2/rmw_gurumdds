@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.5 (2022-03-17)
+------------------
+* Remove dead store
+* Adjust minimum dds version
+* Contributors: Youngjin Yun
+
 3.1.4 (2022-02-16)
 ------------------
 
