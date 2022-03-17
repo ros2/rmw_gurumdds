@@ -7,6 +7,12 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.2.3 (2022-03-17)
+------------------
+* Remove dead store
+* Adjust minimum dds version
+* Contributors: Youngjin Yun
+
 2.2.2 (2022-02-16)
 ------------------
 * Use raw typesupport instead of typesupport

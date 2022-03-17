@@ -8,6 +8,12 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.2.3 (2022-03-17)
+------------------
+* Remove dead store
+* Adjust minimum dds version
+* Contributors: Youngjin Yun
+
 2.2.2 (2022-02-16)
 ------------------
 
