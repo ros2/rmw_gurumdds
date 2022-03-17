@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2022-03-17)
+------------------
+* Remove dead store
+* Adjust minimum dds version
+* Contributors: Youngjin Yun
+
 1.1.3 (2022-02-11)
 ------------------
 * Use raw typesupport instead of typesupport
