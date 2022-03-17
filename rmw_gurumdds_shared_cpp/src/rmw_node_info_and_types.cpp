@@ -79,10 +79,12 @@ __get_key(
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
-
   dds_DomainParticipantQos qos;
-  ret = dds_DomainParticipant_get_qos(participant, &qos);
+  dds_ReturnCode_t ret = dds_DomainParticipant_get_qos(participant, &qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("Can't get domainparticipant qos policies");
+    return RMW_RET_ERROR;
+  }
 
   dds_InstanceHandleSeq * handle_seq = dds_InstanceHandleSeq_create(4);
   if (handle_seq == nullptr) {

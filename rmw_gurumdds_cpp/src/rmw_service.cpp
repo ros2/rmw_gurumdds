@@ -107,8 +107,8 @@ rmw_create_service(
   dds_Topic * request_topic = nullptr;
   dds_Topic * response_topic = nullptr;
 
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
-  rmw_ret_t rmw_ret = RMW_RET_OK;
+  dds_ReturnCode_t ret;
+  rmw_ret_t rmw_ret;
 
   std::pair<std::string, std::string> service_type_name;
   std::pair<std::string, std::string> service_metastring;
@@ -459,7 +459,7 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
+  dds_ReturnCode_t ret;
   GurumddsServiceInfo * service_info = static_cast<GurumddsServiceInfo *>(service->data);
 
   if (service_info != nullptr) {
