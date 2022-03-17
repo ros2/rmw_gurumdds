@@ -111,8 +111,8 @@ rmw_create_client(
   dds_Topic * response_topic = nullptr;
 
   uint64_t guid_temp = 0;
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
-  rmw_ret_t rmw_ret = RMW_RET_OK;
+  dds_ReturnCode_t ret;
+  rmw_ret_t rmw_ret;
 
   std::pair<std::string, std::string> service_type_name;
   std::pair<std::string, std::string> service_metastring;
@@ -475,7 +475,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
+  dds_ReturnCode_t ret;
   GurumddsClientInfo * client_info = static_cast<GurumddsClientInfo *>(client->data);
 
   if (client_info != nullptr) {

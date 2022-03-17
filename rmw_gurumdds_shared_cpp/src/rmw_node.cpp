@@ -492,7 +492,7 @@ _get_node_names(
   uint32_t length = dds_InstanceHandleSeq_length(handle_seq);
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  rmw_ret_t fail_ret = RMW_RET_ERROR;
+  rmw_ret_t fail_ret;
 
   rcutils_string_array_t node_list = rcutils_get_zero_initialized_string_array();
   rcutils_string_array_t ns_list = rcutils_get_zero_initialized_string_array();

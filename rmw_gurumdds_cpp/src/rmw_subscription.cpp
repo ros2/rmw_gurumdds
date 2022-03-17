@@ -137,8 +137,8 @@ rmw_create_subscription(
   dds_TopicDescription * topic_desc = nullptr;
   dds_ReadCondition * read_condition = nullptr;
   dds_TypeSupport * dds_typesupport = nullptr;
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
-  rmw_ret_t rmw_ret = RMW_RET_OK;
+  dds_ReturnCode_t ret;
+  rmw_ret_t rmw_ret;
 
   std::string type_name =
     create_type_name(type_support->data, type_support->typesupport_identifier);
@@ -520,7 +520,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_RETCODE_OK;
+  dds_ReturnCode_t ret;
   GurumddsSubscriberInfo * subscriber_info =
     static_cast<GurumddsSubscriberInfo *>(subscription->data);
   if (subscriber_info != nullptr) {
