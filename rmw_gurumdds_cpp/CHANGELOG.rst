@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2022-03-23)
+------------------
+* Revert raw typesupport patch
+* Contributors: Youngjin Yun
+
 1.1.4 (2022-03-17)
 ------------------
 * Remove dead store
