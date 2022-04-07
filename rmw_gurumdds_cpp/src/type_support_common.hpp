@@ -261,9 +261,10 @@ _allocate_message(
   serializer.serialize(members, ros_message, true);
   if (is_service) {
     uint64_t dummy = 0;
-    buffer << dummy;  // suquence_number
     buffer << dummy;  // client_guid_0
     buffer << dummy;  // client_guid_1
+    buffer << dummy;  // sequence_number
+    buffer << dummy;  // padding
   }
 
   *size = buffer.get_offset() + 4;
