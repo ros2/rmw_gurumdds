@@ -204,9 +204,9 @@ _create_metastring(const void * untyped_members, bool is_service)
 
   if (is_service) {
     metastring <<
-      "l(name=gurumdds__sequence_number_)" <<
       "L(name=gurumdds__client_guid_0_)" <<
-      "L(name=gurumdds__client_guid_1_)";
+      "L(name=gurumdds__client_guid_1_)" <<
+      "l(name=gurumdds__sequence_number_)";
   }
 
   return metastring.str();
