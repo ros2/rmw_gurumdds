@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.0 (2022-04-26)
+------------------
+* Enhanced rpc with sampleinfoex
+* Basic rpc
+* Contributors: Youngjin Yun
+
 3.1.6 (2022-04-26)
 ------------------
 * Remove minimum dds version as raw typesupport removed
