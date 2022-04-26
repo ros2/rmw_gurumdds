@@ -97,7 +97,7 @@ create_service_metastring(const void * untyped_members, const char * identifier)
 
 template<typename ServiceMembersT>
 void *
-_allocate_request(
+_allocate_request_basic(
   const void * untyped_members,
   const void * ros_request,
   size_t * size)
@@ -117,20 +117,20 @@ _allocate_request(
 }
 
 inline void *
-allocate_request(
+allocate_request_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_request,
   size_t * size)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _allocate_request<rosidl_typesupport_introspection_c__ServiceMembers>(
+    return _allocate_request_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
       size
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _allocate_request<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+    return _allocate_request_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
       size
@@ -143,7 +143,7 @@ allocate_request(
 
 template<typename ServiceMembersT>
 void *
-_allocate_response(
+_allocate_response_basic(
   const void * untyped_members,
   const void * ros_response,
   size_t * size)
@@ -163,20 +163,112 @@ _allocate_response(
 }
 
 inline void *
-allocate_response(
+allocate_response_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_response,
   size_t * size)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _allocate_response<rosidl_typesupport_introspection_c__ServiceMembers>(
+    return _allocate_response_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
       size
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _allocate_response<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+    return _allocate_response_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_response),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return nullptr;
+}
+
+template<typename ServiceMembersT>
+void *
+_allocate_request_enhanced(
+  const void * untyped_members,
+  const void * ros_request,
+  size_t * size)
+{
+  auto members = static_cast<const ServiceMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return nullptr;
+  }
+
+  return _allocate_message<GET_TYPENAME(members->request_members_)>(
+    static_cast<const void *>(members->request_members_),
+    static_cast<const uint8_t *>(ros_request),
+    size,
+    false
+  );
+}
+
+inline void *
+allocate_request_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_request,
+  size_t * size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _allocate_request_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_request),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _allocate_request_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_request),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return nullptr;
+}
+
+template<typename ServiceMembersT>
+void *
+_allocate_response_enhanced(
+  const void * untyped_members,
+  const void * ros_response,
+  size_t * size)
+{
+  auto members = static_cast<const ServiceMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return nullptr;
+  }
+
+  return _allocate_message<GET_TYPENAME(members->response_members_)>(
+    static_cast<const void *>(members->response_members_),
+    static_cast<const uint8_t *>(ros_response),
+    size,
+    false
+  );
+}
+
+inline void *
+allocate_response_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_response,
+  size_t * size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _allocate_response_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_response),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _allocate_response_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
       size
@@ -189,7 +281,7 @@ allocate_response(
 
 template<typename MessageMembersT>
 bool
-_serialize_service(
+_serialize_service_basic(
   const void * untyped_members,
   const uint8_t * ros_service,
   uint8_t * dds_service,
@@ -232,7 +324,7 @@ _serialize_service(
 }
 
 inline bool
-serialize_service(
+serialize_service_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_service,
@@ -243,7 +335,7 @@ serialize_service(
   bool is_request)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _serialize_service<rosidl_typesupport_introspection_c__MessageMembers>(
+    return _serialize_service_basic<rosidl_typesupport_introspection_c__MessageMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
@@ -253,7 +345,7 @@ serialize_service(
       is_request
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _serialize_service<rosidl_typesupport_introspection_cpp::MessageMembers>(
+    return _serialize_service_basic<rosidl_typesupport_introspection_cpp::MessageMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
@@ -270,7 +362,7 @@ serialize_service(
 
 template<typename ServiceMembersT>
 bool
-_serialize_request(
+_serialize_request_basic(
   const void * untyped_members,
   const uint8_t * ros_request,
   uint8_t * dds_request,
@@ -284,7 +376,7 @@ _serialize_request(
     return false;
   }
 
-  return _serialize_service<GET_TYPENAME(members->request_members_)>(
+  return _serialize_service_basic<GET_TYPENAME(members->request_members_)>(
     static_cast<const void *>(members->request_members_),
     ros_request,
     dds_request,
@@ -296,7 +388,7 @@ _serialize_request(
 }
 
 inline bool
-serialize_request(
+serialize_request_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_request,
@@ -306,7 +398,7 @@ serialize_request(
   const int8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _serialize_request<rosidl_typesupport_introspection_c__ServiceMembers>(
+    return _serialize_request_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
@@ -315,7 +407,7 @@ serialize_request(
       client_guid
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _serialize_request<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+    return _serialize_request_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
@@ -331,7 +423,7 @@ serialize_request(
 
 template<typename ServiceMembersT>
 bool
-_serialize_response(
+_serialize_response_basic(
   const void * untyped_members,
   const uint8_t * ros_response,
   uint8_t * dds_response,
@@ -345,7 +437,7 @@ _serialize_response(
     return false;
   }
 
-  return _serialize_service<GET_TYPENAME(members->response_members_)>(
+  return _serialize_service_basic<GET_TYPENAME(members->response_members_)>(
     static_cast<const void *>(members->response_members_),
     ros_response,
     dds_response,
@@ -357,7 +449,7 @@ _serialize_response(
 }
 
 inline bool
-serialize_response(
+serialize_response_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_response,
@@ -367,7 +459,7 @@ serialize_response(
   const int8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _serialize_response<rosidl_typesupport_introspection_c__ServiceMembers>(
+    return _serialize_response_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
       reinterpret_cast<uint8_t *>(dds_response),
@@ -376,7 +468,7 @@ serialize_response(
       client_guid
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _serialize_response<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+    return _serialize_response_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
       reinterpret_cast<uint8_t *>(dds_response),
@@ -392,7 +484,162 @@ serialize_response(
 
 template<typename MessageMembersT>
 bool
-_deserialize_service(
+_serialize_service_enhanced(
+  const void * untyped_members,
+  const uint8_t * ros_service,
+  uint8_t * dds_service,
+  size_t size)
+{
+  auto members =
+    static_cast<const MessageMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  try {
+    auto buffer = CDRSerializationBuffer(dds_service, size);
+    auto serializer = MessageSerializer(buffer);
+    serializer.serialize(members, ros_service, true);
+  } catch (std::runtime_error & e) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to serialize ros message: %s", e.what());
+    return false;
+  }
+
+  return true;
+}
+
+inline bool
+serialize_service_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_service,
+  void * dds_service,
+  size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _serialize_service_enhanced<rosidl_typesupport_introspection_c__MessageMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _serialize_service_enhanced<rosidl_typesupport_introspection_cpp::MessageMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+template<typename ServiceMembersT>
+bool
+_serialize_request_enhanced(
+  const void * untyped_members,
+  const uint8_t * ros_request,
+  uint8_t * dds_request,
+  size_t size)
+{
+  auto members = static_cast<const ServiceMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  return _serialize_service_enhanced<GET_TYPENAME(members->request_members_)>(
+    static_cast<const void *>(members->request_members_),
+    ros_request,
+    dds_request,
+    size
+  );
+}
+
+inline bool
+serialize_request_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_request,
+  void * dds_request,
+  size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _serialize_request_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_request),
+      reinterpret_cast<uint8_t *>(dds_request),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _serialize_request_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_request),
+      reinterpret_cast<uint8_t *>(dds_request),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+template<typename ServiceMembersT>
+bool
+_serialize_response_enhanced(
+  const void * untyped_members,
+  const uint8_t * ros_response,
+  uint8_t * dds_response,
+  size_t size)
+{
+  auto members = static_cast<const ServiceMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  return _serialize_service_enhanced<GET_TYPENAME(members->response_members_)>(
+    static_cast<const void *>(members->response_members_),
+    ros_response,
+    dds_response,
+    size
+  );
+}
+
+inline bool
+serialize_response_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  const void * ros_response,
+  void * dds_response,
+  size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _serialize_response_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_response),
+      reinterpret_cast<uint8_t *>(dds_response),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _serialize_response_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_response),
+      reinterpret_cast<uint8_t *>(dds_response),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+template<typename MessageMembersT>
+bool
+_deserialize_service_basic(
   const void * untyped_members,
   uint8_t * ros_service,
   uint8_t * dds_service,
@@ -433,7 +680,7 @@ _deserialize_service(
 }
 
 inline bool
-deserialize_service(
+deserialize_service_basic(
   const void * untyped_members,
   const char * identifier,
   void * ros_service,
@@ -445,7 +692,7 @@ deserialize_service(
   bool is_request)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _deserialize_service<rosidl_typesupport_introspection_c__MessageMembers>(
+    return _deserialize_service_basic<rosidl_typesupport_introspection_c__MessageMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
@@ -456,7 +703,7 @@ deserialize_service(
       is_request
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _deserialize_service<rosidl_typesupport_introspection_cpp::MessageMembers>(
+    return _deserialize_service_basic<rosidl_typesupport_introspection_cpp::MessageMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
@@ -474,7 +721,7 @@ deserialize_service(
 
 template<typename ServiceMembersT>
 bool
-_deserialize_request(
+_deserialize_request_basic(
   const void * untyped_members,
   uint8_t * ros_request,
   uint8_t * dds_request,
@@ -489,7 +736,7 @@ _deserialize_request(
     return false;
   }
 
-  return _deserialize_service<GET_TYPENAME(members->request_members_)>(
+  return _deserialize_service_basic<GET_TYPENAME(members->request_members_)>(
     static_cast<const void *>(members->request_members_),
     ros_request,
     dds_request,
@@ -502,7 +749,7 @@ _deserialize_request(
 }
 
 inline bool
-deserialize_request(
+deserialize_request_basic(
   const void * untyped_members,
   const char * identifier,
   void * ros_request,
@@ -513,7 +760,7 @@ deserialize_request(
   int8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _deserialize_request<rosidl_typesupport_introspection_c__ServiceMembers>(
+    return _deserialize_request_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
@@ -523,7 +770,7 @@ deserialize_request(
       client_guid
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _deserialize_request<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+    return _deserialize_request_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
@@ -540,7 +787,7 @@ deserialize_request(
 
 template<typename ServiceMembersT>
 bool
-_deserialize_response(
+_deserialize_response_basic(
   const void * untyped_members,
   uint8_t * ros_response,
   uint8_t * dds_response,
@@ -555,7 +802,7 @@ _deserialize_response(
     return false;
   }
 
-  return _deserialize_service<GET_TYPENAME(members->response_members_)>(
+  return _deserialize_service_basic<GET_TYPENAME(members->response_members_)>(
     static_cast<const void *>(members->response_members_),
     ros_response,
     dds_response,
@@ -568,7 +815,7 @@ _deserialize_response(
 }
 
 inline bool
-deserialize_response(
+deserialize_response_basic(
   const void * untyped_members,
   const char * identifier,
   void * ros_reponse,
@@ -579,7 +826,7 @@ deserialize_response(
   int8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return _deserialize_response<rosidl_typesupport_introspection_c__ServiceMembers>(
+    return _deserialize_response_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_reponse),
       reinterpret_cast<uint8_t *>(dds_reponse),
@@ -589,7 +836,7 @@ deserialize_response(
       client_guid
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return _deserialize_response<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+    return _deserialize_response_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_reponse),
       reinterpret_cast<uint8_t *>(dds_reponse),
@@ -604,4 +851,185 @@ deserialize_response(
   return false;
 }
 
+template<typename MessageMembersT>
+bool
+_deserialize_service_enhanced(
+  const void * untyped_members,
+  uint8_t * ros_service,
+  uint8_t * dds_service,
+  size_t size)
+{
+  auto members =
+    static_cast<const MessageMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  try {
+    auto buffer = CDRDeserializationBuffer(dds_service, size);
+    auto deserializer = MessageDeserializer(buffer);
+    deserializer.deserialize(members, ros_service, true);
+  } catch (std::runtime_error & e) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
+    return false;
+  }
+
+  return true;
+}
+
+inline bool
+deserialize_service_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  void * ros_service,
+  void * dds_service,
+  size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _deserialize_service_enhanced<rosidl_typesupport_introspection_c__MessageMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _deserialize_service_enhanced<rosidl_typesupport_introspection_cpp::MessageMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+template<typename ServiceMembersT>
+bool
+_deserialize_request_enhanced(
+  const void * untyped_members,
+  uint8_t * ros_request,
+  uint8_t * dds_request,
+  size_t size)
+{
+  auto members = static_cast<const ServiceMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  return _deserialize_service_enhanced<GET_TYPENAME(members->request_members_)>(
+    static_cast<const void *>(members->request_members_),
+    ros_request,
+    dds_request,
+    size
+  );
+}
+
+inline bool
+deserialize_request_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  void * ros_request,
+  void * dds_request,
+  size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _deserialize_request_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_request),
+      reinterpret_cast<uint8_t *>(dds_request),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _deserialize_request_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_request),
+      reinterpret_cast<uint8_t *>(dds_request),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+template<typename ServiceMembersT>
+bool
+_deserialize_response_enhanced(
+  const void * untyped_members,
+  uint8_t * ros_response,
+  uint8_t * dds_response,
+  size_t size)
+{
+  auto members = static_cast<const ServiceMembersT *>(untyped_members);
+  if (members == nullptr) {
+    RMW_SET_ERROR_MSG("Members handle is null");
+    return false;
+  }
+
+  return _deserialize_service_enhanced<GET_TYPENAME(members->response_members_)>(
+    static_cast<const void *>(members->response_members_),
+    ros_response,
+    dds_response,
+    size
+  );
+}
+
+inline bool
+deserialize_response_enhanced(
+  const void * untyped_members,
+  const char * identifier,
+  void * ros_reponse,
+  void * dds_reponse,
+  size_t size)
+{
+  if (identifier == rosidl_typesupport_introspection_c__identifier) {
+    return _deserialize_response_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_reponse),
+      reinterpret_cast<uint8_t *>(dds_reponse),
+      size
+    );
+  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+    return _deserialize_response_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
+      untyped_members,
+      reinterpret_cast<uint8_t *>(ros_reponse),
+      reinterpret_cast<uint8_t *>(dds_reponse),
+      size
+    );
+  }
+
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return false;
+}
+
+inline void
+ros_guid_to_dds_guid(int8_t * guid_ros, int8_t * guid_dds)
+{
+  memcpy(guid_dds, guid_ros, 12);
+  memcpy(&guid_dds[12], &guid_ros[12], 4);
+}
+
+inline void
+dds_guid_to_ros_guid(int8_t * guid_dds, int8_t * guid_ros)
+{
+  memcpy(guid_ros, guid_dds, 12);
+  memcpy(&guid_ros[12], &guid_dds[12], 4);
+}
+
+inline void
+ros_sn_to_dds_sn(int64_t sn_ros, uint64_t * sn_dds)
+{
+  *sn_dds = ((sn_ros) & 0xFFFFFFFF00000000LL) >> 32;
+  *sn_dds = *sn_dds | ((sn_ros & 0x00000000FFFFFFFFLL) << 32);
+}
+
+inline void
+dds_sn_to_ros_sn(uint64_t sn_dds, int64_t * sn_ros)
+{
+  *sn_ros = ((sn_dds & 0x00000000FFFFFFFF) << 32) | ((sn_dds & 0xFFFFFFFF00000000) >> 32);
+}
 #endif  // TYPE_SUPPORT_SERVICE_HPP_
