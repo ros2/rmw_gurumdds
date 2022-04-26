@@ -195,7 +195,8 @@ _serialize_service(
   uint8_t * dds_service,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid)
+  const int8_t * client_guid,
+  bool is_request)
 {
   auto members =
     static_cast<const MessageMembersT *>(untyped_members);
@@ -204,13 +205,24 @@ _serialize_service(
     return false;
   }
 
+  int32_t sn_high = static_cast<int32_t>((sequence_number & 0xFFFFFFFF00000000LL) >> 8);
+  uint32_t sn_low = static_cast<uint32_t>(sequence_number & 0x00000000FFFFFFFFLL);
+
   try {
     auto buffer = CDRSerializationBuffer(dds_service, size);
     auto serializer = MessageSerializer(buffer);
-    serializer.serialize(members, ros_service, true);
-    buffer << *(reinterpret_cast<uint64_t *>(&sequence_number));
     buffer << *(reinterpret_cast<const uint64_t *>(client_guid));
     buffer << *(reinterpret_cast<const uint64_t *>(client_guid + 8));
+    buffer << *(reinterpret_cast<uint32_t *>(&sn_high));
+    buffer << *(reinterpret_cast<uint32_t *>(&sn_low));
+    if (is_request) {
+      std::string instance_name = "";
+      buffer << instance_name;
+    } else {
+      int32_t remoteEx = 0;
+      buffer << *(reinterpret_cast<uint32_t *>(&remoteEx));
+    }
+    serializer.serialize(members, ros_service, true);
   } catch (std::runtime_error & e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to serialize ros message: %s", e.what());
     return false;
@@ -227,7 +239,8 @@ serialize_service(
   void * dds_service,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid)
+  const int8_t * client_guid,
+  bool is_request)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return _serialize_service<rosidl_typesupport_introspection_c__MessageMembers>(
@@ -236,7 +249,8 @@ serialize_service(
       reinterpret_cast<uint8_t *>(dds_service),
       size,
       sequence_number,
-      client_guid
+      client_guid,
+      is_request
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return _serialize_service<rosidl_typesupport_introspection_cpp::MessageMembers>(
@@ -245,7 +259,8 @@ serialize_service(
       reinterpret_cast<uint8_t *>(dds_service),
       size,
       sequence_number,
-      client_guid
+      client_guid,
+      is_request
     );
   }
 
@@ -275,7 +290,8 @@ _serialize_request(
     dds_request,
     size,
     sequence_number,
-    client_guid
+    client_guid,
+    true
   );
 }
 
@@ -335,7 +351,8 @@ _serialize_response(
     dds_response,
     size,
     sequence_number,
-    client_guid
+    client_guid,
+    false
   );
 }
 
@@ -380,8 +397,10 @@ _deserialize_service(
   uint8_t * ros_service,
   uint8_t * dds_service,
   size_t size,
-  int64_t * sequence_number,
-  int8_t * client_guid)
+  int32_t * sn_high,
+  uint32_t * sn_low,
+  int8_t * client_guid,
+  bool is_request)
 {
   auto members =
     static_cast<const MessageMembersT *>(untyped_members);
@@ -393,10 +412,18 @@ _deserialize_service(
   try {
     auto buffer = CDRDeserializationBuffer(dds_service, size);
     auto deserializer = MessageDeserializer(buffer);
-    deserializer.deserialize(members, ros_service, true);
-    buffer >> *(reinterpret_cast<uint64_t *>(sequence_number));
     buffer >> *(reinterpret_cast<uint64_t *>(client_guid));
     buffer >> *(reinterpret_cast<uint64_t *>(client_guid + 8));
+    buffer >> *(reinterpret_cast<uint32_t *>(sn_high));
+    buffer >> *(reinterpret_cast<uint32_t *>(sn_low));
+    if (is_request) {
+      std::string instance_name;
+      buffer >> instance_name;
+    } else {
+      int32_t remoteEx;
+      buffer >> *(reinterpret_cast<uint32_t *>(&remoteEx));
+    }
+    deserializer.deserialize(members, ros_service, true);
   } catch (std::runtime_error & e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
     return false;
@@ -412,8 +439,10 @@ deserialize_service(
   void * ros_service,
   void * dds_service,
   size_t size,
-  int64_t * sequence_number,
-  int8_t * client_guid)
+  int32_t * sn_high,
+  uint32_t * sn_low,
+  int8_t * client_guid,
+  bool is_request)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return _deserialize_service<rosidl_typesupport_introspection_c__MessageMembers>(
@@ -421,8 +450,10 @@ deserialize_service(
       reinterpret_cast<uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
       size,
-      sequence_number,
-      client_guid
+      sn_high,
+      sn_low,
+      client_guid,
+      is_request
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return _deserialize_service<rosidl_typesupport_introspection_cpp::MessageMembers>(
@@ -430,8 +461,10 @@ deserialize_service(
       reinterpret_cast<uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
       size,
-      sequence_number,
-      client_guid
+      sn_high,
+      sn_low,
+      client_guid,
+      is_request
     );
   }
 
@@ -446,7 +479,8 @@ _deserialize_request(
   uint8_t * ros_request,
   uint8_t * dds_request,
   size_t size,
-  int64_t * sequence_number,
+  int32_t * sn_high,
+  uint32_t * sn_low,
   int8_t * client_guid)
 {
   auto members = static_cast<const ServiceMembersT *>(untyped_members);
@@ -460,8 +494,10 @@ _deserialize_request(
     ros_request,
     dds_request,
     size,
-    sequence_number,
-    client_guid
+    sn_high,
+    sn_low,
+    client_guid,
+    true
   );
 }
 
@@ -472,7 +508,8 @@ deserialize_request(
   void * ros_request,
   void * dds_request,
   size_t size,
-  int64_t * sequence_number,
+  int32_t * sn_high,
+  uint32_t * sn_low,
   int8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
@@ -481,7 +518,8 @@ deserialize_request(
       reinterpret_cast<uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
       size,
-      sequence_number,
+      sn_high,
+      sn_low,
       client_guid
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
@@ -490,7 +528,8 @@ deserialize_request(
       reinterpret_cast<uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
       size,
-      sequence_number,
+      sn_high,
+      sn_low,
       client_guid
     );
   }
@@ -506,7 +545,8 @@ _deserialize_response(
   uint8_t * ros_response,
   uint8_t * dds_response,
   size_t size,
-  int64_t * sequence_number,
+  int32_t * sn_high,
+  uint32_t * sn_low,
   int8_t * client_guid)
 {
   auto members = static_cast<const ServiceMembersT *>(untyped_members);
@@ -520,8 +560,10 @@ _deserialize_response(
     ros_response,
     dds_response,
     size,
-    sequence_number,
-    client_guid
+    sn_high,
+    sn_low,
+    client_guid,
+    false
   );
 }
 
@@ -532,7 +574,8 @@ deserialize_response(
   void * ros_reponse,
   void * dds_reponse,
   size_t size,
-  int64_t * sequence_number,
+  int32_t * sn_high,
+  uint32_t * sn_low,
   int8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
@@ -541,7 +584,8 @@ deserialize_response(
       reinterpret_cast<uint8_t *>(ros_reponse),
       reinterpret_cast<uint8_t *>(dds_reponse),
       size,
-      sequence_number,
+      sn_high,
+      sn_low,
       client_guid
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
@@ -550,7 +594,8 @@ deserialize_response(
       reinterpret_cast<uint8_t *>(ros_reponse),
       reinterpret_cast<uint8_t *>(dds_reponse),
       size,
-      sequence_number,
+      sn_high,
+      sn_low,
       client_guid
     );
   }

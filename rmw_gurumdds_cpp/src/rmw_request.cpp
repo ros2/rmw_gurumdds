@@ -190,7 +190,8 @@ rmw_take_request(
       return RMW_RET_ERROR;
     }
     uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
-    int64_t sequence_number = 0;
+    int32_t sn_high = 0;
+    uint32_t sn_low = 0;
     int8_t client_guid[16] = {0};
     bool res = deserialize_request(
       type_support->data,
@@ -198,7 +199,8 @@ rmw_take_request(
       ros_request,
       sample,
       static_cast<size_t>(size),
-      &sequence_number,
+      &sn_high,
+      &sn_low,
       client_guid
     );
 
@@ -216,7 +218,7 @@ rmw_take_request(
       sample_info->source_timestamp.nanosec;
     // TODO(clemjh): SampleInfo doesn't contain received_timestamp
     request_header->received_timestamp = 0;
-    request_header->request_id.sequence_number = sequence_number;
+    request_header->request_id.sequence_number = ((int64_t)sn_high) << 32 | sn_low;
     memcpy(request_header->request_id.writer_guid, client_guid, 16);
 
     *taken = true;
