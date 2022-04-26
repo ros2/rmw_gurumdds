@@ -162,9 +162,7 @@ rmw_create_service(
   service_info->implementation_identifier = gurum_gurumdds_identifier;
   service_info->service_typesupport = type_support;
 
-  uint8_t typehash[16];
-  dds_DomainParticipant_generate_typehash(participant, request_metastring.c_str(), typehash);
-  request_typesupport = dds_TypeSupport_raw_create_w_typehash(typehash, false);
+  request_typesupport = dds_TypeSupport_create(request_metastring.c_str());
   if (request_typesupport == nullptr) {
     RMW_SET_ERROR_MSG("failed to create typesupport");
     goto fail;
@@ -177,8 +175,7 @@ rmw_create_service(
     goto fail;
   }
 
-  dds_DomainParticipant_generate_typehash(participant, response_metastring.c_str(), typehash);
-  response_typesupport = dds_TypeSupport_raw_create_w_typehash(typehash, false);
+  response_typesupport = dds_TypeSupport_create(response_metastring.c_str());
   if (response_typesupport == nullptr) {
     RMW_SET_ERROR_MSG("failed to create typesupport");
     goto fail;
