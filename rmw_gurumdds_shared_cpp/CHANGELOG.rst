@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.0 (2022-04-26)
+------------------
+
 1.1.6 (2022-04-26)
 ------------------
 * Remove minimum dds version as raw typesupport removed
