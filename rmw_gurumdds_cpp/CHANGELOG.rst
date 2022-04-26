@@ -7,6 +7,12 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.3.0 (2022-04-26)
+------------------
+* Enhanced rpc with sampleinfoex
+* Basic rpc
+* Contributors: Youngjin Yun
+
 2.2.4 (2022-04-26)
 ------------------
 * Remove minimum dds version as raw typesupport removed
