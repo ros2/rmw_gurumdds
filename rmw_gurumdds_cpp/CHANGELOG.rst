@@ -2,6 +2,9 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.0 (2022-05-09)
+------------------
+
 3.2.0 (2022-04-26)
 ------------------
 * Enhanced rpc with sampleinfoex
