@@ -1,5 +1,5 @@
 # rmw_gurumdds
-Implementation of the ROS middleware interface using [GurumNetworks GurumDDS](http://www.gurum.cc).
+Implementation of the ROS middleware interface using [GurumNetworks GurumDDS](https://www.gurum.cc/index_eng).
 
 ## Requirements
 This project requires `rosidl_typesupport_gurumdds` to be built. For more information, see README.md of the [project](https://github.com/ros2/rosidl_typesupport_gurumdds).
@@ -27,8 +27,8 @@ DATA:
   buffer_capacity: 512
 ```
 
-### rmw_gurumdds_static_cpp
-`rmw_gurumdds_static_cpp` is another rmw implementation, which uses `rosidl_typesupport_gurumdds`, our own typesupport packages. You can use this rmw implementation with environment variable `RMW_IMPLEMENTATION=rmw_gurumdds_static_cpp`. Other settings and configurations are the same as `rmw_gurumdds_cpp`.  
+### rmw_gurumdds_static_cpp(deprecated)
+~~`rmw_gurumdds_static_cpp` is another rmw implementation, which uses `rosidl_typesupport_gurumdds`, our own typesupport packages. You can use this rmw implementation with environment variable `RMW_IMPLEMENTATION=rmw_gurumdds_static_cpp`. Other settings and configurations are the same as `rmw_gurumdds_cpp`.~~
 This package is disabled by default.
 
 ### rmw_gurumdds_shared_cpp
@@ -39,9 +39,9 @@ This package is disabled by default.
 This package is disabled by default.
 
 ## Branches
-There are three active branches in this project: master, galactic and foxy.
-New changes made in [ROS2 repository](https://github.com/ros2) will be applied to the master branch, so this branch might be unstable.
-If you want to use this project with ROS2 Rolling Ridley or Galactic Geochelone, please use master or galactic branch, respectively.
+There are four active branches in this project: master, humble, galactic and foxy.
+New changes made in [ROS2 repository](https://github.com/ros2) will be applied to the master branch.
+If you want to use this project with ROS2 Rolling Ridley, Humble Hawksbill or Galactic Geochelone, please use master, humble or galactic branch, respectively.
 
 ## Implementation Status
 Currently some features are not fully implemented.
