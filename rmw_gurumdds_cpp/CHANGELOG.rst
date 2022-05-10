@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.1 (2022-05-10)
+------------------
+* Fix cast style and relative paths for cpplint
+* Contributors: Youngjin Yun
+
 4.0.0 (2022-05-09)
 ------------------
 
