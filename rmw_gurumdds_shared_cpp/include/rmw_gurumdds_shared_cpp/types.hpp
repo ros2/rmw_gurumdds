@@ -361,9 +361,6 @@ public:
   rmw_guard_condition_t * graph_guard_condition;
 
   const char * implementation_identifier;
-
-protected:
-private:
 };
 
 class GurumddsParticipantListener : public GurumddsDataReaderListener

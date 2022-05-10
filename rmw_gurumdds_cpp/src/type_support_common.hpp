@@ -37,7 +37,7 @@ typedef SSIZE_T ssize_t;
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
 #include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
 
-#include "./message_converter.hpp"
+#include "message_converter.hpp"
 
 template<typename MessageMembersT>
 std::string
@@ -87,7 +87,7 @@ _parse_struct(const MessageMembersT * members, const char * field_name, bool is_
   std::ostringstream metastring;
   metastring <<
     "{(" <<
-  (field_name ? std::string("name=") + field_name + "_," : "") <<
+    (field_name ? std::string("name=") + field_name + "_," : "") <<
     "type=" <<
     _create_type_name<MessageMembersT>(members) <<
     ",member=" <<
@@ -178,7 +178,7 @@ _parse_struct(const MessageMembersT * members, const char * field_name, bool is_
 
       metastring <<
         "(" <<
-      (member->is_array_ ? "" : std::string("name=") + member->name_ + "_") <<
+        (member->is_array_ ? "" : std::string("name=") + member->name_ + "_") <<
         ")";
     }
   }

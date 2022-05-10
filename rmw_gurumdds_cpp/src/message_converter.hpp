@@ -29,7 +29,7 @@
 
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
 
-#include "./cdr_buffer.hpp"
+#include "cdr_buffer.hpp"
 
 class MessageSerializer
 {

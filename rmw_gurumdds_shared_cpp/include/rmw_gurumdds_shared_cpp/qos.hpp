@@ -24,7 +24,7 @@
 
 #include "rmw_gurumdds_shared_cpp/visibility_control.h"
 
-#include "./dds_include.hpp"
+#include "dds_include.hpp"
 
 RMW_GURUMDDS_SHARED_CPP_PUBLIC
 bool
