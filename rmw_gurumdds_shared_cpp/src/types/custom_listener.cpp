@@ -72,7 +72,7 @@ size_t GurumddsDataReaderListener::count_topic(const char * topic_name)
       auto fqdn = _demangle_if_ros_topic(tnt.second.name);
       return fqdn == topic_name;
     });
-  return (size_t)count;
+  return static_cast<size_t>(count);
 }
 
 void GurumddsDataReaderListener::fill_topic_names_and_types(

@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "./message_converter.hpp"
+#include "message_converter.hpp"
 
 #define SERIALIZER_C_SERIALIZE_PRIMITIVE(SIZE) \
   template<> \

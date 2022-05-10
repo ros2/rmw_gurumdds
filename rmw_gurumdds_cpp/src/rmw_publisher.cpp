@@ -34,7 +34,7 @@
 #include "rcutils/types.h"
 #include "rcutils/error_handling.h"
 
-#include "./type_support_common.hpp"
+#include "type_support_common.hpp"
 
 extern "C"
 {
@@ -373,7 +373,7 @@ rmw_publisher_count_matched_subscriptions(
     dds_InstanceHandleSeq_delete(seq);
     return RMW_RET_ERROR;
   }
-  *subscription_count = (size_t)dds_InstanceHandleSeq_length(seq);
+  *subscription_count = static_cast<size_t>(dds_InstanceHandleSeq_length(seq));
 
   dds_InstanceHandleSeq_delete(seq);
 

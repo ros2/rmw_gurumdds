@@ -33,7 +33,7 @@
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
 
-#include "./type_support_service.hpp"
+#include "type_support_service.hpp"
 
 extern "C"
 {

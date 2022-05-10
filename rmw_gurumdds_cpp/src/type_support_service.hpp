@@ -18,7 +18,7 @@
 #include <string>
 #include <utility>
 
-#include "./type_support_common.hpp"
+#include "type_support_common.hpp"
 
 #define GET_TYPENAME(T) \
   typename std::remove_pointer<typename std::remove_const<decltype(T)>::type>::type

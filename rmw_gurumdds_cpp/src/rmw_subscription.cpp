@@ -35,7 +35,7 @@
 #include "rmw_gurumdds_cpp/types.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 
-#include "./type_support_common.hpp"
+#include "type_support_common.hpp"
 
 extern "C"
 {
@@ -378,7 +378,7 @@ rmw_subscription_count_matched_publishers(
     return RMW_RET_ERROR;
   }
 
-  *publisher_count = (size_t)dds_InstanceHandleSeq_length(seq);
+  *publisher_count = static_cast<size_t>(dds_InstanceHandleSeq_length(seq));
 
   dds_InstanceHandleSeq_delete(seq);
 
