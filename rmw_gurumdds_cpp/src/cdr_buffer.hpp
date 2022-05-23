@@ -327,7 +327,8 @@ public:
     *this >> str_size;
     align(1);  // align of char
     if (str_size == 0) {
-      throw std::runtime_error("Invalid string value");
+      dst = std::string("");
+      return;
     }
     if (offset + str_size > size) {
       throw std::runtime_error("Out of buffer");
@@ -345,7 +346,8 @@ public:
     *this >> str_size;
     align(2);  // align of wchar
     if (str_size == 0) {
-      throw std::runtime_error("Invalid wstring value");
+      dst = std::u16string(u"");
+      return;
     }
     if (offset + str_size * 2 > size) {
       throw std::runtime_error("Out of buffer");
@@ -369,7 +371,10 @@ public:
     align(1);  // align of char
     if (buf != nullptr) {
       if (str_size == 0) {
-        throw std::runtime_error("Invalid string value");
+        dst.data[0] = '\0';
+        dst.size = 0;
+        dst.capacity = 1;
+        return;
       }
       if (offset + str_size > size) {
         throw std::runtime_error("Out of buffer");
@@ -390,7 +395,10 @@ public:
     align(2);  // align of wchar
     if (buf != nullptr) {
       if (str_size == 0) {
-        throw std::runtime_error("Invalid wstring value");
+        dst.data[0] = u'\0';
+        dst.size = 0;
+        dst.capacity = 1;
+        return;
       }
       if (offset + str_size * 2 > size) {
         throw std::runtime_error("Out of buffer");
