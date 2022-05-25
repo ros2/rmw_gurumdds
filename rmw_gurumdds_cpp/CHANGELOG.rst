@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.1 (2022-05-25)
+------------------
+* Handle null string
+* Fix rclcpp test(test_serialized_message) failure
+* Contributors: Youngjin Yun, donghee811
+
 1.2.0 (2022-04-26)
 ------------------
 * Enhanced rpc with sampleinfoex

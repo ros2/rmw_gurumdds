@@ -2,6 +2,15 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.1 (2022-05-25)
+------------------
+* Fix rclcpp test(test_executors) failure
+  * Fix rclcpp test(test_executors) failure
+  * Update rmw_gurumdds_shared_cpp/include/rmw_gurumdds_shared_cpp/rmw_wait.hpp
+  Co-authored-by: Youngjin Yun <youngjin@gurum.cc>
+  Co-authored-by: Youngjin Yun <youngjin@gurum.cc>
+* Contributors: donghee811
+
 1.2.0 (2022-04-26)
 ------------------
 
