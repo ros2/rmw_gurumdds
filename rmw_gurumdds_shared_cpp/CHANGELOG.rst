@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.2 (2022-05-27)
+------------------
+* Reorganise package
+* Contributors: Youngjin Yun
+
 1.2.1 (2022-05-25)
 ------------------
 * Fix rclcpp test(test_executors) failure

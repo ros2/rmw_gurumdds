@@ -2,6 +2,11 @@
 Changelog for package gurumdds_cmake_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.2 (2022-05-27)
+------------------
+* Reorganise package
+* Contributors: Youngjin Yun
+
 1.2.1 (2022-05-27)
 ------------------
 
