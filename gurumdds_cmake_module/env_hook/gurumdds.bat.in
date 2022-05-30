@@ -1,0 +1,28 @@
+set "_BUILDTIME_GURUMDDS_HOME=@GurumDDS_HOME@"
+
+if exist "%_BUILDTIME_GURUMDDS_HOME%" (
+  if "%GURUMDDS_HOME%" NEQ "" (
+    if "%GURUMDDS_HOME%" NEQ "%_BUILDTIME_GURUMDDS_HOME%" (
+      echo "[gurumdds_cmake_module] Warning: GURUMDDS_HOME environment variable is set to [[%GURUMDDS_HOME%]]. When the workspace was built, GurumDDS was found at [[%_BUILDTIME_GURUMDDS_HOME%]], which is what will actually be used. Manually modify the environment now if this is not the configuration you want." 1>&2
+    )
+  )
+  set "_GURUMDDS_HOME_TO_USE=%_BUILDTIME_GURUMDDS_HOME%"
+) else (
+  if "%GURUMDDS_HOME%" == "" (
+    echo [gurumdds_cmake_module] Warning: The location at which GurumDDS was found when the workspace was built [[%_BUILDTIME_GURUMDDS_HOME%]] does not point to a valid directory, and the GURUMDDS_HOME environment variable has not been set. Support for GurumDDS will not be available. 1>&2
+    set "_BUILDTIME_GURUMDDS_HOMESHOME="
+    goto :eof
+  )
+
+  if not exist "%GURUMDDS_HOME%" (
+    echo [gurumdds_cmake_module] Warning: Neither the location at which GurumDDS was found when the workspace was built [[%_BUILDTIME_GURUMDDS_HOME%]] nor the GURUMDDS_HOME environment variable [[%GURUMDDS_HOME%]] point to a valid directory. Support for GurumDDS will not be available. 1>&2
+    set "_BUILDTIME_GURUMDDSDDSHOME="
+    goto :eof
+  )
+  set "_GURUMDDS_HOME_TO_USE=%GURUMDDS_HOME%"
+)
+
+echo %PATH%|find /i "%_GURUMDDS_HOME_TO_USE%\lib;">nul || set PATH=%PATH%;%_GURUMDDS_HOME_TO_USE%\lib;
+
+set "_BUILDTIME_GURUMDDS_HOME="
+set "_GURUMDDS_HOME_TO_USE="
