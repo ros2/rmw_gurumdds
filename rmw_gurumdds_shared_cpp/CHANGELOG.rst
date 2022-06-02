@@ -2,6 +2,13 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.1 (2022-06-02)
+------------------
+* Add message lost subscription event
+* Reorganize package
+* Fix cast style and relative paths for cpplint
+* Contributors: Youngjin Yun
+
 3.2.0 (2022-04-26)
 ------------------
 
