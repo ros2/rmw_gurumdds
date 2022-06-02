@@ -6,8 +6,7 @@ Required version of GurumDDS depends on the version of this project.
 
 | rmw_gurumdds             | GurumDDS                    |
 |--------------------------|-----------------------------|
-| 3.1.2  or higher         | 2.8.x                       |
-| 3.1.1  or lower          | 2.7.x                       |
+| 4.0.0 or higher          | 2.8.3140 or higher          |
 
 ## Packages
 This project consists of four packages, `gurumdds_camke_module`, `rmw_gurumdds_cpp`, `rmw_gurumdds_shared_cpp` and `demo_nodes_cpp_native_gurumdds`.
