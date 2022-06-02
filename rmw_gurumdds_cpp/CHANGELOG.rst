@@ -7,6 +7,12 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.3.1 (2022-06-02)
+------------------
+* Handle null string
+* Fix rclcpp test(test_serialized_message) failure
+* Contributors: Youngjin Yun
+
 2.3.0 (2022-04-26)
 ------------------
 * Enhanced rpc with sampleinfoex

@@ -8,6 +8,11 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.3.1 (2022-06-02)
+------------------
+* Reorganize package
+* Contributors: Youngjin Yun
+
 2.3.0 (2022-04-26)
 ------------------
 
