@@ -12,8 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(gurumdds_cmake_module REQUIRED)
-find_package(GurumDDS REQUIRED MODULE)
-
-list(APPEND rmw_gurumdds_static_cpp_INCLUDE_DIRS ${GurumDDS_INCLUDE_DIRS})
-list(APPEND rmw_gurumdds_static_cpp_LIBRARIES ${GurumDDS_LIBRARIES})
+list(INSERT CMAKE_MODULE_PATH 0 "${gurumdds_cmake_module_DIR}/Modules")
