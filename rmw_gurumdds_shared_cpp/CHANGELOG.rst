@@ -1,6 +1,12 @@
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rmw_gurumdds_shared_cpp
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.1.8 (2022-06-08)
+------------------
+* Change g_mask_map_ptr type to array of dds_StatusKind
+  After g_mask_map_ptr is destroyed, exception occur as is_event_supported return false despite supported event type. so it changes g_mask_map_ptr to array of dds_StatusKind  from std::shared_ptr<unordered_map<rmw_event_type_t, dds_StatusKind>>.
+* Contributors: Youngjin Yun
 
 1.1.7 (2022-05-23)
 ------------------
