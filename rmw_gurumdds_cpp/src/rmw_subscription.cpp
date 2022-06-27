@@ -36,6 +36,7 @@
 #include "rmw_gurumdds_cpp/identifier.hpp"
 
 #include "type_support_common.hpp"
+#include "type_support_service.hpp"
 
 extern "C"
 {
@@ -561,7 +562,7 @@ _take(
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+  dds_ReturnCode_t ret = dds_DataReader_raw_take_w_sampleinfoex(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
@@ -622,11 +623,16 @@ _take(
     *taken = true;
 
     if (message_info != nullptr) {
+      int64_t sequence_number = 0;
+      dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
+      dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
       message_info->source_timestamp =
         sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
         sample_info->source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
+      message_info->publication_sequence_number = sequence_number;
+      message_info->reception_sequence_number = RMW_MESSAGE_INFO_SEQUENCE_NUMBER_UNSUPPORTED;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
       sender_gid->implementation_identifier = identifier;
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
@@ -758,7 +764,7 @@ rmw_take_sequence(
 
   *taken = 0;
 
-  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+  dds_ReturnCode_t ret = dds_DataReader_raw_take_w_sampleinfoex(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, count,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
@@ -817,6 +823,10 @@ rmw_take_sequence(
         return RMW_RET_ERROR;
       }
 
+      int64_t sequence_number = 0;
+      dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
+      dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
+
       auto message_info = &(message_info_sequence->data[*taken]);
 
       message_info->source_timestamp =
@@ -824,6 +834,8 @@ rmw_take_sequence(
         sample_info->source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
+      message_info->publication_sequence_number = sequence_number;
+      message_info->reception_sequence_number = RMW_MESSAGE_INFO_SEQUENCE_NUMBER_UNSUPPORTED;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
       sender_gid->implementation_identifier = gurum_gurumdds_identifier;
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
@@ -897,7 +909,7 @@ _take_serialized(
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_DataReader_raw_take(
+  dds_ReturnCode_t ret = dds_DataReader_raw_take_w_sampleinfoex(
     topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
     dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
@@ -958,11 +970,16 @@ _take_serialized(
     *taken = true;
 
     if (message_info != nullptr) {
+      int64_t sequence_number = 0;
+      dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
+      dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
       message_info->source_timestamp =
         sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
         sample_info->source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
+      message_info->publication_sequence_number = sequence_number;
+      message_info->reception_sequence_number = RMW_MESSAGE_INFO_SEQUENCE_NUMBER_UNSUPPORTED;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
       sender_gid->implementation_identifier = identifier;
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);

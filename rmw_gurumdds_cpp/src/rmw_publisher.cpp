@@ -35,6 +35,7 @@
 #include "rcutils/error_handling.h"
 
 #include "type_support_common.hpp"
+#include "type_support_service.hpp"
 
 extern "C"
 {
@@ -256,6 +257,7 @@ rmw_create_publisher(
   publisher_info->topic_writer = topic_writer;
   publisher_info->rosidl_message_typesupport = type_support;
   publisher_info->publisher_gid.implementation_identifier = gurum_gurumdds_identifier;
+  publisher_info->sequence_number = 0;
 
   static_assert(
     sizeof(GurumddsPublisherGID) <= RMW_GID_STORAGE_SIZE,
@@ -629,7 +631,18 @@ rmw_publish(
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_DataWriter_raw_write(topic_writer, dds_message, size);
+  dds_SampleInfoEx sampleinfo_ex;
+  memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
+  ros_sn_to_dds_sn(++info->sequence_number, &sampleinfo_ex.seq);
+  auto publisher_gid =
+    reinterpret_cast<GurumddsPublisherGID *>(info->publisher_gid.data);
+  ros_guid_to_dds_guid(
+    reinterpret_cast<int8_t *>(publisher_gid->publication_handle),
+    reinterpret_cast<int8_t *>(&sampleinfo_ex.src_guid));
+
+  dds_ReturnCode_t ret = dds_DataWriter_raw_write_w_sampleinfoex(
+    topic_writer, dds_message, size,
+    &sampleinfo_ex);
   const char * errstr;
   if (ret == dds_RETCODE_OK) {
     errstr = "dds_RETCODE_OK";
@@ -681,10 +694,20 @@ rmw_publish_serialized_message(
   dds_DataWriter * topic_writer = info->topic_writer;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "topic writer is null", return RMW_RET_ERROR);
 
-  dds_ReturnCode_t ret = dds_DataWriter_raw_write(
+  dds_SampleInfoEx sampleinfo_ex;
+  memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
+  ros_sn_to_dds_sn(++info->sequence_number, &sampleinfo_ex.seq);
+  auto publisher_gid =
+    reinterpret_cast<GurumddsPublisherGID *>(info->publisher_gid.data);
+  ros_guid_to_dds_guid(
+    reinterpret_cast<int8_t *>(publisher_gid->publication_handle),
+    reinterpret_cast<int8_t *>(&sampleinfo_ex.src_guid));
+
+  dds_ReturnCode_t ret = dds_DataWriter_raw_write_w_sampleinfoex(
     topic_writer,
     serialized_message->buffer,
-    static_cast<uint32_t>(serialized_message->buffer_length)
+    static_cast<uint32_t>(serialized_message->buffer_length),
+    &sampleinfo_ex
   );
   const char * errstr;
   if (ret == dds_RETCODE_OK) {
