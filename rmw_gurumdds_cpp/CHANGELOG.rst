@@ -7,6 +7,11 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.3.2 (2022-07-05)
+------------------
+* Add missing guid comparison conditional statement
+* Contributors: Youngjin Yun
+
 2.3.1 (2022-06-02)
 ------------------
 * Handle null string

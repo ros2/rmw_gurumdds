@@ -8,6 +8,12 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.3.2 (2022-07-05)
+------------------
+* Change g_mask_map_ptr type to array of dds_StatusKind
+* Add message lost subscription event
+* Contributors: Youngjin Yun
+
 2.3.1 (2022-06-02)
 ------------------
 * Reorganize package
