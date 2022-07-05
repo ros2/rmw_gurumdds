@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.3 (2022-07-05)
+------------------
+* Add missing guid comparison conditional statement
+* Contributors: Youngjin Yun
+
 1.2.2 (2022-05-27)
 ------------------
 
