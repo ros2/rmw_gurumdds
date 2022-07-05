@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-07-05)
+------------------
+* Add pdp handling process
+* Contributors: Youngjin Yun
+
 1.1.8 (2022-06-08)
 ------------------
 * Change g_mask_map_ptr type to array of dds_StatusKind

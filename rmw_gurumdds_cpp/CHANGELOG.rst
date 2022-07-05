@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-07-05)
+------------------
+* Change the behavior of take response to a loop
+* Contributors: Youngjin Yun
+
 1.1.8 (2022-06-08)
 ------------------
 
