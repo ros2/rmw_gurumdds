@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.2 (2022-07-05)
+------------------
+* Add missing guid comparison conditional statement
+* Add sequence numbers to message info structure
+* Handle null string
+* Fix rclcpp test(test_serialized_message) failure
+* Contributors: Youngjin Yun, donghee811
+
 4.0.1 (2022-05-10)
 ------------------
 * Fix cast style and relative paths for cpplint
