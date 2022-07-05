@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.2 (2022-07-05)
+------------------
+* Add missing guid comparison conditional statement
+* Add sequence numbers to message info structure
+* Contributors: Youngjin Yun, donghee811
+
 3.2.1 (2022-06-02)
 ------------------
 * Handle null string
