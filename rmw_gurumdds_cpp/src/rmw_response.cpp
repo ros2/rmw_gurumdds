@@ -149,13 +149,15 @@ rmw_take_response(
         return RMW_RET_ERROR;
       }
 
-      request_header->source_timestamp =
-        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-        sample_info->source_timestamp.nanosec;
-      // TODO(clemjh): SampleInfo doesn't contain received_timestamp
-      request_header->received_timestamp = 0;
-      request_header->request_id.sequence_number = ((int64_t)sn_high) << 32 | sn_low;
-      memcpy(request_header->request_id.writer_guid, client_guid, 16);
+      if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
+        request_header->source_timestamp =
+          sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+          sample_info->source_timestamp.nanosec;
+        // TODO(clemjh): SampleInfo doesn't contain received_timestamp
+        request_header->received_timestamp = 0;
+        request_header->request_id.sequence_number = ((int64_t)sn_high) << 32 | sn_low;
+        memcpy(request_header->request_id.writer_guid, client_guid, 16);
+      }
     }
 
     dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
