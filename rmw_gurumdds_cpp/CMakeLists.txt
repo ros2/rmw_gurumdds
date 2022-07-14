@@ -43,17 +43,26 @@ if(NOT rosidl_typesupport_introspection_cpp_FOUND)
 endif()
 
 find_package(rmw REQUIRED)
-find_package(rmw_gurumdds_shared_cpp REQUIRED)
+find_package(rmw_dds_common REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_runtime_cpp REQUIRED)
 
 include_directories(include)
+ament_export_include_directories(include ${GurumDDS_INCLUDE_DIR})
 
+include_directories(${GurumDDS_INCLUDE_DIR})
+link_directories(${GurumDDS_LIBRARY_DIRS})
 add_library(rmw_gurumdds_cpp
   SHARED
+  src/types/custom_listener.cpp
+  src/demangle.cpp
+  src/event_converter.cpp
+  src/get_entities.cpp
   src/identifier.cpp
   src/message_converter.cpp
-  src/serialization_format.cpp
+  src/names_and_types_helpers.cpp
+  src/namespace_prefix.cpp
+  src/qos.cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
@@ -64,33 +73,31 @@ add_library(rmw_gurumdds_cpp
   src/rmw_guard_condition.cpp
   src/rmw_init.cpp
   src/rmw_logging.cpp
-  src/rmw_node.cpp
   src/rmw_node_info_and_types.cpp
+  src/rmw_node.cpp
   src/rmw_publisher.cpp
   src/rmw_request.cpp
   src/rmw_response.cpp
   src/rmw_serialize.cpp
-  src/rmw_service.cpp
   src/rmw_service_names_and_types.cpp
+  src/rmw_service.cpp
   src/rmw_subscription.cpp
   src/rmw_topic_names_and_types.cpp
   src/rmw_wait.cpp
-  src/type_support_common.hpp
+  src/serialization_format.cpp
   src/types.cpp
-  src/get_entities.cpp
 )
 
 ament_target_dependencies(rmw_gurumdds_cpp
   "rcutils"
   "rosidl_typesupport_introspection_c"
   "rosidl_typesupport_introspection_cpp"
-  "rmw_gurumdds_shared_cpp"
   "rmw"
+  "rmw_dds_common"
   "rosidl_runtime_c"
   "rosidl_runtime_cpp"
   "GurumDDS")
 
-ament_export_include_directories(include)
 ament_export_libraries(rmw_gurumdds_cpp)
 
 ament_export_dependencies(
@@ -99,7 +106,7 @@ ament_export_dependencies(
   rosidl_runtime_c
   rosidl_runtime_cpp
   rcutils
-  rmw_gurumdds_shared_cpp
+  rmw_dds_common
   rmw
 )
 

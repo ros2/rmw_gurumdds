@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__DEMANGLE_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__DEMANGLE_HPP_
+#ifndef RMW_GURUMDDS_CPP__DEMANGLE_HPP_
+#define RMW_GURUMDDS_CPP__DEMANGLE_HPP_
 
 #include <string>
 
@@ -29,4 +29,4 @@ _demangle_service_from_topic(const std::string & topic_name);
 std::string
 _demangle_service_type_only(const std::string & dds_type_name);
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__DEMANGLE_HPP_
+#endif  // RMW_GURUMDDS_CPP__DEMANGLE_HPP_

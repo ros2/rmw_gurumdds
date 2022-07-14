@@ -12,26 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <utility>
-#include <string>
-#include <limits>
-#include <thread>
 #include <chrono>
+#include <limits>
+#include <string>
+#include <thread>
+#include <utility>
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
-#include "rmw/serialized_message.h"
 #include "rmw/rmw.h"
+#include "rmw/serialized_message.h"
 
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
-#include "rmw_gurumdds_shared_cpp/types.hpp"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
-#include "rmw_gurumdds_shared_cpp/qos.hpp"
-#include "rmw_gurumdds_shared_cpp/guid.hpp"
-#include "rmw_gurumdds_shared_cpp/namespace_prefix.hpp"
-
-#include "rmw_gurumdds_cpp/types.hpp"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/guid.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
 
 #include "./type_support_common.hpp"
 

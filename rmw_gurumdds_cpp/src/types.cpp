@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rmw_gurumdds_shared_cpp/event_converter.hpp"
-#include "rmw_gurumdds_shared_cpp/qos.hpp"
+#include "rmw_gurumdds_cpp/event_converter.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
 
 rmw_ret_t GurumddsPublisherInfo::get_status(

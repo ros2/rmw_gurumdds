@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rmw/impl/cpp/macros.hpp"
-#include "rmw/rmw.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
+#include "rmw/impl/cpp/macros.hpp"
+#include "rmw/rmw.h"
+
+#include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
 
 extern "C"
 {
