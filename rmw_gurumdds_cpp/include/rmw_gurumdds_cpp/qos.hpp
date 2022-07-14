@@ -12,28 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__QOS_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__QOS_HPP_
+#ifndef RMW_GURUMDDS_CPP__QOS_HPP_
+#define RMW_GURUMDDS_CPP__QOS_HPP_
 
 #include <cassert>
 #include <limits>
 
 #include "rmw/error_handling.h"
-#include "rmw/types.h"
 #include "rmw/incompatible_qos_events_statuses.h"
+#include "rmw/types.h"
 
-#include "rmw_gurumdds_shared_cpp/visibility_control.h"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/visibility_control.h"
 
-#include "./dds_include.hpp"
-
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 bool
 get_datawriter_qos(
   dds_Publisher * publisher,
   const rmw_qos_profile_t * qos_profile,
   dds_DataWriterQos * datawriter_qos);
 
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 bool
 get_datareader_qos(
   dds_Subscriber * subscriber,
@@ -64,9 +63,9 @@ struct rmw_time_t
 convert_liveliness_lease_duration(
   dds_LivelinessQosPolicy policy);
 
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 rmw_qos_policy_kind_t
 convert_qos_policy(
   dds_QosPolicyId_t policy_id);
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__QOS_HPP_
+#endif  // RMW_GURUMDDS_CPP__QOS_HPP_

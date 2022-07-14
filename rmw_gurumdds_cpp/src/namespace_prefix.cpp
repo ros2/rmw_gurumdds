@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "rmw_gurumdds_shared_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
 
 const char * const ros_topic_prefix = "rt";
 const char * const ros_service_requester_prefix = "rq";

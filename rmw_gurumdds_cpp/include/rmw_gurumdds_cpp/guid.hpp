@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__GUID_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__GUID_HPP_
+#ifndef RMW_GURUMDDS_CPP__GUID_HPP_
+#define RMW_GURUMDDS_CPP__GUID_HPP_
 
 #include <cstring>
 #include <iostream>
@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
 
 typedef uint8_t octet;
 
@@ -126,4 +126,4 @@ inline void dds_BuiltinTopicKey_to_GUID(
 #endif
 }
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__GUID_HPP_
+#endif  // RMW_GURUMDDS_CPP__GUID_HPP_

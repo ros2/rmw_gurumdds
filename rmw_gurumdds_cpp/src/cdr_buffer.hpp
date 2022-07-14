@@ -19,10 +19,10 @@
 #include <string>
 #include <stdexcept>
 
-#include "rosidl_runtime_c/string.h"
 #include "rosidl_runtime_c/string_functions.h"
-#include "rosidl_runtime_c/u16string.h"
+#include "rosidl_runtime_c/string.h"
 #include "rosidl_runtime_c/u16string_functions.h"
+#include "rosidl_runtime_c/u16string.h"
 
 #define CDR_BIG_ENDIAN 0
 #define CDR_LITTLE_ENDIAN 1

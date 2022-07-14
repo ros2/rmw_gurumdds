@@ -12,26 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <sstream>
-#include <limits>
-#include <thread>
 #include <chrono>
+#include <limits>
+#include <sstream>
+#include <string>
+#include <thread>
+
+#include "rcutils/types.h"
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
 #include "rmw/impl/cpp/macros.hpp"
+#include "rmw/rmw.h"
 #include "rmw/types.h"
 
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
-#include "rmw_gurumdds_shared_cpp/types.hpp"
-#include "rmw_gurumdds_shared_cpp/qos.hpp"
-#include "rmw_gurumdds_shared_cpp/namespace_prefix.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
-
-#include "rcutils/types.h"
 
 #include "./type_support_common.hpp"
 
