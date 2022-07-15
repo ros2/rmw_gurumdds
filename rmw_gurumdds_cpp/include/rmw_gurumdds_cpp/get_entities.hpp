@@ -16,8 +16,9 @@
 #define RMW_GURUMDDS_CPP__GET_ENTITIES_HPP_
 
 #include "rmw/rmw.h"
+
+#include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/visibility_control.h"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
 
 namespace rmw_gurumdds_cpp
 {

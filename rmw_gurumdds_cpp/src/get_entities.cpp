@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rmw_gurumdds_shared_cpp/types.hpp"
 #include "rmw_gurumdds_cpp/get_entities.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"

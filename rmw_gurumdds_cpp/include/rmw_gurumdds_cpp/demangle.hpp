@@ -1,4 +1,4 @@
-// Copyright 2021 GurumNetworks, Inc.
+// Copyright 2019 GurumNetworks, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rmw_dds_common/qos.hpp"
+#ifndef RMW_GURUMDDS_CPP__DEMANGLE_HPP_
+#define RMW_GURUMDDS_CPP__DEMANGLE_HPP_
 
-#include "rmw_gurumdds_shared_cpp/rmw_qos.hpp"
+#include <string>
 
-rmw_ret_t
-qos_profile_check_compatible(
-  const rmw_qos_profile_t publisher_profile,
-  const rmw_qos_profile_t subscription_profile,
-  rmw_qos_compatibility_type_t * compatibility,
-  char * reason,
-  size_t reason_size)
-{
-  return rmw_dds_common::qos_profile_check_compatible(
-    publisher_profile, subscription_profile, compatibility, reason, reason_size);
-}
+std::string
+_demangle_if_ros_topic(const std::string & topic_name);
+
+std::string
+_demangle_if_ros_type(const std::string & dds_type_string);
+
+std::string
+_demangle_service_from_topic(const std::string & topic_name);
+
+std::string
+_demangle_service_type_only(const std::string & dds_type_name);
+
+#endif  // RMW_GURUMDDS_CPP__DEMANGLE_HPP_

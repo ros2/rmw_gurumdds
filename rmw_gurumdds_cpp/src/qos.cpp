@@ -13,7 +13,8 @@
 // limitations under the License.
 
 #include <limits>
-#include "rmw_gurumdds_shared_cpp/qos.hpp"
+
+#include "rmw_gurumdds_cpp/qos.hpp"
 
 static inline bool is_time_unspecified(const rmw_time_t & time)
 {

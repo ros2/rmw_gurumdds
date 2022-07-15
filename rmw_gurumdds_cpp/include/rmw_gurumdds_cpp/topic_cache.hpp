@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__TOPIC_CACHE_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__TOPIC_CACHE_HPP_
+#ifndef RMW_GURUMDDS_CPP__TOPIC_CACHE_HPP_
+#define RMW_GURUMDDS_CPP__TOPIC_CACHE_HPP_
 
 #include <algorithm>
 #include <iterator>
@@ -25,9 +25,12 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/types.h"
+
+#include "rmw_gurumdds_cpp/identifier.hpp"
 
 typedef std::map<std::string, std::set<std::string>> TopicsTypes;
 
@@ -76,19 +79,19 @@ public:
   {
     initialize_participant_map(participant_to_entity_guids_, participant_guid);
     if (rcutils_logging_logger_is_enabled_for(
-        "rmw_gurumdds_shared_cpp", RCUTILS_LOG_SEVERITY_DEBUG))
+        gurum_gurumdds_identifier, RCUTILS_LOG_SEVERITY_DEBUG))
     {
       std::stringstream guid_stream;
       guid_stream << participant_guid;
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_shared_cpp",
+        gurum_gurumdds_identifier,
         "Adding topic '%s' with type '%s' for node '%s'",
         topic_name.c_str(), type_name.c_str(), guid_stream.str().c_str());
     }
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);
     if (topic_info_it != entity_guid_to_info_.end()) {
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_shared_cpp",
+        gurum_gurumdds_identifier,
         "unique topic '%s' with type '%s' attempted to be added twice, ignoring",
         topic_name.c_str(), type_name.c_str());
       return false;
@@ -116,7 +119,7 @@ public:
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);
     if (topic_info_it == entity_guid_to_info_.end()) {
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_shared_cpp",
+        gurum_gurumdds_identifier,
         "topic not available");
       return false;
     }
@@ -154,7 +157,7 @@ public:
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);
     if (topic_info_it == entity_guid_to_info_.end()) {
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_shared_cpp",
+        gurum_gurumdds_identifier,
         "unexpected topic removal");
       return false;
     }
@@ -166,7 +169,7 @@ public:
     auto participant_to_entity_guid = participant_to_entity_guids_.find(participant_guid);
     if (participant_to_entity_guid == participant_to_entity_guids_.end()) {
       RCUTILS_LOG_WARN_NAMED(
-        "rmw_gurumdds_shared_cpp",
+        gurum_gurumdds_identifier,
         "unable to remove topic, "
         "participant guid does not exist for topic name '%s' with type '%s'",
         topic_name.c_str(), type_name.c_str());
@@ -176,7 +179,7 @@ public:
     auto entity_guid_to_remove = participant_to_entity_guid->second.find(entity_guid);
     if (entity_guid_to_remove == participant_to_entity_guid->second.end()) {
       RCUTILS_LOG_WARN_NAMED(
-        "rmw_gurumdds_shared_cpp",
+        gurum_gurumdds_identifier,
         "unable to remove topic, "
         "topic guid does not exist in participant guid: topic name '%s' with type '%s'",
         topic_name.c_str(), type_name.c_str());
@@ -229,4 +232,4 @@ private:
   }
 };
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__TOPIC_CACHE_HPP_
+#endif  // RMW_GURUMDDS_CPP__TOPIC_CACHE_HPP_

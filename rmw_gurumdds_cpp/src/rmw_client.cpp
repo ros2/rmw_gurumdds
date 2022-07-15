@@ -28,12 +28,10 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/types.h"
 
-#include "rmw_gurumdds_shared_cpp/types.hpp"
-#include "rmw_gurumdds_shared_cpp/qos.hpp"
-#include "rmw_gurumdds_shared_cpp/namespace_prefix.hpp"
-
-#include "rmw_gurumdds_cpp/types.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
 
 #include "type_support_service.hpp"
 

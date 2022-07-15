@@ -14,7 +14,7 @@
 
 #include <utility>
 
-#include "rmw_gurumdds_shared_cpp/event_converter.hpp"
+#include "rmw_gurumdds_cpp/event_converter.hpp"
 
 /// mapping of RMW_EVENT to the corresponding dds_StatusKind.
 static const dds_StatusKind g_mask_map[] {
