@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__RMW_QOS_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__RMW_QOS_HPP_
+#ifndef RMW_GURUMDDS_CPP__RMW_QOS_HPP_
+#define RMW_GURUMDDS_CPP__RMW_QOS_HPP_
 
 #include "rmw/qos_profiles.h"
 
-#include "rmw_gurumdds_shared_cpp/visibility_control.h"
+#include "rmw_gurumdds_cpp/visibility_control.h"
 
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 rmw_ret_t
 qos_profile_check_compatible(
   const rmw_qos_profile_t publisher_profile,
@@ -28,4 +28,4 @@ qos_profile_check_compatible(
   char * reason,
   size_t reason_size);
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__RMW_QOS_HPP_
+#endif  // RMW_GURUMDDS_CPP__RMW_QOS_HPP_

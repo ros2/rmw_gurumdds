@@ -20,8 +20,8 @@
 #include "rmw/ret_types.h"
 #include "rmw/rmw.h"
 
+#include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
 
 struct rmw_context_impl_s
 {

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__EVENT_CONVERTER_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__EVENT_CONVERTER_HPP_
+#ifndef RMW_GURUMDDS_CPP__EVENT_CONVERTER_HPP_
+#define RMW_GURUMDDS_CPP__EVENT_CONVERTER_HPP_
 
 #include "rmw/event.h"
 #include "rmw/ret_types.h"
 #include "rmw/types.h"
 
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
-#include "rmw_gurumdds_shared_cpp/visibility_control.h"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/visibility_control.h"
 
 /// Return the corresponding DDS_StatusKind to the input RMW_EVENT.
 /**
  * \param event_t to translate to status kind
  * \return the StatusKind corresponding to the rmw_event_type_t
  */
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 dds_StatusKind get_status_kind_from_rmw(rmw_event_type_t event_t);
 
 /// Return true if the input RMW event has a corresponding DDS_StatusKind.
@@ -35,7 +35,7 @@ dds_StatusKind get_status_kind_from_rmw(rmw_event_type_t event_t);
  * \param event_t input rmw event to check
  * \return true if there is an RMW to DDS_StatusKind mapping, false otherwise
  */
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 bool is_event_supported(rmw_event_type_t event_t);
 
 /// Assign the input DDS return code to its corresponding RMW return code.
@@ -44,7 +44,7 @@ bool is_event_supported(rmw_event_type_t event_t);
   * \return to_return the corresponding rmw_ret_t that maps to the input DDS_ReturnCode_t. By
   * default RMW_RET_ERROR is returned if no corresponding rmw_ret_t is not defined.
   */
-RMW_GURUMDDS_SHARED_CPP_PUBLIC
+RMW_GURUMDDS_CPP_PUBLIC
 rmw_ret_t check_dds_ret_code(dds_ReturnCode_t dds_return_code);
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__EVENT_CONVERTER_HPP_
+#endif  // RMW_GURUMDDS_CPP__EVENT_CONVERTER_HPP_

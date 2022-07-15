@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS_SHARED_CPP__RMW_WAIT_HPP_
-#define RMW_GURUMDDS_SHARED_CPP__RMW_WAIT_HPP_
+#ifndef RMW_GURUMDDS_CPP__RMW_WAIT_HPP_
+#define RMW_GURUMDDS_CPP__RMW_WAIT_HPP_
 
 #include <chrono>
 #include <unordered_map>
@@ -25,10 +25,9 @@
 #include "rmw/rmw.h"
 #include "rmw/impl/cpp/macros.hpp"
 
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
-#include "rmw_gurumdds_shared_cpp/types.hpp"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
-#include "rmw_gurumdds_shared_cpp/event_converter.hpp"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/event_converter.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
 
 #define CHECK_ATTACH(ret) \
   if (ret == dds_RETCODE_OK) { \
@@ -133,7 +132,7 @@ rmw_ret_t __detach_condition(
 
 template<typename SubscriberInfo, typename ServiceInfo, typename ClientInfo>
 rmw_ret_t
-shared__rmw_wait(
+__rmw_wait(
   const char * implementation_identifier,
   rmw_subscriptions_t * subscriptions,
   rmw_guard_conditions_t * guard_conditions,
@@ -554,4 +553,4 @@ shared__rmw_wait(
   return rret;
 }
 
-#endif  // RMW_GURUMDDS_SHARED_CPP__RMW_WAIT_HPP_
+#endif  // RMW_GURUMDDS_CPP__RMW_WAIT_HPP_

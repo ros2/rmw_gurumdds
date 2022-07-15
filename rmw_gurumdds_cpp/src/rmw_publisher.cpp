@@ -18,21 +18,19 @@
 #include <thread>
 #include <chrono>
 
+#include "rcutils/error_handling.h"
+#include "rcutils/types.h"
+
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/types.h"
 
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
-#include "rmw_gurumdds_shared_cpp/types.hpp"
-#include "rmw_gurumdds_shared_cpp/qos.hpp"
-#include "rmw_gurumdds_shared_cpp/namespace_prefix.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
-
-#include "rcutils/types.h"
-#include "rcutils/error_handling.h"
 
 #include "type_support_common.hpp"
 #include "type_support_service.hpp"

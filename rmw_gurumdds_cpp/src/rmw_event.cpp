@@ -13,8 +13,38 @@
 // limitations under the License.
 
 #include "rmw/rmw.h"
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
+#include "rmw/error_handling.h"
+#include "rmw/impl/cpp/macros.hpp"
+
+#include "rmw_gurumdds_cpp/event_converter.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
+
+static rmw_ret_t
+init_rmw_event(
+  const char * identifier,
+  rmw_event_t * rmw_event,
+  const char * topic_endpoint_impl_identifier,
+  void * data,
+  rmw_event_type_t event_type)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(identifier, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(rmw_event, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_endpoint_impl_identifier, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(data, RMW_RET_INVALID_ARGUMENT);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    topic endpoint,
+    topic_endpoint_impl_identifier,
+    identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  rmw_event->implementation_identifier = topic_endpoint_impl_identifier;
+  rmw_event->data = data;
+  rmw_event->event_type = event_type;
+
+  return RMW_RET_OK;
+}
 
 extern "C"
 {
@@ -24,7 +54,7 @@ rmw_publisher_event_init(
   const rmw_publisher_t * publisher,
   rmw_event_type_t event_type)
 {
-  return shared__rmw_init_event(
+  return init_rmw_event(
     gurum_gurumdds_identifier,
     rmw_event,
     publisher->implementation_identifier,
@@ -38,7 +68,7 @@ rmw_subscription_event_init(
   const rmw_subscription_t * subscription,
   rmw_event_type_t event_type)
 {
-  return shared__rmw_init_event(
+  return init_rmw_event(
     gurum_gurumdds_identifier,
     rmw_event,
     subscription->implementation_identifier,
@@ -52,6 +82,27 @@ rmw_take_event(
   void * event_info,
   bool * taken)
 {
-  return shared__rmw_take_event(gurum_gurumdds_identifier, event_handle, event_info, taken);
+  RMW_CHECK_ARGUMENT_FOR_NULL(event_handle, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(event_info, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    event handle,
+    event_handle->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  rmw_ret_t ret_code = RMW_RET_UNSUPPORTED;
+
+  if (is_event_supported(event_handle->event_type)) {
+    dds_StatusKind status_kind = get_status_kind_from_rmw(event_handle->event_type);
+    auto custom_event_info = static_cast<GurumddsEventInfo *>(event_handle->data);
+    ret_code = custom_event_info->get_status(status_kind, event_info);
+  } else {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("event %d not supported", event_handle->event_type);
+  }
+
+  *taken = (ret_code == RMW_RET_OK);
+  return ret_code;
 }
 }  // extern "C"

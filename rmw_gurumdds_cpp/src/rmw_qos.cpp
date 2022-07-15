@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rmw_gurumdds_shared_cpp/rmw_qos.hpp"
+#include "rmw_dds_common/qos.hpp"
+
+#include "rmw_gurumdds_cpp/rmw_qos.hpp"
 
 extern "C"
 {
@@ -24,7 +26,7 @@ rmw_qos_profile_check_compatible(
   char * reason,
   size_t reason_size)
 {
-  return qos_profile_check_compatible(
+  return rmw_dds_common::qos_profile_check_compatible(
     publisher_profile, subscription_profile, compatibility, reason, reason_size);
 }
 }   // extern "C"

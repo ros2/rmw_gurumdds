@@ -17,14 +17,22 @@
 #include <string>
 
 #include "rcutils/allocator.h"
+#include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
+#include "rcutils/types/string_array.h"
 
 #include "rmw/allocators.h"
+#include "rmw/convert_rcutils_ret_to_rmw_ret.h"
+#include "rmw/error_handling.h"
 #include "rmw/get_topic_names_and_types.h"
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
-
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/names_and_types_helpers.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
 
 extern "C"
 {
@@ -35,7 +43,45 @@ rmw_get_topic_names_and_types(
   bool no_demangle,
   rmw_names_and_types_t * topic_names_and_types)
 {
-  return shared__rmw_get_topic_names_and_types(
-    gurum_gurumdds_identifier, node, allocator, no_demangle, topic_names_and_types);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "allocator argument is invalid", return RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node,
+    node->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  rmw_ret_t ret = rmw_names_and_types_check_zero(topic_names_and_types);
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
+
+  GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
+  if (node_info == nullptr) {
+    RMW_SET_ERROR_MSG("node info handle is null");
+    return RMW_RET_ERROR;
+  }
+  if (node_info->pub_listener == nullptr) {
+    RMW_SET_ERROR_MSG("publisher listener handle is null");
+    return RMW_RET_ERROR;
+  }
+  if (node_info->sub_listener == nullptr) {
+    RMW_SET_ERROR_MSG("subscriber listener handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  std::map<std::string, std::set<std::string>> topics;
+  node_info->pub_listener->fill_topic_names_and_types(no_demangle, topics);
+  node_info->sub_listener->fill_topic_names_and_types(no_demangle, topics);
+
+  if (topics.size() > 0) {
+    ret = copy_topics_names_and_types(topics, allocator, no_demangle, topic_names_and_types);
+    if (ret != RMW_RET_OK) {
+      return ret;
+    }
+  }
+
+  return RMW_RET_OK;
 }
 }  // extern "C"

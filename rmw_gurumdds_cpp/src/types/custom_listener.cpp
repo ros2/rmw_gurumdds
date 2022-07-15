@@ -20,12 +20,12 @@
 
 #include "rmw/error_handling.h"
 
-#include "rmw_gurumdds_shared_cpp/rmw_common.hpp"
-#include "rmw_gurumdds_shared_cpp/namespace_prefix.hpp"
-#include "rmw_gurumdds_shared_cpp/demangle.hpp"
-#include "rmw_gurumdds_shared_cpp/guid.hpp"
-#include "rmw_gurumdds_shared_cpp/types.hpp"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/demangle.hpp"
+#include "rmw_gurumdds_cpp/guid.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
+
 
 void GurumddsDataReaderListener::add_information(
   const GuidPrefix_t & participant_guid,
@@ -56,7 +56,7 @@ void GurumddsDataReaderListener::remove_information(
 void GurumddsDataReaderListener::trigger_graph_guard_condition()
 {
   rmw_ret_t ret =
-    shared__rmw_trigger_guard_condition(implementation_identifier, graph_guard_condition);
+    rmw_trigger_guard_condition(graph_guard_condition);
   if (ret != RMW_RET_OK) {
     fprintf(stderr, "failed to trigger graph guard condition: %s\n", rmw_get_error_string().str);
   }

@@ -14,7 +14,6 @@
   <build_depend>gurumdds_cmake_module</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rmw</build_depend>
-  <build_depend>rmw_gurumdds_shared_cpp</build_depend>
   <build_depend>rosidl_runtime_c</build_depend>
   <build_depend>rosidl_runtime_cpp</build_depend>
   <build_depend>rosidl_generator_dds_idl</build_depend>
@@ -23,15 +22,14 @@
 
   <build_export_depend>gurumdds-2.8</build_export_depend>
   <build_export_depend>gurumdds_cmake_module</build_export_depend>
+  <build_export_depend>rmw_dds_common</build_export_depend>
   <build_export_depend>rosidl_runtime_c</build_export_depend>
   <build_export_depend>rosidl_runtime_cpp</build_export_depend>
-  <build_export_depend>rmw_gurumdds_shared_cpp</build_export_depend>
   <build_export_depend>rosidl_typesupport_introspection_c</build_export_depend>
   <build_export_depend>rosidl_typesupport_introspection_cpp</build_export_depend>
 
   <exec_depend>rcutils</exec_depend>
   <exec_depend>rmw</exec_depend>
-  <exec_depend>rmw_gurumdds_shared_cpp</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

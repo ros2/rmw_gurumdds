@@ -21,10 +21,11 @@
 #include "rcutils/strdup.h"
 #include "rcutils/types.h"
 
-#include "rmw_gurumdds_shared_cpp/demangle.hpp"
-#include "rmw_gurumdds_shared_cpp/names_and_types_helpers.hpp"
-#include "rmw_gurumdds_shared_cpp/dds_include.hpp"
-#include "rmw_gurumdds_shared_cpp/types.hpp"
+#include "rmw_gurumdds_cpp/dds_include.hpp"
+#include "rmw_gurumdds_cpp/demangle.hpp"
+#include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/names_and_types_helpers.hpp"
+#include "rmw_gurumdds_cpp/types.hpp"
 
 constexpr char SAMPLE_PREFIX[] = "/Sample_";
 
