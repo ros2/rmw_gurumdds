@@ -29,7 +29,7 @@ rmw_create_guard_condition(rmw_context_t * context)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return nullptr);
 
   rmw_guard_condition_t * guard_condition = rmw_guard_condition_allocate();
@@ -44,7 +44,7 @@ rmw_create_guard_condition(rmw_context_t * context)
     goto fail;
   }
 
-  guard_condition->implementation_identifier = gurum_gurumdds_identifier;
+  guard_condition->implementation_identifier = RMW_GURUMDDS_ID;
   guard_condition->data = dds_guard_condition;
   return guard_condition;
 
@@ -63,7 +63,7 @@ rmw_destroy_guard_condition(rmw_guard_condition_t * guard_condition)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     guard condition handle,
     guard_condition->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   dds_GuardCondition * dds_guard_condition =
@@ -81,7 +81,7 @@ rmw_trigger_guard_condition(const rmw_guard_condition_t * guard_condition)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     guard condition handle,
     guard_condition->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   dds_GuardCondition * dds_guard_condition =

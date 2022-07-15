@@ -49,7 +49,7 @@ rmw_get_topic_names_and_types(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   rmw_ret_t ret = rmw_names_and_types_check_zero(topic_names_and_types);

@@ -25,7 +25,7 @@ get_participant(rmw_node_t * node)
     return nullptr;
   }
 
-  if (node->implementation_identifier != gurum_gurumdds_identifier) {
+  if (node->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -40,7 +40,7 @@ get_publisher(rmw_publisher_t * publisher)
     return nullptr;
   }
 
-  if (publisher->implementation_identifier != gurum_gurumdds_identifier) {
+  if (publisher->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -55,7 +55,7 @@ get_data_writer(rmw_publisher_t * publisher)
     return nullptr;
   }
 
-  if (publisher->implementation_identifier != gurum_gurumdds_identifier) {
+  if (publisher->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -70,7 +70,7 @@ get_subscriber(rmw_subscription_t * subscription)
     return nullptr;
   }
 
-  if (subscription->implementation_identifier != gurum_gurumdds_identifier) {
+  if (subscription->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -85,7 +85,7 @@ get_data_reader(rmw_subscription_t * subscription)
     return nullptr;
   }
 
-  if (subscription->implementation_identifier != gurum_gurumdds_identifier) {
+  if (subscription->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -100,7 +100,7 @@ get_request_data_writer(rmw_client_t * client)
     return nullptr;
   }
 
-  if (client->implementation_identifier != gurum_gurumdds_identifier) {
+  if (client->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -115,7 +115,7 @@ get_response_data_reader(rmw_client_t * client)
     return nullptr;
   }
 
-  if (client->implementation_identifier != gurum_gurumdds_identifier) {
+  if (client->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -130,7 +130,7 @@ get_request_data_reader(rmw_service_t * service)
     return nullptr;
   }
 
-  if (service->implementation_identifier != gurum_gurumdds_identifier) {
+  if (service->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 
@@ -145,7 +145,7 @@ get_response_data_writer(rmw_service_t * service)
     return nullptr;
   }
 
-  if (service->implementation_identifier != gurum_gurumdds_identifier) {
+  if (service->implementation_identifier != RMW_GURUMDDS_ID) {
     return nullptr;
   }
 

@@ -21,6 +21,6 @@ extern "C"
 const char *
 rmw_get_implementation_identifier()
 {
-  return gurum_gurumdds_identifier;
+  return RMW_GURUMDDS_ID;
 }
 }  // extern "C"

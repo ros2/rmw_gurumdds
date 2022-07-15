@@ -41,7 +41,7 @@ rmw_init_options_init(rmw_init_options_t * init_options, rcutils_allocator_t all
   }
 
   init_options->instance_id = 0;
-  init_options->implementation_identifier = gurum_gurumdds_identifier;
+  init_options->implementation_identifier = RMW_GURUMDDS_ID;
   init_options->domain_id = RMW_DEFAULT_DOMAIN_ID;
   init_options->security_options = rmw_get_zero_initialized_security_options();
   init_options->localhost_only = RMW_LOCALHOST_ONLY_DEFAULT;
@@ -63,7 +63,7 @@ rmw_init_options_copy(const rmw_init_options_t * src, rmw_init_options_t * dst)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     src,
     src->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   if (dst->implementation_identifier != nullptr) {
     RMW_SET_ERROR_MSG("destination init option is not zero-initialized");
@@ -103,7 +103,7 @@ rmw_init_options_fini(rmw_init_options_t * init_options)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init_options,
     init_options->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   RCUTILS_CHECK_ALLOCATOR(&init_options->allocator, return RMW_RET_INVALID_ARGUMENT);
@@ -132,7 +132,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     options,
     options->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (context->implementation_identifier != nullptr) {
@@ -147,7 +147,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   char * env_value = nullptr;
 
   context->instance_id = options->instance_id;
-  context->implementation_identifier = gurum_gurumdds_identifier;
+  context->implementation_identifier = RMW_GURUMDDS_ID;
   context->actual_domain_id = RMW_DEFAULT_DOMAIN_ID != options->domain_id ? options->domain_id : 0u;
   context->impl = new (std::nothrow) rmw_context_impl_s();
   if (context->impl == nullptr) {
@@ -176,7 +176,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   if (env_value != nullptr) {
     if (strcmp(env_value, "1") == 0) {
       RCUTILS_LOG_INFO_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "RMW successfully initialized with GurumDDS");
     }
   }
@@ -204,7 +204,7 @@ rmw_shutdown(rmw_context_t * context)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     context,
     context->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   context->impl->is_shutdown = true;
@@ -223,7 +223,7 @@ rmw_context_fini(rmw_context_t * context)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     context,
     context->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (!context->impl->is_shutdown) {

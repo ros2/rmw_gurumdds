@@ -72,7 +72,7 @@ rmw_create_subscription(
     return nullptr;
   }
 
-  if (node->implementation_identifier != gurum_gurumdds_identifier) {
+  if (node->implementation_identifier != RMW_GURUMDDS_ID) {
     RMW_SET_ERROR_MSG("node handle not from this implementation");
     return nullptr;
   }
@@ -260,7 +260,7 @@ rmw_create_subscription(
     goto fail;
   }
 
-  subscriber_info->implementation_identifier = gurum_gurumdds_identifier;
+  subscriber_info->implementation_identifier = RMW_GURUMDDS_ID;
   subscriber_info->subscriber = dds_subscriber;
   subscriber_info->topic_reader = topic_reader;
   subscriber_info->read_condition = read_condition;
@@ -272,7 +272,7 @@ rmw_create_subscription(
     goto fail;
   }
 
-  subscription->implementation_identifier = gurum_gurumdds_identifier;
+  subscription->implementation_identifier = RMW_GURUMDDS_ID;
   subscription->data = subscriber_info;
   subscription->topic_name = reinterpret_cast<const char *>(rmw_allocate(strlen(topic_name) + 1));
   if (subscription->topic_name == nullptr) {
@@ -295,7 +295,7 @@ rmw_create_subscription(
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp",
+    RMW_GURUMDDS_ID,
     "Created subscription with topic '%s' on node '%s%s%s'",
     topic_name, node->namespace_,
     node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -433,7 +433,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION
   );
 
@@ -441,7 +441,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     subscription handle,
     subscription->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto node_info = static_cast<GurumddsNodeInfo *>(node->data);
@@ -499,7 +499,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     subscription->data = nullptr;
     if (subscription->topic_name != nullptr) {
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "Deleted subscription with topic '%s' on node '%s%s%s'",
         subscription->topic_name, node->namespace_,
         node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -568,7 +568,7 @@ _take(
 
   if (ret == dds_RETCODE_NO_DATA) {
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
+      RMW_GURUMDDS_ID, "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
@@ -586,7 +586,7 @@ _take(
   }
 
   RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+    RMW_GURUMDDS_ID, "Received data on topic %s", topic_name);
 
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
@@ -638,7 +638,7 @@ _take(
         topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
-          RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
+          RCUTILS_LOG_WARN_NAMED(RMW_GURUMDDS_ID, "Failed to get publication handle");
         }
         memset(custom_gid->publication_handle, 0, sizeof(custom_gid->publication_handle));
       }
@@ -668,7 +668,7 @@ rmw_take(
     taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take(
-    gurum_gurumdds_identifier, subscription, ros_message, taken, nullptr, allocation);
+    RMW_GURUMDDS_ID, subscription, ros_message, taken, nullptr, allocation);
 }
 
 rmw_ret_t
@@ -689,7 +689,7 @@ rmw_take_with_info(
     message_info, "message info pointer is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take(
-    gurum_gurumdds_identifier, subscription, ros_message, taken, message_info, allocation);
+    RMW_GURUMDDS_ID, subscription, ros_message, taken, message_info, allocation);
 }
 
 rmw_ret_t
@@ -714,7 +714,7 @@ rmw_take_sequence(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     subscription handle,
     subscription->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (0u == count) {
@@ -770,7 +770,7 @@ rmw_take_sequence(
 
   if (ret == dds_RETCODE_NO_DATA) {
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
+      RMW_GURUMDDS_ID, "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
@@ -788,7 +788,7 @@ rmw_take_sequence(
   }
 
   RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+    RMW_GURUMDDS_ID, "Received data on topic %s", topic_name);
 
   for (uint32_t i = 0; i < dds_SampleInfoSeq_length(sample_infos); i++) {
     dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, i);
@@ -834,14 +834,14 @@ rmw_take_sequence(
       message_info->publication_sequence_number = sequence_number;
       message_info->reception_sequence_number = RMW_MESSAGE_INFO_SEQUENCE_NUMBER_UNSUPPORTED;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
-      sender_gid->implementation_identifier = gurum_gurumdds_identifier;
+      sender_gid->implementation_identifier = RMW_GURUMDDS_ID;
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<GurumddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
         topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
-          RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
+          RCUTILS_LOG_WARN_NAMED(RMW_GURUMDDS_ID, "Failed to get publication handle");
         }
         memset(custom_gid->publication_handle, 0, sizeof(custom_gid->publication_handle));
       }
@@ -915,7 +915,7 @@ _take_serialized(
 
   if (ret == dds_RETCODE_NO_DATA) {
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_gurumdds_cpp", "No data on topic %s", topic_name);
+      RMW_GURUMDDS_ID, "No data on topic %s", topic_name);
     dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
@@ -933,7 +933,7 @@ _take_serialized(
   }
 
   RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
+    RMW_GURUMDDS_ID, "Received data on topic %s", topic_name);
 
   dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
 
@@ -985,7 +985,7 @@ _take_serialized(
         topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
-          RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
+          RCUTILS_LOG_WARN_NAMED(RMW_GURUMDDS_ID, "Failed to get publication handle");
         }
         memset(custom_gid->publication_handle, 0, sizeof(custom_gid->publication_handle));
       }
@@ -1015,7 +1015,7 @@ rmw_take_serialized_message(
     taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take_serialized(
-    gurum_gurumdds_identifier, subscription,
+    RMW_GURUMDDS_ID, subscription,
     serialized_message, taken, nullptr, allocation);
 }
 
@@ -1037,7 +1037,7 @@ rmw_take_serialized_message_with_info(
     message_info, "message info pointer is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take_serialized(
-    gurum_gurumdds_identifier, subscription,
+    RMW_GURUMDDS_ID, subscription,
     serialized_message, taken, message_info, allocation);
 }
 

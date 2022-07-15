@@ -47,7 +47,7 @@ rmw_create_service(
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle, node->implementation_identifier,
-    gurum_gurumdds_identifier, return nullptr)
+    RMW_GURUMDDS_ID, return nullptr)
 
   if (service_name == nullptr || strlen(service_name) == 0) {
     RMW_SET_ERROR_MSG("service topic is null or empty string");
@@ -156,7 +156,7 @@ rmw_create_service(
   }
 
   service_info->participant = participant;
-  service_info->implementation_identifier = gurum_gurumdds_identifier;
+  service_info->implementation_identifier = RMW_GURUMDDS_ID;
   service_info->service_typesupport = type_support;
 
   request_typesupport = dds_TypeSupport_create(request_metastring.c_str());
@@ -355,7 +355,7 @@ rmw_create_service(
     goto fail;
   }
   memset(rmw_service, 0, sizeof(rmw_service_t));
-  rmw_service->implementation_identifier = gurum_gurumdds_identifier;
+  rmw_service->implementation_identifier = RMW_GURUMDDS_ID;
   rmw_service->data = service_info;
   rmw_service->service_name =
     reinterpret_cast<const char *>(rmw_allocate(strlen(service_name) + 1));
@@ -379,7 +379,7 @@ rmw_create_service(
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp",
+    RMW_GURUMDDS_ID,
     "Created server with service '%s' on node '%s%s%s'",
     service_name, node->namespace_,
     node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -437,14 +437,14 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     service handle,
     service->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
@@ -519,7 +519,7 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     service->data = nullptr;
     if (service->service_name != nullptr) {
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "Deleted server with service '%s' on node '%s%s%s'",
         service->service_name, node->namespace_,
         node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -544,7 +544,7 @@ rmw_service_response_publisher_get_actual_qos(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     service,
     service->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
 
@@ -594,7 +594,7 @@ rmw_service_request_subscription_get_actual_qos(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     service,
     service->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
 

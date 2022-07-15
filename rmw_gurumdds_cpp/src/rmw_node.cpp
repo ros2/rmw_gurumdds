@@ -185,7 +185,7 @@ _get_node_names(
     }
 
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_gurumdds_cpp", "node found: %s %s", namespace_.c_str(), name.c_str());
+      RMW_GURUMDDS_ID, "node found: %s %s", namespace_.c_str(), name.c_str());
 
     n++;
   }
@@ -232,7 +232,7 @@ _get_node_names(
   rcutils_ret = rcutils_string_array_fini(&node_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      gurum_gurumdds_identifier,
+      RMW_GURUMDDS_ID,
       "failed to delete string array: %s", rcutils_get_error_string().str);
     rcutils_reset_error();
     fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
@@ -242,7 +242,7 @@ _get_node_names(
   rcutils_ret = rcutils_string_array_fini(&ns_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      gurum_gurumdds_identifier,
+      RMW_GURUMDDS_ID,
       "failed to delete string array: %s", rcutils_get_error_string().str);
     rcutils_reset_error();
     fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
@@ -253,7 +253,7 @@ _get_node_names(
     rcutils_ret = rcutils_string_array_fini(&enclave_list);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "failed to delete string array: %s", rcutils_get_error_string().str);
       rcutils_reset_error();
       fail_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
@@ -271,7 +271,7 @@ fail:
   rcutils_ret = rcutils_string_array_fini(&node_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rmw_gurumdds_cpp",
+      RMW_GURUMDDS_ID,
       "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
     rcutils_reset_error();
   }
@@ -279,7 +279,7 @@ fail:
   rcutils_ret = rcutils_string_array_fini(&ns_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rmw_gurumdds_cpp",
+      RMW_GURUMDDS_ID,
       "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
     rcutils_reset_error();
   }
@@ -287,7 +287,7 @@ fail:
   rcutils_ret = rcutils_string_array_fini(&enclave_list);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rmw_gurumdds_cpp",
+      RMW_GURUMDDS_ID,
       "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
     rcutils_reset_error();
   }
@@ -296,7 +296,7 @@ fail:
     rcutils_ret = rcutils_string_array_fini(node_names);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "failed to cleanup during error handling; %s", rcutils_get_error_string().str);
       rcutils_reset_error();
     }
@@ -306,7 +306,7 @@ fail:
     rcutils_ret = rcutils_string_array_fini(node_namespaces);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "failed to cleanup during error handling; %s", rcutils_get_error_string().str);
       rcutils_reset_error();
     }
@@ -316,7 +316,7 @@ fail:
     rcutils_ret = rcutils_string_array_fini(enclaves);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "failed to cleanup during error handling; %s", rcutils_get_error_string().str);
       rcutils_reset_error();
     }
@@ -337,7 +337,7 @@ rmw_create_node(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return nullptr);
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
@@ -367,7 +367,7 @@ rmw_create_node(
 
   if (node_user_data.size() > sizeof(participant_qos.user_data.value)) {
     RCUTILS_LOG_ERROR_NAMED(
-      gurum_gurumdds_identifier,
+      RMW_GURUMDDS_ID,
       "node name, namespace and security context are too long - "
       "the sum of their lengths must be less than %zu",
       sizeof(participant_qos.user_data.value) - strlen("name=;namespace=;enclave=;"));
@@ -426,7 +426,7 @@ rmw_create_node(
   }
 
   participant_listener =
-    new(std::nothrow) GurumddsParticipantListener(gurum_gurumdds_identifier, graph_guard_condition);
+    new(std::nothrow) GurumddsParticipantListener(RMW_GURUMDDS_ID, graph_guard_condition);
   if (participant_listener == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsParticipantListener");
     return nullptr;
@@ -434,7 +434,7 @@ rmw_create_node(
   participant_listener->context.graph_cache = topic_cache;
 
   publisher_listener =
-    new(std::nothrow) GurumddsPublisherListener(gurum_gurumdds_identifier, graph_guard_condition);
+    new(std::nothrow) GurumddsPublisherListener(RMW_GURUMDDS_ID, graph_guard_condition);
   if (publisher_listener == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsPublisherListener");
     return nullptr;
@@ -442,7 +442,7 @@ rmw_create_node(
   publisher_listener->context.graph_cache = topic_cache;
 
   subscriber_listener =
-    new(std::nothrow) GurumddsSubscriberListener(gurum_gurumdds_identifier, graph_guard_condition);
+    new(std::nothrow) GurumddsSubscriberListener(RMW_GURUMDDS_ID, graph_guard_condition);
   if (subscriber_listener == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate GurumddsSubscriberListener");
     return nullptr;
@@ -484,7 +484,7 @@ rmw_create_node(
   node_info->pub_list = publisher_list;
   node_info->sub_list = subscription_list;
 
-  node_handle->implementation_identifier = gurum_gurumdds_identifier;
+  node_handle->implementation_identifier = RMW_GURUMDDS_ID;
   node_handle->data = node_info;
   node_handle->context = context;
 
@@ -532,7 +532,7 @@ rmw_create_node(
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   RCUTILS_LOG_DEBUG_NAMED(
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     "Created node '%s' in namespace '%s'", name, namespace_);
 
   return node_handle;
@@ -546,7 +546,7 @@ fail:
     rmw_ret_t rmw_ret =
       rmw_destroy_guard_condition(graph_guard_condition);
     if (rmw_ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(gurum_gurumdds_identifier, "Failed to delete guard condition");
+      RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "Failed to delete guard condition");
     }
   }
 
@@ -588,7 +588,7 @@ rmw_destroy_node(rmw_node_t * node)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node_handle,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
@@ -730,7 +730,7 @@ rmw_destroy_node(rmw_node_t * node)
   node->data = nullptr;
 
   RCUTILS_LOG_DEBUG_NAMED(
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     "Deleted node '%s' in namespace '%s'", node->name, node->namespace_);
 
   rmw_free(const_cast<char *>(node->name));
@@ -760,7 +760,7 @@ rmw_get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces)
 {
-  return _get_node_names(gurum_gurumdds_identifier, node, node_names, node_namespaces, nullptr);
+  return _get_node_names(RMW_GURUMDDS_ID, node, node_names, node_namespaces, nullptr);
 }
 
 rmw_ret_t
@@ -770,6 +770,6 @@ rmw_get_node_names_with_enclaves(
   rcutils_string_array_t * node_namespaces,
   rcutils_string_array_t * enclaves)
 {
-  return _get_node_names(gurum_gurumdds_identifier, node, node_names, node_namespaces, enclaves);
+  return _get_node_names(RMW_GURUMDDS_ID, node, node_names, node_namespaces, enclaves);
 }
 }  // extern "C"
