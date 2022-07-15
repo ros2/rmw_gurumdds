@@ -79,19 +79,19 @@ public:
   {
     initialize_participant_map(participant_to_entity_guids_, participant_guid);
     if (rcutils_logging_logger_is_enabled_for(
-        gurum_gurumdds_identifier, RCUTILS_LOG_SEVERITY_DEBUG))
+        RMW_GURUMDDS_ID, RCUTILS_LOG_SEVERITY_DEBUG))
     {
       std::stringstream guid_stream;
       guid_stream << participant_guid;
       RCUTILS_LOG_DEBUG_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "Adding topic '%s' with type '%s' for node '%s'",
         topic_name.c_str(), type_name.c_str(), guid_stream.str().c_str());
     }
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);
     if (topic_info_it != entity_guid_to_info_.end()) {
       RCUTILS_LOG_DEBUG_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "unique topic '%s' with type '%s' attempted to be added twice, ignoring",
         topic_name.c_str(), type_name.c_str());
       return false;
@@ -119,7 +119,7 @@ public:
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);
     if (topic_info_it == entity_guid_to_info_.end()) {
       RCUTILS_LOG_DEBUG_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "topic not available");
       return false;
     }
@@ -157,7 +157,7 @@ public:
     auto topic_info_it = entity_guid_to_info_.find(entity_guid);
     if (topic_info_it == entity_guid_to_info_.end()) {
       RCUTILS_LOG_DEBUG_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "unexpected topic removal");
       return false;
     }
@@ -169,7 +169,7 @@ public:
     auto participant_to_entity_guid = participant_to_entity_guids_.find(participant_guid);
     if (participant_to_entity_guid == participant_to_entity_guids_.end()) {
       RCUTILS_LOG_WARN_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "unable to remove topic, "
         "participant guid does not exist for topic name '%s' with type '%s'",
         topic_name.c_str(), type_name.c_str());
@@ -179,7 +179,7 @@ public:
     auto entity_guid_to_remove = participant_to_entity_guid->second.find(entity_guid);
     if (entity_guid_to_remove == participant_to_entity_guid->second.end()) {
       RCUTILS_LOG_WARN_NAMED(
-        gurum_gurumdds_identifier,
+        RMW_GURUMDDS_ID,
         "unable to remove topic, "
         "topic guid does not exist in participant guid: topic name '%s' with type '%s'",
         topic_name.c_str(), type_name.c_str());
