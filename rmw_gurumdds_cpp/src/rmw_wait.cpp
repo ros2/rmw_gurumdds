@@ -31,7 +31,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return nullptr);
 
   (void)max_conditions;
@@ -44,7 +44,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     goto fail;
   }
 
-  wait_set->implementation_identifier = gurum_gurumdds_identifier;
+  wait_set->implementation_identifier = RMW_GURUMDDS_ID;
   wait_set->data = rmw_allocate(sizeof(GurumddsWaitSetInfo));
   wait_set_info = static_cast<GurumddsWaitSetInfo *>(wait_set->data);
 
@@ -107,7 +107,7 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
   RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_ERROR);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     wait_set handle, wait_set->implementation_identifier,
-    gurum_gurumdds_identifier, return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+    RMW_GURUMDDS_ID, return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsWaitSetInfo * wait_set_info = static_cast<GurumddsWaitSetInfo *>(wait_set->data);
 
@@ -147,7 +147,7 @@ rmw_wait(
   const rmw_time_t * wait_timeout)
 {
   return __rmw_wait<GurumddsSubscriberInfo, GurumddsServiceInfo, GurumddsClientInfo>(
-    gurum_gurumdds_identifier, subscriptions, guard_conditions,
+    RMW_GURUMDDS_ID, subscriptions, guard_conditions,
     services, clients, events, wait_set, wait_timeout);
 }
 }  // extern "C"

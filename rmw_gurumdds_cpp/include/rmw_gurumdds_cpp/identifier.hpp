@@ -15,6 +15,6 @@
 #ifndef RMW_GURUMDDS_CPP__IDENTIFIER_HPP_
 #define RMW_GURUMDDS_CPP__IDENTIFIER_HPP_
 
-extern const char * const gurum_gurumdds_identifier;
+extern const char * const RMW_GURUMDDS_ID;
 
 #endif  // RMW_GURUMDDS_CPP__IDENTIFIER_HPP_
