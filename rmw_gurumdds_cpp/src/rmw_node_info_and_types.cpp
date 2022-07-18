@@ -218,7 +218,7 @@ rmw_get_subscriber_names_and_types_by_node(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     allocator, "allocator argument is invalid", return RMW_RET_INVALID_ARGUMENT);
@@ -266,7 +266,7 @@ rmw_get_publisher_names_and_types_by_node(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     allocator, "allocator argument is invalid", return RMW_RET_INVALID_ARGUMENT);
@@ -310,7 +310,7 @@ rmw_get_service_names_and_types_by_node(
   rmw_names_and_types_t * service_names_and_types)
 {
   return __get_service_names_and_types_by_node(
-    gurum_gurumdds_identifier, node, allocator, node_name,
+    RMW_GURUMDDS_ID, node, allocator, node_name,
     node_namespace, service_names_and_types, true);
 }
 
@@ -323,7 +323,7 @@ rmw_get_client_names_and_types_by_node(
   rmw_names_and_types_t * client_names_and_types)
 {
   return __get_service_names_and_types_by_node(
-    gurum_gurumdds_identifier, node, allocator, node_name,
+    RMW_GURUMDDS_ID, node, allocator, node_name,
     node_namespace, client_names_and_types, false);
 }
 }  // extern "C"

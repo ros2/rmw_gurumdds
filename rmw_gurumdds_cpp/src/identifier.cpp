@@ -14,4 +14,4 @@
 
 #include "rmw_gurumdds_cpp/identifier.hpp"
 
-const char * const gurum_gurumdds_identifier = "rmw_gurumdds_cpp";
+const char * const RMW_GURUMDDS_ID = "rmw_gurumdds_cpp";

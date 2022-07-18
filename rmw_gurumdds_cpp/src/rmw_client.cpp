@@ -50,7 +50,7 @@ rmw_create_client(
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle, node->implementation_identifier,
-    gurum_gurumdds_identifier, return nullptr)
+    RMW_GURUMDDS_ID, return nullptr)
 
   if (service_name == nullptr || strlen(service_name) == 0) {
     RMW_SET_ERROR_MSG("client topic is null or empty string");
@@ -162,7 +162,7 @@ rmw_create_client(
   }
 
   client_info->participant = participant;
-  client_info->implementation_identifier = gurum_gurumdds_identifier;
+  client_info->implementation_identifier = RMW_GURUMDDS_ID;
   client_info->service_typesupport = type_support;
   client_info->sequence_number = 0;
 
@@ -370,7 +370,7 @@ rmw_create_client(
   }
   memset(rmw_client, 0, sizeof(rmw_client_t));
 
-  rmw_client->implementation_identifier = gurum_gurumdds_identifier;
+  rmw_client->implementation_identifier = RMW_GURUMDDS_ID;
   rmw_client->data = client_info;
   rmw_client->service_name = reinterpret_cast<const char *>(rmw_allocate(strlen(service_name) + 1));
   if (rmw_client->service_name == nullptr) {
@@ -393,7 +393,7 @@ rmw_create_client(
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp",
+    RMW_GURUMDDS_ID,
     "Created client with service '%s' on node '%s%s%s'",
     service_name, node->namespace_,
     node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -451,14 +451,14 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     client handle,
     client->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
@@ -533,7 +533,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     client->data = nullptr;
     if (client->service_name != nullptr) {
       RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_cpp",
+        RMW_GURUMDDS_ID,
         "Deleted client with service '%s' on node '%s%s%s'",
         client->service_name, node->namespace_,
         node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
@@ -562,7 +562,7 @@ rmw_service_server_is_available(
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
-    node->implementation_identifier, gurum_gurumdds_identifier,
+    node->implementation_identifier, RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (client == nullptr) {
@@ -572,7 +572,7 @@ rmw_service_server_is_available(
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     client handle,
-    client->implementation_identifier, gurum_gurumdds_identifier,
+    client->implementation_identifier, RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (is_available == nullptr) {

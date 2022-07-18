@@ -55,7 +55,7 @@ rmw_publisher_event_init(
   rmw_event_type_t event_type)
 {
   return init_rmw_event(
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     rmw_event,
     publisher->implementation_identifier,
     publisher->data,
@@ -69,7 +69,7 @@ rmw_subscription_event_init(
   rmw_event_type_t event_type)
 {
   return init_rmw_event(
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     rmw_event,
     subscription->implementation_identifier,
     subscription->data,
@@ -89,7 +89,7 @@ rmw_take_event(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     event handle,
     event_handle->implementation_identifier,
-    gurum_gurumdds_identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   rmw_ret_t ret_code = RMW_RET_UNSUPPORTED;

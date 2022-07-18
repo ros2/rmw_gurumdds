@@ -23,6 +23,7 @@
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/guid.hpp"
+#include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/namespace_prefix.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
 
@@ -112,7 +113,7 @@ void GurumddsDataReaderListener::fill_topic_names_and_types_by_guid(
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & map = topic_cache.get_topic_types_by_guid(participant_guid);
   if (map.size() == 0) {
-    RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp", "no topics for participant_guid");
+    RCUTILS_LOG_DEBUG_NAMED(RMW_GURUMDDS_ID, "no topics for participant_guid");
     return;
   }
 
@@ -133,7 +134,7 @@ void GurumddsDataReaderListener::fill_service_names_and_types_by_guid(
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & map = topic_cache.get_topic_types_by_guid(participant_guid);
   if (map.size() == 0) {
-    RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp", "no services for participant_guid");
+    RCUTILS_LOG_DEBUG_NAMED(RMW_GURUMDDS_ID, "no services for participant_guid");
     return;
   }
 
