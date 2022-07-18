@@ -123,6 +123,9 @@ target_compile_definitions(rmw_gurumdds_cpp PRIVATE "RMW_GURUMDDS_CPP_BUILDING_L
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  # pass extra include dirs to cppcheck explicitly
+  list(APPEND AMENT_LINT_AUTO_EXCLUDE ament_cmake_cppcheck)
+  ament_cppcheck(INCLUDE_DIRS ${rcutils_INCLUDE_DIRS})
 endif()
 
 ament_package(
