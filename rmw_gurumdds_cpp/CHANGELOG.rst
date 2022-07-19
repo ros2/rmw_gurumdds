@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-07-19)
+-------------------
+* Avoid string generation on func call
+* Redefine rmw gurumdds identifier
+* Pass extra include dirs to cppcheck explicitly
+* Integrate rmw_gurumdds_shared_cpp into rmw_gurumdds_cpp
+* Contributors: Youngjin Yun, donghee811
+
 1.1.9 (2022-07-05)
 ------------------
 * Change the behavior of take response to a loop
