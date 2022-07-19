@@ -24,7 +24,7 @@ RMW_GURUMDDS_CPP_PUBLIC extern const char * const ros_topic_prefix;
 RMW_GURUMDDS_CPP_PUBLIC extern const char * const ros_service_requester_prefix;
 RMW_GURUMDDS_CPP_PUBLIC extern const char * const ros_service_response_prefix;
 
-RMW_GURUMDDS_CPP_PUBLIC extern std::vector<std::string> _ros_prefixes;
+RMW_GURUMDDS_CPP_PUBLIC extern const std::vector<std::string> _ros_prefixes;
 
 /// Return the ROS specific prefix if it exists, otherwise "".
 std::string _get_ros_prefix_if_exists(const std::string & topic_name);
