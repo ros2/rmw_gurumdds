@@ -39,6 +39,75 @@
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
 
+static bool
+_get_security_file_paths(const char * const security_root_path, dds_PropertySeq * props)
+{
+  static const char * const prop_keys[] {
+    "dds.sec.auth.identity_ca", "dds.sec.auth.identity_certificate", "dds.sec.auth.private_key",
+    "dds.sec.access.permissions_ca", "dds.sec.access.governance", "dds.sec.access.permissions"
+  };
+
+  static const char * const file_names[] {
+    "identity_ca.cert.pem", "cert.pem", "key.pem",
+    "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
+  };
+
+  constexpr size_t file_names_count = sizeof(file_names) / sizeof(*file_names);
+  bool succeed = true;
+  for (size_t i = 0; succeed && i < file_names_count; ++i) {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    char * file_path = rcutils_join_path(security_root_path, file_names[i], allocator);
+    if (file_path == nullptr) {
+      succeed = false;
+      break;
+    }
+
+    dds_Property_t * prop = nullptr;
+    do {
+      if (!rcutils_is_readable(file_path)) {
+        succeed = false;
+        break;
+      }
+
+      char value[256];
+      prop = static_cast<dds_Property_t *>(dds_malloc(sizeof(dds_Property_t)));
+      if (prop == nullptr) {
+        succeed = false;
+        break;
+      }
+
+      snprintf(value, sizeof(value), "file:%s", file_path);
+      prop->propagate = false;
+      prop->name = dds_strdup(prop_keys[i]);
+      prop->value = dds_strdup(value);
+      if (prop->name == nullptr || prop->value == nullptr) {
+        succeed = false;
+        break;
+      }
+
+      dds_PropertySeq_add(props, prop);
+      prop = nullptr;
+    } while (false);
+
+    allocator.deallocate(file_path, allocator.state);
+    if (succeed && prop == nullptr) {
+      continue;
+    }
+
+    if (prop->name != nullptr) {
+      dds_free(prop->name);
+    }
+
+    if (prop->value != nullptr) {
+      dds_free(prop->value);
+    }
+
+    dds_free(prop);
+  }
+
+  return succeed;
+}
+
 static rmw_ret_t
 _get_node_names(
   const char * implementation_identifier,
@@ -335,12 +404,12 @@ rmw_create_node(
   size_t domain_id,
   bool localhost_only)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     context,
     context->implementation_identifier,
     RMW_GURUMDDS_ID,
-    return NULL
+    return nullptr
   );
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
@@ -367,7 +436,7 @@ rmw_create_node(
     return nullptr;
   }
 
-  dds_DomainParticipantQos participant_qos;
+  dds_DomainParticipantQos participant_qos{};
   dds_ReturnCode_t ret =
     dds_DomainParticipantFactory_get_default_participant_qos(factory, &participant_qos);
   if (ret != dds_RETCODE_OK) {
@@ -398,6 +467,20 @@ rmw_create_node(
   participant_qos.user_data.size = node_user_data.size();
   memset(participant_qos.user_data.value, 0, sizeof(participant_qos.user_data.value));
   memcpy(participant_qos.user_data.value, node_user_data.c_str(), node_user_data.size());
+  if (context->options.security_options.security_root_path != nullptr) {
+    dds_PropertySeq * props = dds_PropertySeq_create(8);
+    if (!_get_security_file_paths(context->options.security_options.security_root_path, props)) {
+      dds_PropertySeq_delete(props);
+      if (context->options.security_options.enforce_security == RMW_SECURITY_ENFORCEMENT_ENFORCE) {
+        RMW_SET_ERROR_MSG("failed to find all security files!");
+        dds_DomainParticipantQos_finalize(&participant_qos);
+        return nullptr;
+      }
+    } else {
+      dds_PropertySeq_delete(participant_qos.property.value);
+      participant_qos.property.value = props;
+    }
+  }
 
   rmw_node_t * node_handle = nullptr;
   GurumddsNodeInfo * node_info = nullptr;
@@ -444,6 +527,9 @@ rmw_create_node(
     participant = dds_DomainParticipantFactory_create_participant_w_props(
       factory, domain_id, &participant_qos, nullptr, 0, props);
   }
+
+  dds_DomainParticipantQos_finalize(&participant_qos);
+
   graph_guard_condition = rmw_create_guard_condition(context);
   if (graph_guard_condition == nullptr) {
     RMW_SET_ERROR_MSG("failed to create graph guard condition");
