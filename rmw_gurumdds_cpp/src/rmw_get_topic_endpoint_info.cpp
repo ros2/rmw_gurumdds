@@ -62,7 +62,7 @@ _get_endpoint_info_by_topic(
     node_info->pub_listener->topic_cache : node_info->sub_listener->topic_cache;
   auto & tc_mutex =
     endpoint_type == RMW_ENDPOINT_PUBLISHER ?
-    node_info->pub_listener->mutex_ : node_info->pub_listener->mutex_;
+    node_info->pub_listener->mutex_ : node_info->sub_listener->mutex_;
 
   rmw_ret_t ret = RMW_RET_OK;
 
