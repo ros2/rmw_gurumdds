@@ -101,7 +101,7 @@ rmw_count_subscribers(
     return RMW_RET_ERROR;
   }
   if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("sublisher listener handle is null");
+    RMW_SET_ERROR_MSG("subscriber listener handle is null");
     return RMW_RET_ERROR;
   }
 
