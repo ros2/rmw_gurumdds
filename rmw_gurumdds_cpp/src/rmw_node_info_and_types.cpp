@@ -194,7 +194,7 @@ __get_service_names_and_types_by_node(
   }
 
   TopicMap services;
-  node_info->sub_listener->fill_service_names_and_types_by_guid(
+  node_info->sub_context->fill_service_names_and_types_by_guid(
     services, key, is_service ? "Request" : "Reply");
 
   ret = copy_services_to_names_and_types(
@@ -246,7 +246,7 @@ rmw_get_subscriber_names_and_types_by_node(
   }
 
   TopicMap topics;
-  node_info->sub_listener->fill_topic_names_and_types_by_guid(no_demangle, topics, key);
+  node_info->sub_context->fill_topic_names_and_types_by_guid(no_demangle, topics, key);
 
   ret = copy_topics_names_and_types(topics, allocator, no_demangle, topic_names_and_types);
 
@@ -294,7 +294,7 @@ rmw_get_publisher_names_and_types_by_node(
   }
 
   TopicMap topics;
-  node_info->pub_listener->fill_topic_names_and_types_by_guid(no_demangle, topics, key);
+  node_info->pub_context->fill_topic_names_and_types_by_guid(no_demangle, topics, key);
 
   ret = copy_topics_names_and_types(topics, allocator, no_demangle, topic_names_and_types);
 

@@ -348,6 +348,24 @@ rmw_create_node(
     return nullptr;
   }
 
+  const char * const * check_props = nullptr;
+  uint32_t props_count;
+  bool remote_support = false;
+  const char * props_ptr;
+
+  dds_DomainParticipantFactory_get_supported_participant_props(factory, &check_props, &props_count);
+  for (uint32_t i = 0; i < props_count; i++) {
+    props_ptr = strstr(check_props[i], "on_remote");
+    if (props_ptr != nullptr) {
+      remote_support = true;
+      break;
+    }
+  }
+  if (!remote_support) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "on_remote_callback is not supported");
+    return nullptr;
+  }
+
   dds_DomainParticipantQos participant_qos;
   dds_ReturnCode_t ret =
     dds_DomainParticipantFactory_get_default_participant_qos(factory, &participant_qos);
@@ -383,16 +401,12 @@ rmw_create_node(
   rmw_node_t * node_handle = nullptr;
   GurumddsNodeInfo * node_info = nullptr;
   rmw_guard_condition_t * graph_guard_condition = nullptr;
-  GurumddsPublisherListener * publisher_listener = nullptr;
-  GurumddsSubscriberListener * subscriber_listener = nullptr;
   std::list<dds_Publisher *> publisher_list;
   std::list<dds_Subscriber *> subscription_list;
-  dds_Subscriber * builtin_subscriber = nullptr;
-  dds_DataReader * builtin_publication_datareader = nullptr;
-  dds_DataReader * builtin_subscription_datareader = nullptr;
-
   dds_DomainParticipant * participant = nullptr;
 
+  ListenerContext * pub_context = nullptr;
+  ListenerContext * sub_context = nullptr;
   // TODO(clemjh): Implement security features
   std::string static_discovery_id;
   static_discovery_id += namespace_;
@@ -404,6 +418,12 @@ rmw_create_node(
         const_cast<void *>(static_cast<const void *>("127.0.0.1"))},
       {const_cast<char *>("gurumdds.static_discovery.id"),
         const_cast<void *>(static_cast<const void *>(static_discovery_id.c_str()))},
+      {const_cast<char *>("dcps.participant.listener.on_remote_participant_changed"),
+        reinterpret_cast<void *>(on_participant_changed)},
+      {const_cast<char *>("dcps.participant.listener.on_remote_publication_changed"),
+        reinterpret_cast<void *>(on_publication_changed)},
+      {const_cast<char *>("dcps.participant.listener.on_remote_subscription_changed"),
+        reinterpret_cast<void *>(on_subscription_changed)},
       {nullptr, nullptr},
     };
     participant = dds_DomainParticipantFactory_create_participant_w_props(
@@ -412,6 +432,12 @@ rmw_create_node(
     dds_StringProperty props[] = {
       {const_cast<char *>("gurumdds.static_discovery.id"),
         const_cast<void *>(static_cast<const void *>(static_discovery_id.c_str()))},
+      {const_cast<char *>("dcps.participant.listener.on_remote_participant_changed"),
+        reinterpret_cast<void *>(on_participant_changed)},
+      {const_cast<char *>("dcps.participant.listener.on_remote_publication_changed"),
+        reinterpret_cast<void *>(on_publication_changed)},
+      {const_cast<char *>("dcps.participant.listener.on_remote_subscription_changed"),
+        reinterpret_cast<void *>(on_subscription_changed)},
       {nullptr, nullptr},
     };
     participant = dds_DomainParticipantFactory_create_participant_w_props(
@@ -423,19 +449,11 @@ rmw_create_node(
     goto fail;
   }
 
-  publisher_listener =
-    new(std::nothrow) GurumddsPublisherListener(RMW_GURUMDDS_ID, graph_guard_condition);
-  if (publisher_listener == nullptr) {
-    RMW_SET_ERROR_MSG("failed to allocate GurumddsPublisherListener");
-    return nullptr;
-  }
+  pub_context = new(std::nothrow) ListenerContext(graph_guard_condition);
+  sub_context = new(std::nothrow) ListenerContext(graph_guard_condition);
 
-  subscriber_listener =
-    new(std::nothrow) GurumddsSubscriberListener(RMW_GURUMDDS_ID, graph_guard_condition);
-  if (subscriber_listener == nullptr) {
-    RMW_SET_ERROR_MSG("failed to allocate GurumddsSubscriberListener");
-    return nullptr;
-  }
+  pub_context->topic_cache = new(std::nothrow) TopicCache<GuidPrefix_t>();
+  sub_context->topic_cache = new(std::nothrow) TopicCache<GuidPrefix_t>();
 
   node_handle = rmw_node_allocate();
   if (node_handle == nullptr) {
@@ -466,8 +484,8 @@ rmw_create_node(
 
   node_info->participant = participant;
   node_info->graph_guard_condition = graph_guard_condition;
-  node_info->pub_listener = publisher_listener;
-  node_info->sub_listener = subscriber_listener;
+  node_info->pub_context = pub_context;
+  node_info->sub_context = sub_context;
   node_info->pub_list = publisher_list;
   node_info->sub_list = subscription_list;
 
@@ -475,33 +493,11 @@ rmw_create_node(
   node_handle->data = node_info;
   node_handle->context = context;
 
-  // set listeners
-  builtin_subscriber = dds_DomainParticipant_get_builtin_subscriber(participant);
-  builtin_publication_datareader =
-    dds_Subscriber_lookup_datareader(builtin_subscriber, "BuiltinPublications");
-  if (builtin_publication_datareader == nullptr) {
-    RMW_SET_ERROR_MSG("builtin publication datareader handle is null");
-    goto fail;
-  }
-  builtin_subscription_datareader =
-    dds_Subscriber_lookup_datareader(builtin_subscriber, "BuiltinSubscriptions");
-  if (builtin_subscription_datareader == nullptr) {
-    RMW_SET_ERROR_MSG("builtin subscription datareader handle is null");
-    goto fail;
-  }
+  dds_Entity_set_context(
+    reinterpret_cast<dds_Entity *>(participant), 0, reinterpret_cast<void *>(pub_context));
+  dds_Entity_set_context(
+    reinterpret_cast<dds_Entity *>(participant), 1, reinterpret_cast<void *>(sub_context));
 
-  node_info->pub_listener->dds_reader = builtin_publication_datareader;
-  dds_DataReader_set_listener(
-    builtin_publication_datareader,
-    &node_info->pub_listener->dds_listener, dds_DATA_AVAILABLE_STATUS);
-  dds_DataReader_set_listener_context(
-    builtin_publication_datareader, &node_info->pub_listener->context);
-  node_info->sub_listener->dds_reader = builtin_subscription_datareader;
-  dds_DataReader_set_listener(
-    builtin_subscription_datareader,
-    &node_info->sub_listener->dds_listener, dds_DATA_AVAILABLE_STATUS);
-  dds_DataReader_set_listener_context(
-    builtin_subscription_datareader, &node_info->sub_listener->context);
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   RCUTILS_LOG_DEBUG_NAMED(
@@ -535,12 +531,12 @@ fail:
     rmw_free(node_handle);
   }
 
-  if (publisher_listener != nullptr) {
-    delete publisher_listener;
+  if (pub_context != nullptr) {
+    delete pub_context;
   }
 
-  if (subscriber_listener != nullptr) {
-    delete subscriber_listener;
+  if (sub_context != nullptr) {
+    delete sub_context;
   }
 
   if (node_info != nullptr) {
@@ -657,14 +653,14 @@ rmw_destroy_node(rmw_node_t * node)
     return RMW_RET_ERROR;
   }
 
-  if (node_info->pub_listener != nullptr) {
-    delete node_info->pub_listener;
-    node_info->pub_listener = nullptr;
+  if (node_info->pub_context != nullptr) {
+    delete node_info->pub_context;
+    node_info->pub_context = nullptr;
   }
 
-  if (node_info->sub_listener != nullptr) {
-    delete node_info->sub_listener;
-    node_info->sub_listener = nullptr;
+  if (node_info->sub_context != nullptr) {
+    delete node_info->sub_context;
+    node_info->sub_context = nullptr;
   }
 
   if (node_info->graph_guard_condition != nullptr) {

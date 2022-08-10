@@ -40,196 +40,15 @@
 
 enum EntityType {Publisher, Subscriber};
 
-typedef struct _ListenerContext
-{
-  std::mutex * mutex_;
-  TopicCache<GuidPrefix_t> * topic_cache;
-  rmw_guard_condition_t * graph_guard_condition;
-  const char * implementation_identifier;
-} ListenerContext;
-
-static void pub_on_data_available(const dds_DataReader * a_reader)
-{
-  dds_DataReader * reader = const_cast<dds_DataReader *>(a_reader);
-  ListenerContext * context =
-    reinterpret_cast<ListenerContext *>(dds_DataReader_get_listener_context(reader));
-  if (context == nullptr) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> lock(*context->mutex_);
-  dds_DataSeq * samples = dds_DataSeq_create(8);
-  if (samples == nullptr) {
-    fprintf(stderr, "failed to create data sample sequence\n");
-    return;
-  }
-  dds_SampleInfoSeq * infos = dds_SampleInfoSeq_create(8);
-  if (infos == nullptr) {
-    dds_DataSeq_delete(samples);
-    fprintf(stderr, "failed to create sample info sequence\n");
-    return;
-  }
-
-  dds_ReturnCode_t ret = dds_DataReader_take(
-    reader, samples, infos, dds_LENGTH_UNLIMITED,
-    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
-  if (ret == dds_RETCODE_NO_DATA) {
-    dds_DataReader_return_loan(reader, samples, infos);
-    dds_DataSeq_delete(samples);
-    dds_SampleInfoSeq_delete(infos);
-    return;
-  }
-  if (ret != dds_RETCODE_OK) {
-    fprintf(stderr, "failed to access data from the built-in reader\n");
-    dds_DataReader_return_loan(reader, samples, infos);
-    dds_DataSeq_delete(samples);
-    dds_SampleInfoSeq_delete(infos);
-    return;
-  }
-
-  for (dds_UnsignedLong i = 0; i < dds_DataSeq_length(samples); ++i) {
-    std::string topic_name, type_name;
-    GuidPrefix_t guid, participant_guid;
-    dds_PublicationBuiltinTopicData * pbtd =
-      reinterpret_cast<dds_PublicationBuiltinTopicData *>(dds_DataSeq_get(samples, i));
-    dds_SampleInfo * info = dds_SampleInfoSeq_get(infos, i);
-    if (reinterpret_cast<void *>(info->instance_handle) == NULL) {
-      continue;
-    }
-    memcpy(guid.value, reinterpret_cast<void *>(info->instance_handle), 16);
-    if (info->valid_data && info->instance_state == dds_ALIVE_INSTANCE_STATE) {
-      dds_BuiltinTopicKey_to_GUID(&participant_guid, pbtd->participant_key);
-      topic_name = std::string(pbtd->topic_name);
-      type_name = std::string(pbtd->type_name);
-      rmw_qos_profile_t qos = {
-        RMW_QOS_POLICY_HISTORY_UNKNOWN,  // TODO(clemjh): pbtd doesn't contain history qos policy
-        RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT,
-        convert_reliability(pbtd->reliability),
-        convert_durability(pbtd->durability),
-        convert_deadline(pbtd->deadline),
-        convert_lifespan(pbtd->lifespan),
-        convert_liveliness(pbtd->liveliness),
-        convert_liveliness_lease_duration(pbtd->liveliness),
-        false,
-      };
-      context->topic_cache->add_topic(participant_guid, guid, topic_name, type_name, qos);
-    } else {
-      context->topic_cache->remove_topic(guid);
-    }
-  }
-
-  if (dds_DataSeq_length(samples) > 0) {
-    rmw_ret_t rmw_ret = rmw_trigger_guard_condition(context->graph_guard_condition);
-    if (rmw_ret != RMW_RET_OK) {
-      fprintf(stderr, "failed to trigger graph guard condition: %s\n", rmw_get_error_string().str);
-    }
-  }
-
-  dds_DataReader_return_loan(reader, samples, infos);
-
-  dds_DataSeq_delete(samples);
-  dds_SampleInfoSeq_delete(infos);
-
-  dds_DataReader_set_listener_context(reader, context);
-}
-
-static void sub_on_data_available(const dds_DataReader * a_reader)
-{
-  dds_DataReader * reader = const_cast<dds_DataReader *>(a_reader);
-  ListenerContext * context =
-    reinterpret_cast<ListenerContext *>(dds_DataReader_get_listener_context(reader));
-  if (context == nullptr) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> lock(*context->mutex_);
-  dds_DataSeq * samples = dds_DataSeq_create(8);
-  if (samples == nullptr) {
-    fprintf(stderr, "failed to create data sample sequence\n");
-    return;
-  }
-  dds_SampleInfoSeq * infos = dds_SampleInfoSeq_create(8);
-  if (infos == nullptr) {
-    dds_DataSeq_delete(samples);
-    fprintf(stderr, "failed to create sample info sequence\n");
-    return;
-  }
-
-  dds_ReturnCode_t ret = dds_DataReader_take(
-    reader, samples, infos, dds_LENGTH_UNLIMITED,
-    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
-  if (ret == dds_RETCODE_NO_DATA) {
-    dds_DataReader_return_loan(reader, samples, infos);
-    dds_DataSeq_delete(samples);
-    dds_SampleInfoSeq_delete(infos);
-    return;
-  }
-  if (ret != dds_RETCODE_OK) {
-    fprintf(stderr, "failed to access data from the built-in reader\n");
-    dds_DataReader_return_loan(reader, samples, infos);
-    dds_DataSeq_delete(samples);
-    dds_SampleInfoSeq_delete(infos);
-    return;
-  }
-
-  for (dds_UnsignedLong i = 0; i < dds_DataSeq_length(samples); ++i) {
-    std::string topic_name, type_name;
-    GuidPrefix_t guid, participant_guid;
-    dds_SubscriptionBuiltinTopicData * sbtd =
-      reinterpret_cast<dds_SubscriptionBuiltinTopicData *>(dds_DataSeq_get(samples, i));
-    dds_SampleInfo * info = dds_SampleInfoSeq_get(infos, i);
-    if (reinterpret_cast<void *>(info->instance_handle) == NULL) {
-      continue;
-    }
-    memcpy(guid.value, reinterpret_cast<void *>(info->instance_handle), 16);
-    if (info->valid_data && info->instance_state == dds_ALIVE_INSTANCE_STATE) {
-      dds_BuiltinTopicKey_to_GUID(&participant_guid, sbtd->participant_key);
-      topic_name = sbtd->topic_name;
-      type_name = sbtd->type_name;
-      rmw_qos_profile_t qos = {
-        RMW_QOS_POLICY_HISTORY_UNKNOWN,  // TODO(clemjh): sbtd doesn't contain history qos policy
-        RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT,
-        convert_reliability(sbtd->reliability),
-        convert_durability(sbtd->durability),
-        convert_deadline(sbtd->deadline),
-        RMW_QOS_LIFESPAN_DEFAULT,
-        convert_liveliness(sbtd->liveliness),
-        convert_liveliness_lease_duration(sbtd->liveliness),
-        false,
-      };
-      context->topic_cache->add_topic(
-        participant_guid, guid, std::move(topic_name),
-        std::move(type_name), qos);
-    } else {
-      context->topic_cache->remove_topic(guid);
-    }
-  }
-
-  if (dds_DataSeq_length(samples) > 0) {
-    rmw_ret_t rmw_ret = rmw_trigger_guard_condition(context->graph_guard_condition);
-    if (rmw_ret != RMW_RET_OK) {
-      fprintf(stderr, "failed to trigger graph guard condition: %s\n", rmw_get_error_string().str);
-    }
-  }
-
-  dds_DataReader_return_loan(reader, samples, infos);
-
-  dds_DataSeq_delete(samples);
-  dds_SampleInfoSeq_delete(infos);
-
-  dds_DataReader_set_listener_context(reader, context);
-}
-
-class GurumddsDataReaderListener
+class ListenerContext
 {
 public:
-  explicit GurumddsDataReaderListener(
-    const char * implementation_identifier, rmw_guard_condition_t * graph_guard_condition)
-  : graph_guard_condition(graph_guard_condition),
-    implementation_identifier(implementation_identifier)
+  explicit ListenerContext(rmw_guard_condition_t * graph_guard_condition)
+  : topic_cache(nullptr),
+    graph_guard_condition(graph_guard_condition)
   {}
 
-  virtual ~GurumddsDataReaderListener() = default;
+  virtual ~ListenerContext() = default;
 
   RMW_GURUMDDS_CPP_PUBLIC
   virtual void add_information(
@@ -248,79 +67,150 @@ public:
   RMW_GURUMDDS_CPP_PUBLIC
   virtual void trigger_graph_guard_condition(void);
 
+  RMW_GURUMDDS_CPP_PUBLIC
   size_t count_topic(const char * topic_name);
 
+  RMW_GURUMDDS_CPP_PUBLIC
   void fill_topic_names_and_types(
     bool no_demangle,
     std::map<std::string, std::set<std::string>> & topic_names_to_types);
 
+  RMW_GURUMDDS_CPP_PUBLIC
   void fill_service_names_and_types(
     std::map<std::string, std::set<std::string>> & services);
 
+  RMW_GURUMDDS_CPP_PUBLIC
   void fill_topic_names_and_types_by_guid(
     bool no_demangle,
     std::map<std::string, std::set<std::string>> & topic_names_to_types_by_guid,
     GuidPrefix_t & participant_guid);
 
+  RMW_GURUMDDS_CPP_PUBLIC
   void fill_service_names_and_types_by_guid(
     std::map<std::string, std::set<std::string>> & services,
     GuidPrefix_t & participant_guid,
     const std::string suffix);
 
-  dds_DataReaderListener dds_listener;
-  ListenerContext context;
-  dds_DataReader * dds_reader;
-
   std::mutex mutex_;
-  TopicCache<GuidPrefix_t> topic_cache;
+  TopicCache<GuidPrefix_t> * topic_cache;
   rmw_guard_condition_t * graph_guard_condition;
-
-  const char * implementation_identifier;
-
-protected:
-private:
 };
 
-class GurumddsPublisherListener : public GurumddsDataReaderListener
+static inline void on_participant_changed(
+  const dds_DomainParticipant * a_participant,
+  const dds_ParticipantBuiltinTopicData * data,
+  dds_InstanceHandle_t handle)
 {
-public:
-  GurumddsPublisherListener(
-    const char * implementation_identifier, rmw_guard_condition_t * graph_guard_condition)
-  : GurumddsDataReaderListener(implementation_identifier, graph_guard_condition)
-  {
-    context.mutex_ = &(this->mutex_);
-    context.topic_cache = &(this->topic_cache);
-    context.graph_guard_condition = this->graph_guard_condition;
-    context.implementation_identifier = this->implementation_identifier;
-    dds_listener.on_data_available = pub_on_data_available;
+  dds_DomainParticipant * participant = const_cast<dds_DomainParticipant *>(a_participant);
+  ListenerContext * pub_context =
+    reinterpret_cast<ListenerContext *>(
+    dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0));
+  ListenerContext * sub_context =
+    reinterpret_cast<ListenerContext *>(
+    dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 1));
+
+  GuidPrefix_t participant_guid;
+  if (reinterpret_cast<void *>(handle) == NULL) {
+    dds_BuiltinTopicKey_to_GUID(&participant_guid, data->key);
+    {
+      std::lock_guard<std::mutex> lg1(pub_context->mutex_);
+      if (pub_context->topic_cache->remove_topic_by_puid(participant_guid) > 0) {
+        pub_context->trigger_graph_guard_condition();
+      }
+    }
+    {
+      std::lock_guard<std::mutex> lg2(sub_context->mutex_);
+      if (sub_context->topic_cache->remove_topic_by_puid(participant_guid) > 0) {
+        sub_context->trigger_graph_guard_condition();
+      }
+    }
   }
+}
 
-  ~GurumddsPublisherListener() {}
-};
-
-class GurumddsSubscriberListener : public GurumddsDataReaderListener
+static inline void on_publication_changed(
+  const dds_DomainParticipant * a_participant,
+  const dds_PublicationBuiltinTopicData * data,
+  dds_InstanceHandle_t handle)
 {
-public:
-  GurumddsSubscriberListener(
-    const char * implementation_identifier, rmw_guard_condition_t * graph_guard_condition)
-  : GurumddsDataReaderListener(implementation_identifier, graph_guard_condition)
-  {
-    context.mutex_ = &(this->mutex_);
-    context.topic_cache = &(this->topic_cache);
-    context.graph_guard_condition = this->graph_guard_condition;
-    context.implementation_identifier = this->implementation_identifier;
-    dds_listener.on_data_available = sub_on_data_available;
-  }
+  dds_DomainParticipant * participant = const_cast<dds_DomainParticipant *>(a_participant);
+  ListenerContext * context =
+    reinterpret_cast<ListenerContext *>(
+    dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0));
 
-  ~GurumddsSubscriberListener() {}
-};
+  std::string topic_name, type_name;
+  GuidPrefix_t guid, participant_guid;
+  dds_BuiltinTopicKey_to_GUID(&participant_guid, data->participant_key);
+  memcpy(guid.value, participant_guid.value, 12);
+  memcpy(&guid.value[12], &data->key.value[0], 4);
+  std::lock_guard<std::mutex> guard(context->mutex_);
+  if (reinterpret_cast<void *>(handle) != NULL) {
+    topic_name = std::string(data->topic_name);
+    type_name = std::string(data->type_name);
+    rmw_qos_profile_t qos = {
+      RMW_QOS_POLICY_HISTORY_UNKNOWN,
+      RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT,
+      convert_reliability(data->reliability),
+      convert_durability(data->durability),
+      convert_deadline(data->deadline),
+      convert_lifespan(data->lifespan),
+      convert_liveliness(data->liveliness),
+      convert_liveliness_lease_duration(data->liveliness),
+      false,
+    };
+    context->topic_cache->add_topic(
+      participant_guid, guid, std::move(topic_name),
+      std::move(type_name), qos);
+  } else {
+    context->topic_cache->remove_topic(guid);
+  }
+  context->trigger_graph_guard_condition();
+}
+
+static inline void on_subscription_changed(
+  const dds_DomainParticipant * a_participant,
+  const dds_SubscriptionBuiltinTopicData * data,
+  dds_InstanceHandle_t handle)
+{
+  dds_DomainParticipant * participant = const_cast<dds_DomainParticipant *>(a_participant);
+  ListenerContext * context =
+    reinterpret_cast<ListenerContext *>(
+    dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 1));
+
+  std::string topic_name, type_name;
+  GuidPrefix_t guid, participant_guid;
+  dds_BuiltinTopicKey_to_GUID(&participant_guid, data->participant_key);
+  memcpy(guid.value, participant_guid.value, 12);
+  memcpy(&guid.value[12], &data->key.value[0], 4);
+  std::lock_guard<std::mutex> guard(context->mutex_);
+  if (reinterpret_cast<void *>(handle) != NULL) {
+    topic_name = data->topic_name;
+    type_name = data->type_name;
+    rmw_qos_profile_t qos = {
+      RMW_QOS_POLICY_HISTORY_UNKNOWN,  // TODO(clemjh): sbtd doesn't contain history qos policy
+      RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT,
+      convert_reliability(data->reliability),
+      convert_durability(data->durability),
+      convert_deadline(data->deadline),
+      RMW_QOS_LIFESPAN_DEFAULT,
+      convert_liveliness(data->liveliness),
+      convert_liveliness_lease_duration(data->liveliness),
+      false,
+    };
+    context->topic_cache->add_topic(
+      participant_guid, guid, std::move(topic_name),
+      std::move(type_name), qos);
+  } else {
+    context->topic_cache->remove_topic(guid);
+  }
+  context->trigger_graph_guard_condition();
+}
 
 typedef struct _GurumddsNodeInfo
 {
   dds_DomainParticipant * participant;
   rmw_guard_condition_t * graph_guard_condition;
-  GurumddsPublisherListener * pub_listener;
-  GurumddsSubscriberListener * sub_listener;
+  ListenerContext * pub_context;
+  ListenerContext * sub_context;
   std::list<dds_Publisher *> pub_list;
   std::list<dds_Subscriber *> sub_list;
 } GurumddsNodeInfo;

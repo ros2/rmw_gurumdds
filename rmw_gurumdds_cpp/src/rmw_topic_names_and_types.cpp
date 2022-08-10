@@ -62,18 +62,18 @@ rmw_get_topic_names_and_types(
     RMW_SET_ERROR_MSG("node info handle is null");
     return RMW_RET_ERROR;
   }
-  if (node_info->pub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("publisher listener handle is null");
+  if (node_info->pub_context == nullptr) {
+    RMW_SET_ERROR_MSG("publisher context is null");
     return RMW_RET_ERROR;
   }
-  if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("subscriber listener handle is null");
+  if (node_info->sub_context == nullptr) {
+    RMW_SET_ERROR_MSG("subscriber context is null");
     return RMW_RET_ERROR;
   }
 
   std::map<std::string, std::set<std::string>> topics;
-  node_info->pub_listener->fill_topic_names_and_types(no_demangle, topics);
-  node_info->sub_listener->fill_topic_names_and_types(no_demangle, topics);
+  node_info->pub_context->fill_topic_names_and_types(no_demangle, topics);
+  node_info->sub_context->fill_topic_names_and_types(no_demangle, topics);
 
   if (topics.size() > 0) {
     ret = copy_topics_names_and_types(topics, allocator, no_demangle, topic_names_and_types);
