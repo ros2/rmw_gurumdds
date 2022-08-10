@@ -60,12 +60,13 @@ rmw_count_publishers(
     RMW_SET_ERROR_MSG("node info handle is null");
     return RMW_RET_ERROR;
   }
-  if (node_info->pub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("publisher listener handle is null");
+
+  if (node_info->pub_context == nullptr) {
+    RMW_SET_ERROR_MSG("publisher context is null");
     return RMW_RET_ERROR;
   }
 
-  *count = node_info->pub_listener->count_topic(topic_name);
+  *count = node_info->pub_context->count_topic(topic_name);
 
   return RMW_RET_OK;
 }
@@ -100,12 +101,13 @@ rmw_count_subscribers(
     RMW_SET_ERROR_MSG("node info handle is null");
     return RMW_RET_ERROR;
   }
-  if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("subscriber listener handle is null");
+
+  if (node_info->sub_context == nullptr) {
+    RMW_SET_ERROR_MSG("subscription context is null");
     return RMW_RET_ERROR;
   }
 
-  *count = node_info->sub_listener->count_topic(topic_name);
+  *count = node_info->sub_context->count_topic(topic_name);
 
   return RMW_RET_OK;
 }

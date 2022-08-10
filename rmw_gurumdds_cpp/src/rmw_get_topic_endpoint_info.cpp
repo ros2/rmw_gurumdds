@@ -59,17 +59,17 @@ _get_endpoint_info_by_topic(
   auto node_info = static_cast<GurumddsNodeInfo *>(node->data);
   auto & topic_cache =
     endpoint_type == RMW_ENDPOINT_PUBLISHER ?
-    node_info->pub_listener->topic_cache : node_info->sub_listener->topic_cache;
+    node_info->pub_context->topic_cache : node_info->sub_context->topic_cache;
   auto & tc_mutex =
     endpoint_type == RMW_ENDPOINT_PUBLISHER ?
-    node_info->pub_listener->mutex_ : node_info->sub_listener->mutex_;
+    node_info->pub_context->mutex_ : node_info->sub_context->mutex_;
 
   rmw_ret_t ret = RMW_RET_OK;
 
   {
-    std::lock_guard<std::mutex> lock(tc_mutex);
+    std::lock_guard<std::mutex> guard(tc_mutex);
 
-    auto tnti = topic_cache.get_topic_name_to_info();
+    auto tnti = topic_cache->get_topic_name_to_info();
     std::vector<rmw_topic_endpoint_info_t> info_vec;
 
     std::vector<std::string> tn_vec;

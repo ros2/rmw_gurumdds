@@ -62,18 +62,18 @@ rmw_get_service_names_and_types(
     RMW_SET_ERROR_MSG("node info handle is null");
     return RMW_RET_ERROR;
   }
-  if (node_info->pub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("publisher listener handle is null");
+  if (node_info->pub_context == nullptr) {
+    RMW_SET_ERROR_MSG("publisher context is null");
     return RMW_RET_ERROR;
   }
-  if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("subscriber listener handle is null");
+  if (node_info->sub_context == nullptr) {
+    RMW_SET_ERROR_MSG("subscriber context is null");
     return RMW_RET_ERROR;
   }
 
   std::map<std::string, std::set<std::string>> services;
-  node_info->pub_listener->fill_service_names_and_types(services);
-  node_info->sub_listener->fill_service_names_and_types(services);
+  node_info->pub_context->fill_service_names_and_types(services);
+  node_info->sub_context->fill_service_names_and_types(services);
 
   if (services.size() > 0) {
     ret = copy_services_to_names_and_types(services, allocator, service_names_and_types);
