@@ -349,6 +349,24 @@ rmw_create_node(
     return nullptr;
   }
 
+  const char * const * check_props = nullptr;
+  uint32_t props_count;
+  bool remote_support = false;
+  const char * props_ptr;
+
+  dds_DomainParticipantFactory_get_supported_participant_props(factory, &check_props, &props_count);
+  for (uint32_t i = 0; i < props_count; i++) {
+    props_ptr = strstr(check_props[i], "on_remote");
+    if (props_ptr != nullptr) {
+      remote_support = true;
+      break;
+    }
+  }
+  if (!remote_support) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "on_remote_callback is not supported");
+    return nullptr;
+  }
+
   dds_DomainParticipantQos participant_qos;
   dds_ReturnCode_t ret =
     dds_DomainParticipantFactory_get_default_participant_qos(factory, &participant_qos);
