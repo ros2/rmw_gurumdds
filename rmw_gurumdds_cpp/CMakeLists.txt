@@ -11,6 +11,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(gurumdds_cmake_module REQUIRED)
 
@@ -54,7 +55,6 @@ link_directories(${GurumDDS_LIBRARY_DIRS})
 
 add_library(rmw_gurumdds_cpp
   SHARED
-  src/types/custom_listener.cpp
   src/demangle.cpp
   src/event_converter.cpp
   src/get_entities.cpp
@@ -79,19 +79,21 @@ add_library(rmw_gurumdds_cpp
   src/rmw_node.cpp
   src/rmw_publisher.cpp
   src/rmw_qos.cpp
-  src/rmw_request.cpp
-  src/rmw_response.cpp
   src/rmw_serialize.cpp
   src/rmw_service_names_and_types.cpp
   src/rmw_service.cpp
   src/rmw_subscription.cpp
   src/rmw_topic_names_and_types.cpp
   src/rmw_wait.cpp
+  src/rmw_context_impl.cpp
+  src/context_listener_thread.cpp
+  src/graph_cache.cpp
   src/serialization_format.cpp
   src/types.cpp
 )
 
 ament_target_dependencies(rmw_gurumdds_cpp
+  "rcpputils"
   "rcutils"
   "rosidl_typesupport_introspection_c"
   "rosidl_typesupport_introspection_cpp"
@@ -107,6 +109,7 @@ ament_export_dependencies(
   rosidl_typesupport_introspection_c
   rosidl_runtime_c
   rosidl_runtime_cpp
+  rcpputils
   rcutils
   rmw
   rmw_dds_common

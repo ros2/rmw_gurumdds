@@ -32,7 +32,7 @@
 #include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/names_and_types_helpers.hpp"
-#include "rmw_gurumdds_cpp/types.hpp"
+#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
 extern "C"
 {
@@ -52,36 +52,20 @@ rmw_get_topic_names_and_types(
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  rmw_ret_t ret = rmw_names_and_types_check_zero(topic_names_and_types);
-  if (ret != RMW_RET_OK) {
-    return ret;
+  if (rmw_names_and_types_check_zero(topic_names_and_types) != RMW_RET_OK) {
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
-  GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
-  if (node_info == nullptr) {
-    RMW_SET_ERROR_MSG("node info handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (node_info->pub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("publisher listener handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("subscriber listener handle is null");
-    return RMW_RET_ERROR;
+  DemangleFunction demangle_topic = _demangle_ros_topic_from_topic;
+  DemangleFunction demangle_type = _demangle_if_ros_type;
+
+  if (no_demangle) {
+    demangle_topic = _identity_demangle;
+    demangle_type = _identity_demangle;
   }
 
-  std::map<std::string, std::set<std::string>> topics;
-  node_info->pub_listener->fill_topic_names_and_types(no_demangle, topics);
-  node_info->sub_listener->fill_topic_names_and_types(no_demangle, topics);
-
-  if (topics.size() > 0) {
-    ret = copy_topics_names_and_types(topics, allocator, no_demangle, topic_names_and_types);
-    if (ret != RMW_RET_OK) {
-      return ret;
-    }
-  }
-
-  return RMW_RET_OK;
+  auto common_ctx = &node->context->impl->common_ctx;
+  return common_ctx->graph_cache.get_names_and_types(
+    demangle_topic, demangle_type, allocator, topic_names_and_types);
 }
 }  // extern "C"

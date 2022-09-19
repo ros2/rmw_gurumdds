@@ -33,7 +33,7 @@
 #include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/names_and_types_helpers.hpp"
-#include "rmw_gurumdds_cpp/types.hpp"
+#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
 extern "C"
 {
@@ -52,36 +52,15 @@ rmw_get_service_names_and_types(
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  rmw_ret_t ret = rmw_names_and_types_check_zero(service_names_and_types);
-  if (ret != RMW_RET_OK) {
-    return ret;
+  if (rmw_names_and_types_check_zero(service_names_and_types) != RMW_RET_OK) {
+    return RMW_RET_INVALID_ARGUMENT;
   }
 
-  GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
-  if (node_info == nullptr) {
-    RMW_SET_ERROR_MSG("node info handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (node_info->pub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("publisher listener handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("subscriber listener handle is null");
-    return RMW_RET_ERROR;
-  }
-
-  std::map<std::string, std::set<std::string>> services;
-  node_info->pub_listener->fill_service_names_and_types(services);
-  node_info->sub_listener->fill_service_names_and_types(services);
-
-  if (services.size() > 0) {
-    ret = copy_services_to_names_and_types(services, allocator, service_names_and_types);
-    if (ret != RMW_RET_OK) {
-      return ret;
-    }
-  }
-
-  return RMW_RET_OK;
+  auto common_ctx = &node->context->impl->common_ctx;
+  return common_ctx->graph_cache.get_names_and_types(
+    _demangle_service_from_topic,
+    _demangle_service_type_only,
+    allocator,
+    service_names_and_types);
 }
 }  // extern "C"

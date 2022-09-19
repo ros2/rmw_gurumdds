@@ -105,4 +105,18 @@ rmw_take_event(
   *taken = (ret_code == RMW_RET_OK);
   return ret_code;
 }
+
+rmw_ret_t
+rmw_event_set_callback(
+  rmw_event_t * rmw_event,
+  rmw_event_callback_t callback,
+  const void * user_data)
+{
+  (void)rmw_event;
+  (void)callback;
+  (void)user_data;
+
+  RMW_SET_ERROR_MSG("rmw_event_set_callback not implemented");
+  return RMW_RET_UNSUPPORTED;
+}
 }  // extern "C"
