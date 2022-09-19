@@ -2,6 +2,15 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-09-19)
+-------------------
+* Reposition message handling timing of response
+* Check whether remote callback is supported
+* Fix rclcpp test failure
+* Apply on_remote_changed callback
+* Fix typo
+* Contributors: Youngjin Yun
+
 1.1.10 (2022-07-19)
 -------------------
 * Avoid string generation on func call
