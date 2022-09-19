@@ -147,12 +147,14 @@ rmw_take_response(
         memcpy(request_header->request_id.writer_guid, client_guid, 16);
 
         *taken = true;
-        break;
       }
+    }
+    dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+    if (*taken) {
+      break;
     }
   }
 
-  dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
   dds_DataSeq_delete(data_values);
   dds_SampleInfoSeq_delete(sample_infos);
   dds_UnsignedLongSeq_delete(sample_sizes);
