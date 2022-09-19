@@ -90,55 +90,24 @@ rmw_take_response(
     return RMW_RET_ERROR;
   }
 
+  dds_ReturnCode_t ret = dds_RETCODE_OK;
+
   if (service_mapping_basic) {
-    dds_ReturnCode_t ret = dds_DataReader_raw_take(
-      response_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
-      dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+    while (ret == dds_RETCODE_OK) {
+      ret = dds_DataReader_raw_take(
+        response_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+        dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
-    if (ret == dds_RETCODE_NO_DATA) {
-      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
-      return RMW_RET_OK;
-    }
-
-    if (ret != dds_RETCODE_OK) {
-      RMW_SET_ERROR_MSG("failed to take data");
-      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
-      return RMW_RET_ERROR;
-    }
-
-    dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
-    if (sample_info->valid_data) {
-      void * sample = dds_DataSeq_get(data_values, 0);
-      if (sample == nullptr) {
+      if (ret == dds_RETCODE_NO_DATA) {
         dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
         dds_DataSeq_delete(data_values);
         dds_SampleInfoSeq_delete(sample_infos);
         dds_UnsignedLongSeq_delete(sample_sizes);
-        return RMW_RET_ERROR;
+        return RMW_RET_OK;
       }
-      uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
-      int32_t sn_high = 0;
-      uint32_t sn_low = 0;
-      int8_t client_guid[16] = {0};
-      bool res = deserialize_response_basic(
-        type_support->data,
-        type_support->typesupport_identifier,
-        ros_response,
-        sample,
-        static_cast<size_t>(size),
-        &sn_high,
-        &sn_low,
-        client_guid
-      );
 
-      if (!res) {
-        // Error message already set
+      if (ret != dds_RETCODE_OK) {
+        RMW_SET_ERROR_MSG("failed to take data");
         dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
         dds_DataSeq_delete(data_values);
         dds_SampleInfoSeq_delete(sample_infos);
@@ -146,70 +115,73 @@ rmw_take_response(
         return RMW_RET_ERROR;
       }
 
-      if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
-        request_header->source_timestamp =
-          sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-          sample_info->source_timestamp.nanosec;
-        // TODO(clemjh): SampleInfo doesn't contain received_timestamp
-        request_header->received_timestamp = 0;
-        request_header->request_id.sequence_number = ((int64_t)sn_high) << 32 | sn_low;
-        memcpy(request_header->request_id.writer_guid, client_guid, 16);
+      dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
+      if (sample_info->valid_data) {
+        void * sample = dds_DataSeq_get(data_values, 0);
+        if (sample == nullptr) {
+          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+          dds_DataSeq_delete(data_values);
+          dds_SampleInfoSeq_delete(sample_infos);
+          dds_UnsignedLongSeq_delete(sample_sizes);
+          return RMW_RET_ERROR;
+        }
+        uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
+        int32_t sn_high = 0;
+        uint32_t sn_low = 0;
+        int8_t client_guid[16] = {0};
+        bool res = deserialize_response_basic(
+          type_support->data,
+          type_support->typesupport_identifier,
+          ros_response,
+          sample,
+          static_cast<size_t>(size),
+          &sn_high,
+          &sn_low,
+          client_guid
+        );
+
+        if (!res) {
+          // Error message already set
+          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+          dds_DataSeq_delete(data_values);
+          dds_SampleInfoSeq_delete(sample_infos);
+          dds_UnsignedLongSeq_delete(sample_sizes);
+          return RMW_RET_ERROR;
+        }
+
+        if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
+          request_header->source_timestamp =
+            sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+            sample_info->source_timestamp.nanosec;
+          // TODO(clemjh): SampleInfo doesn't contain received_timestamp
+          request_header->received_timestamp = 0;
+          request_header->request_id.sequence_number = ((int64_t)sn_high) << 32 | sn_low;
+          memcpy(request_header->request_id.writer_guid, client_guid, 16);
+
+          *taken = true;
+        }
+      }
+      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+      if (*taken) {
+        break;
       }
     }
-
-    dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-    dds_DataSeq_delete(data_values);
-    dds_SampleInfoSeq_delete(sample_infos);
-    dds_UnsignedLongSeq_delete(sample_sizes);
   } else {
-    dds_ReturnCode_t ret = dds_DataReader_raw_take_w_sampleinfoex(
-      response_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
-      dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+    while (ret == dds_RETCODE_OK) {
+      ret = dds_DataReader_raw_take_w_sampleinfoex(
+        response_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+        dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
-    if (ret == dds_RETCODE_NO_DATA) {
-      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
-      return RMW_RET_OK;
-    }
-
-    if (ret != dds_RETCODE_OK) {
-      RMW_SET_ERROR_MSG("failed to take data");
-      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
-      return RMW_RET_ERROR;
-    }
-
-    dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
-    if (sample_info->valid_data) {
-      void * sample = dds_DataSeq_get(data_values, 0);
-      if (sample == nullptr) {
+      if (ret == dds_RETCODE_NO_DATA) {
         dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
         dds_DataSeq_delete(data_values);
         dds_SampleInfoSeq_delete(sample_infos);
         dds_UnsignedLongSeq_delete(sample_sizes);
-        return RMW_RET_ERROR;
+        return RMW_RET_OK;
       }
-      uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
-      int64_t sequence_number = 0;
-      int8_t client_guid[16] = {0};
-      dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
-      dds_guid_to_ros_guid(reinterpret_cast<int8_t *>(&sampleinfo_ex->src_guid), client_guid);
-      dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
 
-      bool res = deserialize_response_enhanced(
-        type_support->data,
-        type_support->typesupport_identifier,
-        ros_response,
-        sample,
-        static_cast<size_t>(size)
-      );
-
-      if (!res) {
-        // Error message already set
+      if (ret != dds_RETCODE_OK) {
+        RMW_SET_ERROR_MSG("failed to take data");
         dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
         dds_DataSeq_delete(data_values);
         dds_SampleInfoSeq_delete(sample_infos);
@@ -217,24 +189,63 @@ rmw_take_response(
         return RMW_RET_ERROR;
       }
 
-      if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
-        request_header->source_timestamp =
-          sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-          sample_info->source_timestamp.nanosec;
-        // TODO(clemjh): SampleInfo doesn't contain received_timestamp
-        request_header->received_timestamp = 0;
-        request_header->request_id.sequence_number = sequence_number;
-        memcpy(request_header->request_id.writer_guid, client_guid, 16);
+      dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
+      if (sample_info->valid_data) {
+        void * sample = dds_DataSeq_get(data_values, 0);
+        if (sample == nullptr) {
+          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+          dds_DataSeq_delete(data_values);
+          dds_SampleInfoSeq_delete(sample_infos);
+          dds_UnsignedLongSeq_delete(sample_sizes);
+          return RMW_RET_ERROR;
+        }
+        uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
+        int64_t sequence_number = 0;
+        int8_t client_guid[16] = {0};
+        dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
+        dds_guid_to_ros_guid(reinterpret_cast<int8_t *>(&sampleinfo_ex->src_guid), client_guid);
+        dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
+
+        bool res = deserialize_response_enhanced(
+          type_support->data,
+          type_support->typesupport_identifier,
+          ros_response,
+          sample,
+          static_cast<size_t>(size)
+        );
+
+        if (!res) {
+          // Error message already set
+          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+          dds_DataSeq_delete(data_values);
+          dds_SampleInfoSeq_delete(sample_infos);
+          dds_UnsignedLongSeq_delete(sample_sizes);
+          return RMW_RET_ERROR;
+        }
+
+        if (memcmp(client_info->writer_guid, client_guid, 16) == 0) {
+          request_header->source_timestamp =
+            sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
+            sample_info->source_timestamp.nanosec;
+          // TODO(clemjh): SampleInfo doesn't contain received_timestamp
+          request_header->received_timestamp = 0;
+          request_header->request_id.sequence_number = sequence_number;
+          memcpy(request_header->request_id.writer_guid, client_guid, 16);
+
+          *taken = true;
+        }
+      }
+      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+      if (*taken) {
+        break;
       }
     }
-
-    dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-    dds_DataSeq_delete(data_values);
-    dds_SampleInfoSeq_delete(sample_infos);
-    dds_UnsignedLongSeq_delete(sample_sizes);
   }
 
-  *taken = true;
+  dds_DataSeq_delete(data_values);
+  dds_SampleInfoSeq_delete(sample_infos);
+  dds_UnsignedLongSeq_delete(sample_sizes);
+
   return RMW_RET_OK;
 }
 
