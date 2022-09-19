@@ -22,11 +22,7 @@
 
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
-
-struct rmw_context_impl_s
-{
-  bool is_shutdown;
-};
+#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
 extern "C"
 {
@@ -127,7 +123,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
     return RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_FOR_NULL_WITH_MSG(
     options->enclave,
-    "init options encalve is null",
+    "expected non-null enclave",
     return RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     options,
@@ -146,15 +142,25 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   const char * env_name = "RMW_GURUMDDS_INIT_LOG";
   char * env_value = nullptr;
 
+  const char * mapping_env = "RMW_GURUMDDS_REQUEST_REPLY_MAPPING";
+  char * mapping_env_value = nullptr;
+  bool service_mapping_basic = false;
+
+  mapping_env_value = getenv(mapping_env);
+  if (mapping_env_value != nullptr) {
+    service_mapping_basic = (strcmp(mapping_env_value, "basic") == 0);
+  }
+
   context->instance_id = options->instance_id;
   context->implementation_identifier = RMW_GURUMDDS_ID;
   context->actual_domain_id = RMW_DEFAULT_DOMAIN_ID != options->domain_id ? options->domain_id : 0u;
-  context->impl = new (std::nothrow) rmw_context_impl_s();
+  context->impl = new (std::nothrow) rmw_context_impl_s(context);
   if (context->impl == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate rmw context impl");
     goto fail;
   }
   context->impl->is_shutdown = false;
+  context->impl->service_mapping_basic = service_mapping_basic;
 
   ret = rmw_init_options_copy(options, &context->options);
   if (ret != RMW_RET_OK) {
@@ -185,6 +191,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
 
 fail:
   if (context->impl != nullptr) {
+    context->impl->finalize();
     delete context->impl;
     context->impl = nullptr;
   }
@@ -196,7 +203,6 @@ rmw_ret_t
 rmw_shutdown(rmw_context_t * context)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(context->impl, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_FOR_NULL_WITH_MSG(
     context->impl,
     "context is not initialized",
@@ -215,7 +221,6 @@ rmw_ret_t
 rmw_context_fini(rmw_context_t * context)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(context->impl, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_FOR_NULL_WITH_MSG(
     context->impl,
     "context is not initialized",
@@ -231,11 +236,22 @@ rmw_context_fini(rmw_context_t * context)
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  rmw_ret_t ret = rmw_init_options_fini(&context->options);
+  rmw_ret_t ret_exit = RMW_RET_OK;
+  rmw_ret_t ret = context->impl->finalize();
+  if (ret != RMW_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to finalize context impl");
+    ret_exit = ret;
+  }
+
+  ret = rmw_init_options_fini(&context->options);
+  if (ret != RMW_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to finalize rmw context options");
+    ret_exit = ret;
+  }
 
   delete context->impl;
   *context = rmw_get_zero_initialized_context();
 
-  return ret;
+  return ret_exit;
 }
 }  // extern "C"

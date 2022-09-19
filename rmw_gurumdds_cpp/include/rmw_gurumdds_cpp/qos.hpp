@@ -42,37 +42,37 @@ get_datareader_qos(
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_qos_history_policy_t
 convert_history(
-  dds_HistoryQosPolicy policy);
+  const dds_HistoryQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_qos_reliability_policy_t
 convert_reliability(
-  dds_ReliabilityQosPolicy policy);
+  const dds_ReliabilityQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_qos_durability_policy_t
 convert_durability(
-  dds_DurabilityQosPolicy policy);
+  const dds_DurabilityQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_time_t
 convert_deadline(
-  dds_DeadlineQosPolicy policy);
+  const dds_DeadlineQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_time_t
 convert_lifespan(
-  dds_LifespanQosPolicy policy);
+  const dds_LifespanQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_qos_liveliness_policy_t
 convert_liveliness(
-  dds_LivelinessQosPolicy policy);
+  const dds_LivelinessQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_time_t
 convert_liveliness_lease_duration(
-  dds_LivelinessQosPolicy policy);
+  const dds_LivelinessQosPolicy * const policy);
 
 RMW_GURUMDDS_CPP_PUBLIC
 rmw_qos_policy_kind_t

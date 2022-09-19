@@ -39,4 +39,19 @@ copy_topics_names_and_types(
   bool no_demangle,
   rmw_names_and_types_t * topic_names_and_types);
 
+// Topic name creater
+std::string
+create_topic_name(
+  const char * prefix,
+  const char * topic_name,
+  const char * suffix,
+  bool avoid_ros_namespace_conventions);
+
+std::string
+create_topic_name(
+  const char * prefix,
+  const char * topic_name,
+  const char * suffix,
+  const rmw_qos_profile_t * qos_policies);
+
 #endif  // RMW_GURUMDDS_CPP__NAMES_AND_TYPES_HELPERS_HPP_

@@ -24,9 +24,13 @@
 #include "rmw/types.h"
 #include "rmw/validate_full_topic_name.h"
 
+#include "rmw_dds_common/context.hpp"
+
+#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
-#include "rmw_gurumdds_cpp/types.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/names_and_types_helpers.hpp"
 
 extern "C"
 {
@@ -38,7 +42,7 @@ rmw_count_publishers(
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node handle,
+    node,
     node->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
@@ -55,19 +59,11 @@ rmw_count_publishers(
   }
   RMW_CHECK_ARGUMENT_FOR_NULL(count, RMW_RET_INVALID_ARGUMENT);
 
-  GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
-  if (node_info == nullptr) {
-    RMW_SET_ERROR_MSG("node info handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (node_info->pub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("publisher listener handle is null");
-    return RMW_RET_ERROR;
-  }
+  auto common_ctx = &node->context->impl->common_ctx;
+  const std::string mangled_topic_name = create_topic_name(
+    ros_topic_prefix, topic_name, "", false);
 
-  *count = node_info->pub_listener->count_topic(topic_name);
-
-  return RMW_RET_OK;
+  return common_ctx->graph_cache.get_writer_count(mangled_topic_name, count);
 }
 
 rmw_ret_t
@@ -78,7 +74,7 @@ rmw_count_subscribers(
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node handle,
+    node,
     node->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
@@ -95,18 +91,10 @@ rmw_count_subscribers(
   }
   RMW_CHECK_ARGUMENT_FOR_NULL(count, RMW_RET_INVALID_ARGUMENT);
 
-  GurumddsNodeInfo * node_info = static_cast<GurumddsNodeInfo *>(node->data);
-  if (node_info == nullptr) {
-    RMW_SET_ERROR_MSG("node info handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (node_info->sub_listener == nullptr) {
-    RMW_SET_ERROR_MSG("sublisher listener handle is null");
-    return RMW_RET_ERROR;
-  }
+  auto common_ctx = &node->context->impl->common_ctx;
+  const std::string mangled_topic_name = create_topic_name(
+    ros_topic_prefix, topic_name, "", false);
 
-  *count = node_info->sub_listener->count_topic(topic_name);
-
-  return RMW_RET_OK;
+  return common_ctx->graph_cache.get_reader_count(mangled_topic_name, count);
 }
 }  // extern "C"
