@@ -14,6 +14,7 @@
 
 #include "rmw_gurumdds_cpp/get_entities.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/types.hpp"
 
 namespace rmw_gurumdds_cpp
@@ -29,8 +30,7 @@ get_participant(rmw_node_t * node)
     return nullptr;
   }
 
-  GurumddsNodeInfo * impl = static_cast<GurumddsNodeInfo *>(node->data);
-  return impl->participant;
+  return node->context->impl->participant;
 }
 
 dds_Publisher *
@@ -45,7 +45,7 @@ get_publisher(rmw_publisher_t * publisher)
   }
 
   GurumddsPublisherInfo * impl = static_cast<GurumddsPublisherInfo *>(publisher->data);
-  return impl->publisher;
+  return dds_DataWriter_get_publisher(impl->topic_writer);
 }
 
 dds_DataWriter *
@@ -75,7 +75,7 @@ get_subscriber(rmw_subscription_t * subscription)
   }
 
   GurumddsSubscriberInfo * impl = static_cast<GurumddsSubscriberInfo *>(subscription->data);
-  return impl->subscriber;
+  return dds_DataReader_get_subscriber(impl->topic_reader);
 }
 
 dds_DataReader *

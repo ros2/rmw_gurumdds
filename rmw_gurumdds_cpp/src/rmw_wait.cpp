@@ -20,7 +20,6 @@
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/rmw_wait.hpp"
-#include "rmw_gurumdds_cpp/types.hpp"
 
 extern "C"
 {
@@ -28,8 +27,12 @@ rmw_wait_set_t *
 rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RMW_CHECK_FOR_NULL_WITH_MSG(
+    context->impl,
+    "expected initialized context",
+    return nullptr);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    init context,
+    context,
     context->implementation_identifier,
     RMW_GURUMDDS_ID,
     return nullptr);
@@ -106,8 +109,10 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_ERROR);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    wait_set handle, wait_set->implementation_identifier,
-    RMW_GURUMDDS_ID, return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+    wait_set,
+    wait_set->implementation_identifier,
+    RMW_GURUMDDS_ID,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   GurumddsWaitSetInfo * wait_set_info = static_cast<GurumddsWaitSetInfo *>(wait_set->data);
 

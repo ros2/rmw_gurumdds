@@ -26,8 +26,12 @@ rmw_guard_condition_t *
 rmw_create_guard_condition(rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
+  RMW_CHECK_FOR_NULL_WITH_MSG(
+    context->impl,
+    "expected initialized context",
+    return nullptr);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    init context,
+    context,
     context->implementation_identifier,
     RMW_GURUMDDS_ID,
     return nullptr);
@@ -61,7 +65,7 @@ rmw_destroy_guard_condition(rmw_guard_condition_t * guard_condition)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(guard_condition, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    guard condition handle,
+    guard condition,
     guard_condition->implementation_identifier,
     RMW_GURUMDDS_ID, return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
@@ -78,7 +82,7 @@ rmw_trigger_guard_condition(const rmw_guard_condition_t * guard_condition)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(guard_condition, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    guard condition handle,
+    guard condition,
     guard_condition->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
