@@ -999,4 +999,28 @@ rmw_client_set_on_new_response_callback(
   RMW_SET_ERROR_MSG("rmw_client_set_on_new_request_callback not implemented");
   return RMW_RET_UNSUPPORTED;
 }
+
+rmw_ret_t
+rmw_get_gid_for_client(
+  const rmw_client_t * client,
+  rmw_gid_t * gid)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(gid, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    client,
+    client->implementation_identifier,
+    RMW_GURUMDDS_ID,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  GurumddsClientInfo * client_info = static_cast<GurumddsClientInfo *>(client->data);
+  if (client_info == nullptr) {
+    RMW_SET_ERROR_MSG("client info handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  *gid = client_info->publisher_gid;
+
+  return RMW_RET_OK;
+}
 }  // extern "C"
