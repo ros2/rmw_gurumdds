@@ -2,6 +2,33 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.0 (2022-10-05)
+------------------
+* Apply graph cache (`#17 <https://github.com/ros2/rmw_gurumdds/issues/17>`_)
+  * graph_cache 0718
+  * Add topic name creation
+  * graph_cache 0722
+  * Sync api
+  * add context::finalize()
+  * Wrap-up pub and sub
+  * fix gid
+  * Wrap-up client and service
+  * fix segfault
+  * Add set on callback empty stub
+  * Add content filter topic feature empty stub
+  * Change the behavior of take response to a loop
+  * Add missing dependency
+  * Fix bug and remove unnecessary struct
+  * Synk for log
+  * Amend log and scope exit for node
+  * Apply on_remote_changed callback & fix typo
+  * Cleanup log
+  * Reposition message handling timing of response
+  Co-authored-by: donghee811 <donghee@gurum.cc>
+* Redefine rmw gurumdds identifier
+* Integrate rmw_gurumdds_shared_cpp into rmw_gurumdds_cpp
+* Contributors: Youngjin Yun
+
 3.2.2 (2022-07-05)
 ------------------
 * Add missing guid comparison conditional statement

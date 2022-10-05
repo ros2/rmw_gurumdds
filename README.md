@@ -6,12 +6,13 @@ Required version of GurumDDS depends on the version of this project.
 
 | rmw_gurumdds             | GurumDDS                    |
 |--------------------------|-----------------------------|
+| 3.3.0  or higher         | higher than 2.8.3165        |
 | 3.2.0  or higher         | 2.8.3140 or higher          |
 | 3.1.2  or higher         | 2.8.x                       |
 | 3.1.1  or lower          | 2.7.x                       |
 
 ## Packages
-This project consists of four packages, `gurumdds_camke_module`, `rmw_gurumdds_cpp`, `rmw_gurumdds_shared_cpp` and `demo_nodes_cpp_native_gurumdds`.
+This project consists of three packages, `gurumdds_camke_module`, `rmw_gurumdds_cpp` and `demo_nodes_cpp_native_gurumdds`.
 
 ### gurumdds_cmake_module
 `gurumdds_cmake_module` looks for GurumDDS, and provides the information to other packages.  
@@ -49,7 +50,8 @@ DATA:
 ```
 
 ### rmw_gurumdds_shared_cpp
-`rmw_gurumdds_shared_cpp` contains some functions used by `rmw_gurumdds_cpp`.
+~~`rmw_gurumdds_shared_cpp` contains some functions used by `rmw_gurumdds_cpp`.~~  
+This package was integrated into `rmw_gurumdds_cpp`.
 
 ### demo_nodes_cpp_native_gurumdds
 `demo_nodes_cpp_natvie_gurumdds` is similar to `demo_nodes_cpp_native` from ROS2 `demos`. This demo shows how to access the native handles of `rmw_gurumdds_cpp`.  
