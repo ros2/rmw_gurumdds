@@ -45,6 +45,43 @@ Changelog for package rmw_gurumdds_cpp
 4.0.0 (2022-05-09)
 ------------------
 
+4.1.1 (2022-11-07)
+------------------
+* Add rmw_get_gid_for_client method
+* 4.1.0
+* Apply graph cache (`#17 <https://github.com/YoungJin-gurum/rmw_gurumdds/issues/17>`_)
+  * graph_cache 0718
+  * Add topic name creation
+  * graph_cache 0722
+  * Sync api
+  * add context::finalize()
+  * Wrap-up pub and sub
+  * fix gid
+  * Wrap-up client and service
+  * fix segfault
+  * Add set on callback empty stub
+  * Add content filter topic feature empty stub
+  * Change the behavior of take response to a loop
+  * Add missing dependency
+  * Fix bug and remove unnecessary struct
+  * Synk for log
+  * Amend log and scope exit for node
+  * Apply on_remote_changed callback & fix typo
+  * Cleanup log
+  * Reposition message handling timing of response
+  Co-authored-by: donghee811 <donghee@gurum.cc>
+* Redefine rmw gurumdds identifier
+* Integrate rmw_gurumdds_shared_cpp into rmw_gurumdds_cpp
+* 4.0.2
+* Add missing guid comparison conditional statement
+* Add sequence numbers to message info structure
+* Handle null string
+* Fix rclcpp test(test_serialized_message) failure
+* 4.0.1
+* Fix cast style and relative paths for cpplint
+* 4.0.0
+* Contributors: Youngjin Yun, donghee811
+
 3.2.0 (2022-04-26)
 ------------------
 * Enhanced rpc with sampleinfoex

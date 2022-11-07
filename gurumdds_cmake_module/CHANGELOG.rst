@@ -13,6 +13,13 @@ Changelog for package gurumdds_cmake_module
 4.0.0 (2022-05-09)
 ------------------
 
+4.1.1 (2022-11-07)
+------------------
+* 4.1.0
+* 4.0.2
+* Reorganize package
+* Contributors: Youngjin Yun
+
 3.1.0 (2022-01-03)
 ------------------
 * Update packages to use gurumdds-2.8
