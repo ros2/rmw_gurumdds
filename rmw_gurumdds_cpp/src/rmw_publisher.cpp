@@ -212,8 +212,6 @@ __rmw_create_publisher(
   dds_TypeSupport_delete(dds_typesupport);
   dds_typesupport = nullptr;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3));
-
   scope_exit_rmw_publisher_delete.cancel();
   return rmw_publisher;
 }
