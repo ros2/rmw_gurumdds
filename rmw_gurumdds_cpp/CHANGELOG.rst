@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.1 (2022-11-30)
+------------------
+* Remove sleep from entity creation
+* Contributors: Youngjin Yun
+
 1.3.0 (2022-10-05)
 ------------------
 * Apply graph cache
