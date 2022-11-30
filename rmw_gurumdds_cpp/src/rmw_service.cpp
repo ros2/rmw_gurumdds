@@ -339,8 +339,6 @@ rmw_create_service(
   dds_TypeSupport_delete(response_typesupport);
   response_typesupport = nullptr;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3));
-
   RCUTILS_LOG_DEBUG_NAMED(
     RMW_GURUMDDS_ID,
     "Created server with service '%s' on node '%s%s%s'",
