@@ -45,6 +45,11 @@ Changelog for package rmw_gurumdds_cpp
 4.0.0 (2022-05-09)
 ------------------
 
+4.1.2 (2022-11-30)
+------------------
+* Remove sleep from entity creation
+* Contributors: Youngjin Yun
+
 4.1.1 (2022-11-07)
 ------------------
 * Add rmw_get_gid_for_client method
