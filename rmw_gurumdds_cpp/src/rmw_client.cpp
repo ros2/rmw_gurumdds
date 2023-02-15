@@ -54,7 +54,7 @@ rmw_create_client(
     node,
     node->implementation_identifier,
     RMW_GURUMDDS_ID,
-    return nullptr)
+    return nullptr);
   RMW_CHECK_ARGUMENT_FOR_NULL(type_supports, nullptr);
   RMW_CHECK_ARGUMENT_FOR_NULL(service_name, nullptr);
   if (strlen(service_name) == 0) {

@@ -154,7 +154,7 @@ __rmw_wait(
 
       RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
         wait set handle, wait_set->implementation_identifier,
-        implementation_identifier, return )
+        implementation_identifier, return );
 
       GurumddsWaitSetInfo * wait_set_info = static_cast<GurumddsWaitSetInfo *>(wait_set->data);
       if (wait_set_info == nullptr) {
