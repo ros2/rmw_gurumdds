@@ -111,7 +111,7 @@ typedef struct _GurumddsClientInfo
   rmw_context_impl_t * ctx;
 
   int64_t sequence_number;
-  int8_t writer_guid[16];
+  uint8_t writer_guid[16];
 } GurumddsClientInfo;
 
 typedef struct _GurumddsServiceInfo

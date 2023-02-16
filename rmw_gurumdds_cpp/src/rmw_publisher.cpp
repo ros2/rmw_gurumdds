@@ -616,8 +616,8 @@ rmw_publish(
   memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
   ros_sn_to_dds_sn(++publisher_info->sequence_number, &sampleinfo_ex.seq);
   ros_guid_to_dds_guid(
-    reinterpret_cast<int8_t *>(publisher_info->publisher_gid.data),
-    reinterpret_cast<int8_t *>(&sampleinfo_ex.src_guid));
+    publisher_info->publisher_gid.data,
+    reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
   dds_ReturnCode_t ret = dds_DataWriter_raw_write_w_sampleinfoex(
     topic_writer, dds_message, size, &sampleinfo_ex);
@@ -673,8 +673,8 @@ rmw_publish_serialized_message(
   memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
   ros_sn_to_dds_sn(++publisher_info->sequence_number, &sampleinfo_ex.seq);
   ros_guid_to_dds_guid(
-    reinterpret_cast<int8_t *>(publisher_info->publisher_gid.data),
-    reinterpret_cast<int8_t *>(&sampleinfo_ex.src_guid));
+    publisher_info->publisher_gid.data,
+    reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
   dds_ReturnCode_t ret = dds_DataWriter_raw_write_w_sampleinfoex(
     topic_writer,

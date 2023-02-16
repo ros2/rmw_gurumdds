@@ -750,8 +750,8 @@ rmw_send_request(
     memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
     ros_sn_to_dds_sn(++client_info->sequence_number, &sampleinfo_ex.seq);
     ros_guid_to_dds_guid(
-      reinterpret_cast<int8_t *>(client_info->writer_guid),
-      reinterpret_cast<int8_t *>(&sampleinfo_ex.src_guid));
+      client_info->writer_guid,
+      reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
     if (dds_DataWriter_raw_write_w_sampleinfoex(
         request_writer, dds_request, size, &sampleinfo_ex) != dds_RETCODE_OK)
@@ -863,7 +863,7 @@ rmw_take_response(
         uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
         int32_t sn_high = 0;
         uint32_t sn_low = 0;
-        int8_t client_guid[16] = {0};
+        uint8_t client_guid[16] = {0};
         bool res = deserialize_response_basic(
           type_support->data,
           type_support->typesupport_identifier,
@@ -936,9 +936,9 @@ rmw_take_response(
         }
         uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
         int64_t sequence_number = 0;
-        int8_t client_guid[16] = {0};
+        uint8_t client_guid[16] = {0};
         dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
-        dds_guid_to_ros_guid(reinterpret_cast<int8_t *>(&sampleinfo_ex->src_guid), client_guid);
+        dds_guid_to_ros_guid(reinterpret_cast<uint8_t *>(&sampleinfo_ex->src_guid), client_guid);
         dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
 
         bool res = deserialize_response_enhanced(

@@ -287,7 +287,7 @@ _serialize_service_basic(
   uint8_t * dds_service,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid,
+  const uint8_t * client_guid,
   bool is_request)
 {
   auto members =
@@ -331,7 +331,7 @@ serialize_service_basic(
   void * dds_service,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid,
+  const uint8_t * client_guid,
   bool is_request)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
@@ -368,7 +368,7 @@ _serialize_request_basic(
   uint8_t * dds_request,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid)
+  const uint8_t * client_guid)
 {
   auto members = static_cast<const ServiceMembersT *>(untyped_members);
   if (members == nullptr) {
@@ -395,7 +395,7 @@ serialize_request_basic(
   void * dds_request,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid)
+  const uint8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return _serialize_request_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
@@ -429,7 +429,7 @@ _serialize_response_basic(
   uint8_t * dds_response,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid)
+  const uint8_t * client_guid)
 {
   auto members = static_cast<const ServiceMembersT *>(untyped_members);
   if (members == nullptr) {
@@ -456,7 +456,7 @@ serialize_response_basic(
   void * dds_response,
   size_t size,
   int64_t sequence_number,
-  const int8_t * client_guid)
+  const uint8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return _serialize_response_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
@@ -646,7 +646,7 @@ _deserialize_service_basic(
   size_t size,
   int32_t * sn_high,
   uint32_t * sn_low,
-  int8_t * client_guid,
+  uint8_t * client_guid,
   bool is_request)
 {
   auto members =
@@ -688,7 +688,7 @@ deserialize_service_basic(
   size_t size,
   int32_t * sn_high,
   uint32_t * sn_low,
-  int8_t * client_guid,
+  uint8_t * client_guid,
   bool is_request)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
@@ -728,7 +728,7 @@ _deserialize_request_basic(
   size_t size,
   int32_t * sn_high,
   uint32_t * sn_low,
-  int8_t * client_guid)
+  uint8_t * client_guid)
 {
   auto members = static_cast<const ServiceMembersT *>(untyped_members);
   if (members == nullptr) {
@@ -757,7 +757,7 @@ deserialize_request_basic(
   size_t size,
   int32_t * sn_high,
   uint32_t * sn_low,
-  int8_t * client_guid)
+  uint8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return _deserialize_request_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
@@ -794,7 +794,7 @@ _deserialize_response_basic(
   size_t size,
   int32_t * sn_high,
   uint32_t * sn_low,
-  int8_t * client_guid)
+  uint8_t * client_guid)
 {
   auto members = static_cast<const ServiceMembersT *>(untyped_members);
   if (members == nullptr) {
@@ -823,7 +823,7 @@ deserialize_response_basic(
   size_t size,
   int32_t * sn_high,
   uint32_t * sn_low,
-  int8_t * client_guid)
+  uint8_t * client_guid)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return _deserialize_response_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
@@ -1007,14 +1007,14 @@ deserialize_response_enhanced(
 }
 
 inline void
-ros_guid_to_dds_guid(int8_t * guid_ros, int8_t * guid_dds)
+ros_guid_to_dds_guid(uint8_t * guid_ros, uint8_t * guid_dds)
 {
   memcpy(guid_dds, guid_ros, 12);
   memcpy(&guid_dds[12], &guid_ros[12], 4);
 }
 
 inline void
-dds_guid_to_ros_guid(int8_t * guid_dds, int8_t * guid_ros)
+dds_guid_to_ros_guid(uint8_t * guid_dds, uint8_t * guid_ros)
 {
   memcpy(guid_ros, guid_dds, 12);
   memcpy(&guid_ros[12], &guid_dds[12], 4);
