@@ -90,7 +90,7 @@ _get_security_file_paths(const char * const security_root_path, dds_PropertySeq 
     } while (false);
 
     allocator.deallocate(file_path, allocator.state);
-    if (succeed && prop == nullptr) {
+    if (succeed || prop == nullptr) {
       continue;
     }
 
