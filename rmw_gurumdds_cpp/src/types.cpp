@@ -191,6 +191,10 @@ void on_participant_changed(
     reinterpret_cast<rmw_context_impl_t *>(
     dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0));
 
+  if (ctx == nullptr) {
+    return;
+  }
+
   dds_GUID_t dp_guid;
   GuidPrefix_t dp_guid_prefix;
   dds_BuiltinTopicKey_to_GUID(&dp_guid_prefix, data->key);
@@ -230,6 +234,10 @@ void on_publication_changed(
   rmw_context_impl_t * ctx =
     reinterpret_cast<rmw_context_impl_t *>(
     dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0));
+
+  if (ctx == nullptr) {
+    return;
+  }
 
   dds_GUID_t endp_guid;
   GuidPrefix_t dp_guid_prefix, endp_guid_prefix;
@@ -289,6 +297,10 @@ void on_subscription_changed(
   rmw_context_impl_t * ctx =
     reinterpret_cast<rmw_context_impl_t *>(
     dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0));
+
+  if (ctx == nullptr) {
+    return;
+  }
 
   dds_GUID_t endp_guid;
   GuidPrefix_t dp_guid_prefix, endp_guid_prefix;
