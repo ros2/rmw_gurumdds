@@ -45,6 +45,15 @@ Changelog for package rmw_gurumdds_cpp
 4.0.0 (2022-05-09)
 ------------------
 
+4.2.0 (2023-03-07)
+------------------
+* Add maintainer
+* Add null handling
+* Apply loop to take sequence
+* Make writer_guid uint8_t[] for consistency with rmw_request_id_t
+* Make sure to add semicolons to the RMW_CHECK_TYPE_IDENTIFIERS_MATCH
+* Contributors: Youngjin Yun, donghee811
+
 4.1.2 (2022-11-30)
 ------------------
 * Remove sleep from entity creation

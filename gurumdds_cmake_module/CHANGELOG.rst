@@ -13,6 +13,11 @@ Changelog for package gurumdds_cmake_module
 4.0.0 (2022-05-09)
 ------------------
 
+4.2.0 (2023-03-07)
+------------------
+* Add maintainer
+* Contributors: donghee811
+
 4.1.2 (2022-11-30)
 ------------------
 
