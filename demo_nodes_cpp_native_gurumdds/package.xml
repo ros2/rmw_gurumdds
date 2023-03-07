@@ -5,6 +5,7 @@
   <version>1.0.0</version>
   <description>C++ nodes which access the native handles of the rmw implemenation.</description>
   <maintainer email="youngjin@gurum.cc">Youngjin Yun</maintainer>
+  <maintainer email="donghee@gurum.cc">Donghee Lee</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

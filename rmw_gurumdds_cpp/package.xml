@@ -5,6 +5,7 @@
   <version>4.1.2</version>
   <description>Implement the ROS middleware interface using GurumNetworks GurumDDS static code generation in C++.</description>
   <maintainer email="youngjin@gurum.cc">Youngjin Yun</maintainer>
+  <maintainer email="donghee@gurum.cc">Donghee Lee</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
