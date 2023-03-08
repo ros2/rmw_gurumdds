@@ -2,6 +2,13 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.4.0 (2023-03-08)
+------------------
+* Add maintainer
+* Add null handling
+* Apply loop to take sequence
+* Contributors: Youngjin Yun
+
 1.3.1 (2022-11-30)
 ------------------
 * Remove sleep from entity creation

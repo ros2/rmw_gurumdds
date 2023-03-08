@@ -2,6 +2,11 @@
 Changelog for package gurumdds_cmake_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.4.0 (2023-03-08)
+------------------
+* Add maintainer
+* Contributors: Youngjin Yun
+
 1.3.1 (2022-11-30)
 ------------------
 
