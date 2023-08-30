@@ -116,4 +116,18 @@ rmw_get_serialized_message_size(
   RMW_SET_ERROR_MSG("unimplemented");
   return RMW_RET_UNSUPPORTED;
 }
+
+rmw_ret_t
+rmw_serialization_support_init(
+  const char * serialization_lib_name,
+  rcutils_allocator_t * allocator,
+  rosidl_dynamic_typesupport_serialization_support_t * serialization_support)
+{
+  static_cast<void>(serialization_lib_name);
+  static_cast<void>(allocator);
+  static_cast<void>(serialization_support);
+
+  RMW_SET_ERROR_MSG("rmw_serialization_support_init: unimplemented");
+  return RMW_RET_UNSUPPORTED;
+}
 }  // extern "C"
