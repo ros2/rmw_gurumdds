@@ -8,6 +8,9 @@ Changelog for package rmw_gurumdds_shared_cpp
 * fix typo
 * Contributors: youngjin
 
+2.3.3 (2023-09-12)
+------------------
+
 2.3.2 (2022-07-05)
 ------------------
 * Change g_mask_map_ptr type to array of dds_StatusKind
