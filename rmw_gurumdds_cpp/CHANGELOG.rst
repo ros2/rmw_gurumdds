@@ -7,6 +7,11 @@ Changelog for package rmw_gurumdds_cpp
 * Update packages to use gurumdds-2.7
 * Contributors: youngjin
 
+2.3.3 (2023-09-12)
+------------------
+* Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
+* Contributors: Jaemin Jo
+
 2.3.2 (2022-07-05)
 ------------------
 * Add missing guid comparison conditional statement
