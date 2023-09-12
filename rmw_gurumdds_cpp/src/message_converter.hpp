@@ -177,10 +177,6 @@ public:
           break;
       }
     }
-
-    if (roundup_) {
-      buffer.roundup(4);
-    }
   }
 
 private:
