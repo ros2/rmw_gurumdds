@@ -132,7 +132,7 @@ public:
   : buffer(a_buffer) {}
 
   template<typename MessageMembersT>
-  void deserialize(const MessageMembersT * members, uint8_t * output, bool roundup_)
+  void deserialize(const MessageMembersT * members, uint8_t * output)
   {
     for (uint32_t i = 0; i < members->member_count_; i++) {
       auto member = members->members_ + i;
@@ -176,10 +176,6 @@ public:
         default:
           break;
       }
-    }
-
-    if (roundup_) {
-      buffer.roundup(4);
     }
   }
 
