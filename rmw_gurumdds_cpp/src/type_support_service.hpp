@@ -670,7 +670,7 @@ _deserialize_service_basic(
       int32_t remoteEx;
       buffer >> *(reinterpret_cast<uint32_t *>(&remoteEx));
     }
-    deserializer.deserialize(members, ros_service, true);
+    deserializer.deserialize(members, ros_service);
   } catch (std::runtime_error & e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
     return false;
@@ -869,7 +869,7 @@ _deserialize_service_enhanced(
   try {
     auto buffer = CDRDeserializationBuffer(dds_service, size);
     auto deserializer = MessageDeserializer(buffer);
-    deserializer.deserialize(members, ros_service, true);
+    deserializer.deserialize(members, ros_service);
   } catch (std::runtime_error & e) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deserialize dds message: %s", e.what());
     return false;
