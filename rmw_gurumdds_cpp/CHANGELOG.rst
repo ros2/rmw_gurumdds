@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.4.1 (2023-09-13)
+------------------
+* Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
+* Contributors: Jaemin Jo
+
 3.4.0 (2023-03-08)
 ------------------
 * Add maintainer
