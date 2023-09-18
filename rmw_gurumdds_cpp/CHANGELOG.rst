@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.4.2 (2023-09-18)
+------------------
+* Update packages to use gurumdds-3.0 & Update README
+* Contributors: Jaemin Jo
+
 3.4.1 (2023-09-13)
 ------------------
 * Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
