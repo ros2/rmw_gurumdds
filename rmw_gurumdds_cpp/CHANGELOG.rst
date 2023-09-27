@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.5.0 (2023-09-27)
+------------------
+* Change maintainer list
+* Support zero copy API
+* Contributors: Jaemin Jo
+
 3.4.2 (2023-09-18)
 ------------------
 * Update packages to use gurumdds-3.0 & Update README

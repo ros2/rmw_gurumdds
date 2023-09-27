@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rmw_gurumdds_cpp</name>
-  <version>3.4.2</version>
+  <version>3.5.0</version>
   <description>Implement the ROS middleware interface using GurumNetworks GurumDDS static code generation in C++.</description>
   <maintainer email="donghee@gurum.cc">Donghee Lee</maintainer>
   <maintainer email="jaemin@gurum.cc">Jaemin Jo</maintainer>
