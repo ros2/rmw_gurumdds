@@ -534,16 +534,27 @@ void MessageDeserializer::deserialize_struct_arr(
       uint32_t size = 0;
       buffer >> size;
       member->resize_function(output + member->offset_, static_cast<size_t>(size));
-    }
-    for (uint32_t j = 0; j < member->size_function(output + member->offset_); j++) {
-      deserialize(
-        reinterpret_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(
-          member->members_->data
-        ),
-        reinterpret_cast<uint8_t *>(
-          member->get_function(output + member->offset_, j)
-        )
-      );
+      for (uint32_t j = 0; j < member->size_function(output + member->offset_); j++) {
+        deserialize(
+          reinterpret_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(
+            member->members_->data
+          ),
+          reinterpret_cast<uint8_t *>(
+            member->get_function(output + member->offset_, j)
+          )
+        );
+      }
+    } else {
+      for (uint32_t j = 0; j < member->size_function(output + member->offset_); j++) {
+        deserialize(
+          reinterpret_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(
+            member->members_->data
+          ),
+          reinterpret_cast<uint8_t *>(
+            output + member->offset_
+          )
+        );
+      }
     }
   } else {
     deserialize(
@@ -771,14 +782,13 @@ void MessageDeserializer::deserialize_struct_arr(
         );
       }
     } else {
-      void * tmp = output + member->offset_;
       for (uint32_t j = 0; j < member->size_function(output + member->offset_); j++) {
         deserialize(
           reinterpret_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(
             member->members_->data
           ),
           reinterpret_cast<uint8_t *>(
-            member->get_function(&tmp, j)
+            output + member->offset_
           )
         );
       }
