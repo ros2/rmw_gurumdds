@@ -5,6 +5,11 @@ Changelog for package gurumdds_cmake_module
 2.3.3 (2023-09-12)
 ------------------
 
+2.3.4 (2023-10-19)
+------------------
+* 2.3.3
+* Contributors: Jaemin Jo
+
 2.3.2 (2022-07-05)
 ------------------
 

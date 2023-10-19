@@ -12,6 +12,13 @@ Changelog for package rmw_gurumdds_cpp
 * Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
 * Contributors: Jaemin Jo
 
+2.3.4 (2023-10-19)
+------------------
+* Fix deserialize errors: Change getting output buffer
+* 2.3.3
+* Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
+* Contributors: Jaemin Jo
+
 2.3.2 (2022-07-05)
 ------------------
 * Add missing guid comparison conditional statement
