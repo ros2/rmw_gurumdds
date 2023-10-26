@@ -12,6 +12,11 @@ Changelog for package rmw_gurumdds_cpp
 * Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
 * Contributors: Jaemin Jo
 
+2.3.5 (2023-10-26)
+------------------
+* Fix struct array deserialization
+* Contributors: Jaemin Jo
+
 2.3.4 (2023-10-19)
 ------------------
 * Fix deserialize errors: Change getting output buffer
