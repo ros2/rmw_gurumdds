@@ -282,7 +282,8 @@ rmw_create_publisher(
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
   rmw_publisher->options = *publisher_options;
-  rmw_publisher->can_loan_messages = false;
+  rmw_publisher->can_loan_messages = dds_TypeSupport_is_plain(dds_typesupport) &&
+    dds_DataWriter_is_data_sharing_enabled(topic_writer);
 
   rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
   if (rmw_ret != RMW_RET_OK) {
@@ -754,12 +755,67 @@ rmw_publish_loaned_message(
   void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
-  (void)publisher;
-  (void)ros_message;
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(ros_message, RMW_RET_INVALID_ARGUMENT);
   (void)allocation;
 
-  RMW_SET_ERROR_MSG("rmw_publish_loaned_message is not supported");
-  return RMW_RET_UNSUPPORTED;
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    publisher,
+    publisher->implementation_identifier,
+    gurum_gurumdds_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  if (!publisher->can_loan_messages) {
+    RMW_SET_ERROR_MSG("Loaning is not supported");
+    return RMW_RET_UNSUPPORTED;
+  }
+
+  auto publisher_info = static_cast<GurumddsPublisherInfo *>(publisher->data);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher_info, RMW_RET_ERROR);
+
+  dds_DataWriter * topic_writer = publisher_info->topic_writer;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_writer, RMW_RET_ERROR);
+
+  const rosidl_message_type_support_t * rosidl_typesupport =
+    publisher_info->rosidl_message_typesupport;
+  if (rosidl_typesupport == nullptr) {
+    RMW_SET_ERROR_MSG("rosidl typesupport handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  // Restore cdr header
+  ros_message = reinterpret_cast<uint8_t *>(ros_message) - 4;
+
+  size_t size = get_serialized_size(
+      rosidl_typesupport->data,
+      rosidl_typesupport->typesupport_identifier,
+      ros_message
+      );
+
+  dds_ReturnCode_t ret = dds_DataWriter_raw_write(
+      topic_writer, ros_message, size);
+
+  const char * errstr;
+  if (ret == dds_RETCODE_OK) {
+    errstr = "dds_RETCODE_OK";
+  } else if (ret == dds_RETCODE_TIMEOUT) {
+    errstr = "dds_RETCODE_TIMEOUT";
+  } else if (ret == dds_RETCODE_OUT_OF_RESOURCES) {
+    errstr = "dds_RETCODE_OUT_OF_RESOURCES";
+  } else {
+    errstr = "dds_RETCODE_ERROR";
+  }
+
+  if (ret != dds_RETCODE_OK) {
+    std::stringstream errmsg;
+    errmsg << "failed to publish data: " << errstr << ", " << ret;
+    RMW_SET_ERROR_MSG(errmsg.str().c_str());
+    return RMW_RET_ERROR;
+  }
+
+  RCUTILS_LOG_DEBUG_NAMED(gurum_gurumdds_identifier, "Published data on topic %s", publisher->topic_name);
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
@@ -768,12 +824,38 @@ rmw_borrow_loaned_message(
   const rosidl_message_type_support_t * type_support,
   void ** ros_message)
 {
-  (void)publisher;
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
   (void)type_support;
-  (void)ros_message;
+  RMW_CHECK_ARGUMENT_FOR_NULL(ros_message, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_borrow_loaned_message is not supported");
-  return RMW_RET_UNSUPPORTED;
+  if (!publisher->can_loan_messages) {
+    RMW_SET_ERROR_MSG("Loaning is not supported");
+    return RMW_RET_UNSUPPORTED;
+  }
+
+  auto publisher_info = static_cast<GurumddsPublisherInfo *>(publisher->data);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher_info, RMW_RET_ERROR);
+
+  dds_DataWriter * topic_writer = publisher_info->topic_writer;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_writer, RMW_RET_ERROR);
+
+  size_t size = 0;
+  void * data = NULL;
+  if (dds_DataWriter_get_loan(topic_writer, &data, &size) == dds_RETCODE_OK) {
+    // Fill cdr header
+    uint8_t * ptr = static_cast<uint8_t *>(data);
+    ptr[0] = 0x00;
+    ptr[1] = 0x01;
+    ptr[2] = 0x00;
+    ptr[3] = 0x00;
+
+    // Deliver data without cdr header
+    *ros_message = static_cast<uint8_t *>(data) + 4;
+
+    return RMW_RET_OK;
+  }
+
+  return RMW_RET_ERROR;
 }
 
 rmw_ret_t
@@ -781,10 +863,22 @@ rmw_return_loaned_message_from_publisher(
   const rmw_publisher_t * publisher,
   void * loaned_message)
 {
-  (void)publisher;
-  (void)loaned_message;
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_return_loaned_message_from_publisher is not supported");
-  return RMW_RET_UNSUPPORTED;
+  if (!publisher->can_loan_messages) {
+    RMW_SET_ERROR_MSG("Loaning is not supported");
+    return RMW_RET_UNSUPPORTED;
+  }
+
+  auto publisher_info = static_cast<GurumddsPublisherInfo *>(publisher->data);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher_info, RMW_RET_ERROR);
+
+  dds_DataWriter * topic_writer = publisher_info->topic_writer;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_writer, RMW_RET_ERROR);
+
+  dds_DataWriter_return_loaned_sample(topic_writer, loaned_message);
+
+  return RMW_RET_OK;
 }
 }  // extern "C"

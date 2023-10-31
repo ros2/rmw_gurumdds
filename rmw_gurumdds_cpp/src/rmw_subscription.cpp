@@ -283,7 +283,8 @@ rmw_create_subscription(
   }
   memcpy(const_cast<char *>(subscription->topic_name), topic_name, strlen(topic_name) + 1);
   subscription->options = *subscription_options;
-  subscription->can_loan_messages = false;
+  subscription->can_loan_messages = dds_TypeSupport_is_plain(dds_typesupport) &&
+    dds_DataReader_is_data_sharing_enabled(topic_reader);
 
   rmw_ret = rmw_trigger_guard_condition(node_info->graph_guard_condition);
   if (rmw_ret != RMW_RET_OK) {
@@ -917,11 +918,16 @@ static rmw_ret_t
 _take_serialized(
   const char * identifier,
   const rmw_subscription_t * subscription,
-  rmw_serialized_message_t * serialized_message,
+  void ** message,
   bool * taken,
   rmw_message_info_t * message_info,
-  rmw_subscription_allocation_t * allocation)
+  rmw_subscription_allocation_t * allocation,
+  bool is_loan)
 {
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(message, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
+
   (void)allocation;
   *taken = false;
 
@@ -958,9 +964,16 @@ _take_serialized(
     return RMW_RET_ERROR;
   }
 
-  dds_ReturnCode_t ret = dds_DataReader_raw_take(
-    topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
-    dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  dds_ReturnCode_t ret;
+  if (is_loan) {
+    ret = dds_DataReader_raw_take_w_sampleinfoex(
+      topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+      dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  } else {
+    ret = dds_DataReader_raw_take(
+      topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
+      dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  }
 
   const char * topic_name =
     dds_TopicDescription_get_name(dds_DataReader_get_topicdescription(topic_reader));
@@ -987,9 +1000,10 @@ _take_serialized(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_gurumdds_cpp", "Received data on topic %s", topic_name);
 
-  dds_SampleInfo * sample_info = dds_SampleInfoSeq_get(sample_infos, 0);
+  dds_SampleInfoEx * sample_info = reinterpret_cast<dds_SampleInfoEx *>(
+      dds_SampleInfoSeq_get(sample_infos, 0));
 
-  if (sample_info->valid_data) {
+  if (sample_info->info.valid_data) {
     void * sample = dds_DataSeq_get(data_values, 0);
     if (sample == nullptr) {
       RMW_SET_ERROR_MSG("failed to take data");
@@ -1000,28 +1014,42 @@ _take_serialized(
       return RMW_RET_ERROR;
     }
 
-    uint32_t sample_size = dds_UnsignedLongSeq_get(sample_sizes, 0);
-    serialized_message->buffer_length = sample_size;
-    if (serialized_message->buffer_capacity < sample_size) {
-      rmw_ret_t rmw_ret = rmw_serialized_message_resize(serialized_message, sample_size);
-      if (rmw_ret != RMW_RET_OK) {
-        // Error message already set
-        dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
-        return rmw_ret;
-      }
+    if (is_loan && !dds_DataReader_is_data_consistent(topic_reader, sample, sample_info)) {
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataSeq_delete(data_values);
+      dds_SampleInfoSeq_delete(sample_infos);
+      dds_UnsignedLongSeq_delete(sample_sizes);
+      return RMW_RET_OK;
     }
 
-    memcpy(serialized_message->buffer, sample, sample_size);
+    uint32_t sample_size = dds_UnsignedLongSeq_get(sample_sizes, 0);
+    if (is_loan) {
+      *message = reinterpret_cast<uint8_t *>(sample) + 4;
+    } else {
+      rmw_serialized_message_t * serialized_message =
+        reinterpret_cast<rmw_serialized_message_t *>(*message);
+      serialized_message->buffer_length = sample_size;
+      if (serialized_message->buffer_capacity < sample_size) {
+        rmw_ret_t rmw_ret = rmw_serialized_message_resize(serialized_message, sample_size);
+        if (rmw_ret != RMW_RET_OK) {
+          // Error message already set
+          dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+          dds_DataSeq_delete(data_values);
+          dds_SampleInfoSeq_delete(sample_infos);
+          dds_UnsignedLongSeq_delete(sample_sizes);
+          return rmw_ret;
+        }
+      }
+
+      memcpy(serialized_message->buffer, sample, sample_size);
+    }
 
     *taken = true;
 
     if (message_info != nullptr) {
       message_info->source_timestamp =
-        sample_info->source_timestamp.sec * static_cast<int64_t>(1000000000) +
-        sample_info->source_timestamp.nanosec;
+        sample_info->info.source_timestamp.sec * static_cast<int64_t>(1000000000) +
+        sample_info->info.source_timestamp.nanosec;
       // TODO(clemjh): SampleInfo doesn't contain received_timestamp
       message_info->received_timestamp = 0;
       rmw_gid_t * sender_gid = &message_info->publisher_gid;
@@ -1029,7 +1057,7 @@ _take_serialized(
       memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
       auto custom_gid = reinterpret_cast<GurumddsPublisherGID *>(sender_gid->data);
       dds_ReturnCode_t ret = dds_DataReader_get_guid_from_publication_handle(
-        topic_reader, sample_info->publication_handle, custom_gid->publication_handle);
+        topic_reader, sample_info->info.publication_handle, custom_gid->publication_handle);
       if (ret != dds_RETCODE_OK) {
         if (ret == dds_RETCODE_ERROR) {
           RCUTILS_LOG_WARN_NAMED("rmw_gurumdds_cpp", "Failed to get publication handle");
@@ -1062,8 +1090,13 @@ rmw_take_serialized_message(
     taken, "boolean flag for taken is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take_serialized(
-    gurum_gurumdds_identifier, subscription,
-    serialized_message, taken, nullptr, allocation);
+    gurum_gurumdds_identifier,
+    subscription,
+    reinterpret_cast<void **>(&serialized_message),
+    taken,
+    nullptr,
+    allocation,
+    false);
 }
 
 rmw_ret_t
@@ -1084,8 +1117,13 @@ rmw_take_serialized_message_with_info(
     message_info, "message info pointer is null", return RMW_RET_INVALID_ARGUMENT);
 
   return _take_serialized(
-    gurum_gurumdds_identifier, subscription,
-    serialized_message, taken, message_info, allocation);
+    gurum_gurumdds_identifier,
+    subscription,
+    reinterpret_cast<void **>(&serialized_message),
+    taken,
+    message_info,
+    allocation,
+    false);
 }
 
 rmw_ret_t
@@ -1095,13 +1133,23 @@ rmw_take_loaned_message(
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  (void)subscription;
-  (void)loaned_message;
-  (void)taken;
-  (void)allocation;
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_take_loaned_message is not supported");
-  return RMW_RET_UNSUPPORTED;
+  if (!subscription->can_loan_messages) {
+    RMW_SET_ERROR_MSG("Loaning is not supported");
+    return RMW_RET_UNSUPPORTED;
+  }
+
+  return _take_serialized(
+    gurum_gurumdds_identifier,
+    subscription,
+    loaned_message,
+    taken,
+    nullptr,
+    allocation,
+    true);
 }
 
 rmw_ret_t
@@ -1112,14 +1160,23 @@ rmw_take_loaned_message_with_info(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation)
 {
-  (void)subscription;
-  (void)loaned_message;
-  (void)taken;
-  (void)message_info;
-  (void)allocation;
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_take_loaned_message_with_info is not supported");
-  return RMW_RET_UNSUPPORTED;
+  if (!subscription->can_loan_messages) {
+    RMW_SET_ERROR_MSG("Loaning is not supported");
+    return RMW_RET_UNSUPPORTED;
+  }
+
+  return _take_serialized(
+    gurum_gurumdds_identifier,
+    subscription,
+    loaned_message,
+    taken,
+    message_info,
+    allocation,
+    true);
 }
 
 rmw_ret_t
@@ -1127,10 +1184,14 @@ rmw_return_loaned_message_from_subscription(
   const rmw_subscription_t * subscription,
   void * loaned_message)
 {
-  (void)subscription;
-  (void)loaned_message;
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_return_loaned_message_from_subscription is not supported");
-  return RMW_RET_UNSUPPORTED;
+  if (!subscription->can_loan_messages) {
+    RMW_SET_ERROR_MSG("Loaning is not supported");
+    return RMW_RET_UNSUPPORTED;
+  }
+
+  return RMW_RET_OK;
 }
 }  // extern "C"
