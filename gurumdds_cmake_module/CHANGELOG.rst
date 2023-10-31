@@ -5,6 +5,11 @@ Changelog for package gurumdds_cmake_module
 2.3.3 (2023-09-12)
 ------------------
 
+2.4.0 (2023-10-31)
+------------------
+* Support zero copy API
+* Contributors: Jaemin Jo
+
 2.3.5 (2023-10-26)
 ------------------
 
