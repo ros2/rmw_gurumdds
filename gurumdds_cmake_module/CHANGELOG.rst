@@ -2,6 +2,9 @@
 Changelog for package gurumdds_cmake_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.5.1 (2024-01-30)
+------------------
+
 3.5.0 (2023-09-27)
 ------------------
 * Change maintainer list

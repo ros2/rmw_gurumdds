@@ -2,6 +2,11 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.5.1 (2024-01-30)
+------------------
+* Fix struct array deserialization
+* Contributors: Jaemin Jo
+
 3.5.0 (2023-09-27)
 ------------------
 * Change maintainer list
