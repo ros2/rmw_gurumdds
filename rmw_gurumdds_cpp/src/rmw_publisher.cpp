@@ -877,8 +877,6 @@ rmw_return_loaned_message_from_publisher(
   dds_DataWriter * topic_writer = publisher_info->topic_writer;
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_writer, RMW_RET_ERROR);
 
-  dds_DataWriter_return_loaned_sample(topic_writer, loaned_message);
-
   return RMW_RET_OK;
 }
 }  // extern "C"
