@@ -11,6 +11,9 @@ Changelog for package rmw_gurumdds_shared_cpp
 2.3.3 (2023-09-12)
 ------------------
 
+2.4.1 (2024-02-21)
+------------------
+
 2.4.0 (2023-10-31)
 ------------------
 * Support zero copy API
