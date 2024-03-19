@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <gurumdds/dcps.h>
+#include <rosidl_runtime_c/message_type_support_struct.h>
 #include <string>
 #include <sstream>
 #include <limits>
@@ -135,6 +137,7 @@ rmw_create_publisher(
   dds_Topic * topic = nullptr;
   dds_TopicDescription * topic_desc = nullptr;
   dds_TypeSupport * dds_typesupport = nullptr;
+  dds_TypeSupport_ops dds_ops = dds_TypeSupport_ops();
   dds_ReturnCode_t ret;
   rmw_ret_t rmw_ret;
 
@@ -164,6 +167,15 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("failed to create typesupport");
     goto fail;
   }
+
+  dds_ops.context = const_cast<rosidl_message_type_support_t *>(type_support);
+  dds_ops.get_size = gurumdds_ts_get_size;
+  dds_ops.get_serialized_size = gurumdds_ts_get_serialized_size;
+  dds_ops.serialize = NULL;
+  dds_ops.serialize_direct = gurumdds_ts_serialize_direct;
+  dds_ops.deserialize = NULL;
+  dds_ops.deserialize_direct = gurumdds_ts_deserialize_direct;
+  dds_TypeSupport_set_operations(dds_typesupport, &dds_ops);
 
   ret = dds_TypeSupport_register_type(dds_typesupport, participant, type_name.c_str());
   if (ret != dds_RETCODE_OK) {
@@ -643,33 +655,7 @@ rmw_publish(
     return RMW_RET_ERROR;
   }
 
-  size_t size = 0;
-  void * dds_message = allocate_message(
-    rosidl_typesupport->data,
-    rosidl_typesupport->typesupport_identifier,
-    ros_message,
-    &size,
-    false
-  );
-  if (dds_message == nullptr) {
-    // Error message already set
-    return RMW_RET_ERROR;
-  }
-
-  bool result = serialize_ros_to_cdr(
-    rosidl_typesupport->data,
-    rosidl_typesupport->typesupport_identifier,
-    ros_message,
-    dds_message,
-    size
-  );
-  if (!result) {
-    RMW_SET_ERROR_MSG("failed to serialize message");
-    free(dds_message);
-    return RMW_RET_ERROR;
-  }
-
-  dds_ReturnCode_t ret = dds_DataWriter_raw_write(topic_writer, dds_message, size);
+  dds_ReturnCode_t ret = dds_DataWriter_write(topic_writer, ros_message, dds_HANDLE_NIL);
   const char * errstr;
   if (ret == dds_RETCODE_OK) {
     errstr = "dds_RETCODE_OK";
@@ -685,13 +671,10 @@ rmw_publish(
     std::stringstream errmsg;
     errmsg << "failed to publish data: " << errstr << ", " << ret;
     RMW_SET_ERROR_MSG(errmsg.str().c_str());
-    free(dds_message);
     return RMW_RET_ERROR;
   }
   const char * topic_name = dds_Topic_get_name(dds_DataWriter_get_topic(topic_writer));
   RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp", "Published data on topic %s", topic_name);
-
-  free(dds_message);
 
   return RMW_RET_OK;
 }
@@ -783,17 +766,8 @@ rmw_publish_loaned_message(
     return RMW_RET_ERROR;
   }
 
-  // Restore cdr header
-  ros_message = reinterpret_cast<uint8_t *>(ros_message) - 4;
-
-  size_t size = get_serialized_size(
-      rosidl_typesupport->data,
-      rosidl_typesupport->typesupport_identifier,
-      ros_message
-      );
-
-  dds_ReturnCode_t ret = dds_DataWriter_raw_write(
-      topic_writer, ros_message, size);
+  dds_ReturnCode_t ret = dds_DataWriter_write(
+      topic_writer, ros_message, dds_HANDLE_NIL);
 
   const char * errstr;
   if (ret == dds_RETCODE_OK) {
@@ -840,20 +814,8 @@ rmw_borrow_loaned_message(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_writer, RMW_RET_ERROR);
 
   size_t size = 0;
-  void * data = NULL;
-  if (dds_DataWriter_get_loan(topic_writer, &data, &size) == dds_RETCODE_OK) {
-    // Fill cdr header
-    uint8_t * ptr = static_cast<uint8_t *>(data);
-    ptr[0] = 0x00;
-    ptr[1] = 0x01;
-    ptr[2] = 0x00;
-    ptr[3] = 0x00;
-
-    // Deliver data without cdr header
-    *ros_message = static_cast<uint8_t *>(data) + 4;
-
+  if (dds_DataWriter_get_loan(topic_writer, ros_message, &size) == dds_RETCODE_OK)
     return RMW_RET_OK;
-  }
 
   return RMW_RET_ERROR;
 }

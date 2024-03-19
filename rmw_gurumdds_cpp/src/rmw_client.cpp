@@ -123,6 +123,18 @@ rmw_create_client(
   std::string request_metastring;
   std::string response_metastring;
 
+  // Service and client does not yet support zero copy
+  dds_DataSharingQosPolicy datasharing;
+  datasharing.kind = dds_DISABLE_DATASHARING;
+  datasharing.max_samples = 0;
+  datasharing.max_size_per_sample = 0;
+
+  dds_StringProperty props[2];
+  props[0].key = const_cast<char*>("dcps.datawriter.data_sharing_qos");
+  props[0].value = &datasharing;
+  props[1].key = NULL;
+  props[1].value = NULL;
+
   // Create topic and type name strings
   service_type_name =
     create_service_type_name(type_support->data, type_support->typesupport_identifier);
@@ -290,8 +302,8 @@ rmw_create_client(
     goto fail;
   }
 
-  request_writer = dds_Publisher_create_datawriter(
-    dds_publisher, request_topic, &datawriter_qos, nullptr, 0);
+  request_writer = dds_Publisher_create_datawriter_w_props(
+    dds_publisher, request_topic, &datawriter_qos, nullptr, 0, props);
   if (request_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
     dds_DataWriterQos_finalize(&datawriter_qos);
