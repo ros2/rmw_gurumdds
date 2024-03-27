@@ -12,6 +12,12 @@ Changelog for package rmw_gurumdds_cpp
 * Fix interoperability errors: Remove buffer roundup at the end of messeage deserialize function
 * Contributors: Jaemin Jo
 
+2.5.0 (2024-03-27)
+------------------
+* Update zero copy implementation
+* Use gurumdds-3.1
+* Contributors: hyeonwoo
+
 2.4.1 (2024-02-21)
 ------------------
 * Remove forbidden API call
