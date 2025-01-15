@@ -342,8 +342,7 @@ rmw_ret_t publish(
     rosidl_typesupport->data,
     rosidl_typesupport->typesupport_identifier,
     ros_message,
-    &size,
-    false
+    &size
   );
 
   if (dds_message == nullptr) {

@@ -31,16 +31,15 @@ void *
 allocate_message(
   const void * untyped_members,
   const uint8_t * ros_message,
-  size_t * size,
-  bool is_service);
+  size_t * size);
 
 template<typename MessageMembersT>
 std::string
-create_metastring(const void * untyped_members, bool is_service);
+create_metastring(const void * untyped_members);
 
 template<typename MessageMembersT>
 std::string
-parse_struct(const MessageMembersT * members, const char * field_name, bool is_service);
+parse_struct(const MessageMembersT * members, const char * field_name);
 
 std::string
 create_type_name(const void * untyped_members, const char * identifier);
@@ -53,8 +52,7 @@ allocate_message(
   const void * untyped_members,
   const char * identifier,
   const void * ros_message,
-  size_t * size,
-  bool is_service);
+  size_t * size);
 
 ssize_t
 get_serialized_size(

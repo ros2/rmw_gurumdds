@@ -132,15 +132,9 @@ std::string
 create_metastring(const void * untyped_members, const char * identifier)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
-    return create_metastring<rosidl_typesupport_introspection_c__MessageMembers>(
-      untyped_members,
-      false
-    );
+    return create_metastring<rosidl_typesupport_introspection_c__MessageMembers>(untyped_members);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
-    return create_metastring<rosidl_typesupport_introspection_cpp::MessageMembers>(
-      untyped_members,
-      false
-    );
+    return create_metastring<rosidl_typesupport_introspection_cpp::MessageMembers>(untyped_members);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
@@ -152,22 +146,19 @@ allocate_message(
   const void * untyped_members,
   const char * identifier,
   const void * ros_message,
-  size_t * size,
-  bool is_service)
+  size_t * size)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return allocate_message<rosidl_typesupport_introspection_c__MessageMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_message),
-      size,
-      is_service
+      size
     );
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return allocate_message<rosidl_typesupport_introspection_cpp::MessageMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_message),
-      size,
-      is_service
+      size
     );
   }
 
