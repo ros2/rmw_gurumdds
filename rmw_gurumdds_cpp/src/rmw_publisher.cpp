@@ -75,7 +75,7 @@ create_publisher(
   rmw_publisher_t * rmw_publisher = nullptr;
   PublisherInfo * publisher_info = nullptr;
   dds_DataWriter * topic_writer = nullptr;
-  dds_DataWriterQos datawriter_qos;
+  dds_DataWriterQos datawriter_qos{};
   dds_Topic * topic = nullptr;
   dds_TopicDescription * topic_desc = nullptr;
   dds_TypeSupport * dds_typesupport = nullptr;
@@ -139,8 +139,17 @@ create_publisher(
     }
   }
 
+  ret = dds_DomainParticipantFactory_get_datawriter_qos_from_profile(topic_name, &datawriter_qos);
+  if(ret != dds_RETCODE_OK) {
+    ret = dds_Publisher_get_default_datawriter_qos(pub, &datawriter_qos);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to get default datawriter qos");
+      return nullptr;
+    }
+  }
+
   const rosidl_type_hash_t& type_hash = *type_support->get_type_hash_func(type_support);
-  if (!rmw_gurumdds_cpp::get_datawriter_qos(pub, qos_policies, type_hash, &datawriter_qos)) {
+  if (!rmw_gurumdds_cpp::get_datawriter_qos(qos_policies, type_hash, &datawriter_qos)) {
     // Error message already set
     return nullptr;
   }

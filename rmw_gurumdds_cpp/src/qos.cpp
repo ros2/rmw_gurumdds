@@ -151,16 +151,9 @@ set_entity_qos_from_profile_generic(
 
 bool
 get_datawriter_qos(
-  dds_Publisher * publisher,
   const rmw_qos_profile_t * qos_profile,
   const rosidl_type_hash_t & type_hash,
   dds_DataWriterQos * datawriter_qos) {
-  dds_ReturnCode_t ret = dds_Publisher_get_default_datawriter_qos(publisher, datawriter_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to get default datawriter qos");
-    return false;
-  }
-
   if (!is_time_unspecified(qos_profile->lifespan)) {
     datawriter_qos->lifespan.duration = rmw_time_to_dds(qos_profile->lifespan);
   }
@@ -181,19 +174,10 @@ get_datawriter_qos(
 }
 
 bool get_datareader_qos(
-  dds_Subscriber * subscriber,
   const rmw_qos_profile_t * qos_profile,
   const rosidl_type_hash_t & type_hash,
-  dds_DataReaderQos * datareader_qos)
-{
-  dds_ReturnCode_t ret = dds_Subscriber_get_default_datareader_qos(subscriber, datareader_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to get default datareader qos");
-    return false;
-  }
-
+  dds_DataReaderQos * datareader_qos) {
   set_entity_qos_from_profile_generic(qos_profile, datareader_qos);
-
 
   std::string user_data_str;
   if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
