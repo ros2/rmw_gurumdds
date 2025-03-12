@@ -101,7 +101,7 @@ rmw_create_node(
     return nullptr;
   }
 
-  ret = ctx->initialize_node(namespace_, name);
+  ret = ctx->initialize_node(name, namespace_);
   if (ret != RMW_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to initialize node in context");
     return nullptr;
