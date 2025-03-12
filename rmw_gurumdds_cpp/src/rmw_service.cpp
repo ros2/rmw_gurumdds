@@ -103,8 +103,8 @@ rmw_create_service(
   dds_Publisher * publisher = ctx->publisher;
   dds_Subscriber * subscriber = ctx->subscriber;
 
-  dds_DataReaderQos datareader_qos;
-  dds_DataWriterQos datawriter_qos;
+  dds_DataReaderQos datareader_qos{};
+  dds_DataWriterQos datawriter_qos{};
 
   dds_DataReader * request_reader = nullptr;
   dds_DataReaderListener request_listener;
@@ -130,6 +130,8 @@ rmw_create_service(
   std::string response_type_name;
   std::string request_metastring;
   std::string response_metastring;
+  std::string writer_profile_name;
+  std::string reader_profile_name;
 
   const rosidl_type_hash_t* type_hash;
 
@@ -142,6 +144,12 @@ rmw_create_service(
     RMW_SET_ERROR_MSG("failed to create type name");
     return nullptr;
   }
+
+  writer_profile_name = service_name;
+  writer_profile_name += "Reply";
+
+  reader_profile_name = service_name;
+  reader_profile_name += "Request";
 
   request_topic_name.reserve(256);
   response_topic_name.reserve(256);
@@ -259,8 +267,17 @@ rmw_create_service(
     }
   }
 
+  ret = dds_DomainParticipantFactory_get_datareader_qos_from_profile(reader_profile_name.c_str(), &datareader_qos);
+  if(ret != dds_RETCODE_OK) {
+    ret = dds_Subscriber_get_default_datareader_qos(subscriber, &datareader_qos);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to get default datareader qos");
+      return nullptr;
+    }
+  }
+
   type_hash = type_support->request_typesupport->get_type_hash_func(type_support->request_typesupport);
-  if (!rmw_gurumdds_cpp::get_datareader_qos(subscriber, &adapted_qos_policies, *type_hash, &datareader_qos)) {
+  if (!rmw_gurumdds_cpp::get_datareader_qos(&adapted_qos_policies, *type_hash, &datareader_qos)) {
     // Error message already set
     goto fail;
   }
@@ -286,8 +303,23 @@ rmw_create_service(
     goto fail;
   }
 
+  ret = dds_Publisher_get_default_datawriter_qos(publisher, &datawriter_qos);
+  if (ret != dds_RETCODE_OK) {
+    RMW_SET_ERROR_MSG("failed to get default datawriter qos");
+    return nullptr;
+  }
+
+  ret = dds_DomainParticipantFactory_get_datawriter_qos_from_profile(writer_profile_name.c_str(), &datawriter_qos);
+  if(ret != dds_RETCODE_OK) {
+    ret = dds_Publisher_get_default_datawriter_qos(publisher, &datawriter_qos);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to get default datawriter qos");
+      return nullptr;
+    }
+  }
+
   type_hash = type_support->response_typesupport->get_type_hash_func(type_support->response_typesupport);
-  if (!rmw_gurumdds_cpp::get_datawriter_qos(publisher, &adapted_qos_policies, *type_hash, &datawriter_qos)) {
+  if (!rmw_gurumdds_cpp::get_datawriter_qos(&adapted_qos_policies, *type_hash, &datawriter_qos)) {
     // Error message already set
     goto fail;
   }

@@ -76,7 +76,7 @@ create_subscription(
   rmw_subscription_t * rmw_subscription = nullptr;
   SubscriberInfo * subscriber_info = nullptr;
   dds_DataReader * topic_reader = nullptr;
-  dds_DataReaderQos datareader_qos;
+  dds_DataReaderQos datareader_qos{};
   dds_DataReaderListener topic_listener;
   dds_DataSeq* data_seq = nullptr;
   dds_SampleInfoSeq* info_seq = nullptr;
@@ -145,8 +145,17 @@ create_subscription(
     }
   }
 
+  ret = dds_DomainParticipantFactory_get_datareader_qos_from_profile(topic_name, &datareader_qos);
+  if(ret != dds_RETCODE_OK) {
+    ret = dds_Subscriber_get_default_datareader_qos(sub, &datareader_qos);
+    if (ret != dds_RETCODE_OK) {
+      RMW_SET_ERROR_MSG("failed to get default datareader qos");
+      return nullptr;
+    }
+  }
+
   const rosidl_type_hash_t& type_hash = *type_support->get_type_hash_func(type_support);
-  if (!rmw_gurumdds_cpp::get_datareader_qos(sub, qos_policies, type_hash, &datareader_qos)) {
+  if (!rmw_gurumdds_cpp::get_datareader_qos(qos_policies, type_hash, &datareader_qos)) {
     // Error message already set
     return nullptr;
   }

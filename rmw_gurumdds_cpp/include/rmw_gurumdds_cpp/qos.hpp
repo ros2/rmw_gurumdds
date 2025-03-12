@@ -36,14 +36,13 @@ int64_t
 dds_time_to_i64(const dds_Time_t & t);
 
 bool
-get_datawriter_qos(dds_Publisher * publisher,
+get_datawriter_qos(
   const rmw_qos_profile_t * qos_profile,
   const rosidl_type_hash_t & type_hash,
   dds_DataWriterQos * datawriter_qos);
 
 bool
 get_datareader_qos(
-  dds_Subscriber * subscriber,
   const rmw_qos_profile_t * qos_profile,
   const rosidl_type_hash_t & type_hash,
   dds_DataReaderQos * datareader_qos);
