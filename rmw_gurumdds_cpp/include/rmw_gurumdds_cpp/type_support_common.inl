@@ -69,7 +69,7 @@ allocate_message(
   serializer.serialize(members, ros_message, true);
 
   *size = buffer.get_offset() + 4;
-  void * message = calloc(1, *size);
+  void * message = malloc(*size);
   if (nullptr == message) {
     RMW_SET_ERROR_MSG("Failed to allocate memory for dds message");
     return nullptr;
