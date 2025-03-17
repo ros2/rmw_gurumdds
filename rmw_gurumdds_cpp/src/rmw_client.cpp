@@ -38,6 +38,7 @@
 #include "rmw_gurumdds_cpp/qos.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/gid.hpp"
+#include "rmw_gurumdds_cpp/type_support.hpp"
 #include "rmw_gurumdds_cpp/type_support_service.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 
@@ -405,6 +406,7 @@ rmw_create_client(
   }
   std::memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
 
+  rmw_gurumdds_cpp::set_client_typesupport(request_writer, response_reader, type_support);
   if (rmw_gurumdds_cpp::graph_cache::on_client_created(ctx, node, client_info) != RMW_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to update graph for client creation");
     goto fail;
@@ -822,33 +824,7 @@ rmw_send_request(
     }
     free(dds_request);
   } else {
-    void * dds_request = rmw_gurumdds_cpp::allocate_request_enhanced(
-      type_support->data,
-      type_support->typesupport_identifier,
-      ros_request,
-      &size
-    );
-
-    if (dds_request == nullptr) {
-      return RMW_RET_ERROR;
-    }
-
-    bool res = rmw_gurumdds_cpp::serialize_request_enhanced(
-      type_support->data,
-      type_support->typesupport_identifier,
-      ros_request,
-      dds_request,
-      size
-    );
-
-    if (!res) {
-      RMW_SET_ERROR_MSG("failed to serialize message");
-      free(dds_request);
-      return RMW_RET_ERROR;
-    }
-
-    dds_SampleInfoEx sampleinfo_ex;
-    std::memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
+    dds_SampleInfoEx sampleinfo_ex{};
     rmw_gurumdds_cpp::ros_sn_to_dds_sn(++client_info->sequence_number, &sampleinfo_ex.seq);
     rmw_gurumdds_cpp::ros_guid_to_dds_guid(
       reinterpret_cast<const uint8_t *>(client_info->writer_guid),
@@ -860,14 +836,12 @@ rmw_send_request(
         static_cast<const void *>(ros_request),
         *sequence_id);
 
-    if (dds_DataWriter_raw_write_w_sampleinfoex(
-        request_writer, dds_request, size, &sampleinfo_ex) != dds_RETCODE_OK)
+    if (dds_DataWriter_write_w_sampleinfoex(
+        request_writer, ros_request, &sampleinfo_ex) != dds_RETCODE_OK)
     {
       RMW_SET_ERROR_MSG("failed to send request");
-      free(dds_request);
       return RMW_RET_ERROR;
     }
-    free(dds_request);
   }
 
   *sequence_id = client_info->sequence_number;

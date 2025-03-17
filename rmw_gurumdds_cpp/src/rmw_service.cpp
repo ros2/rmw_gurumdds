@@ -38,6 +38,7 @@
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 #include "rmw_gurumdds_cpp/event_info_service.hpp"
 
+#include "rmw_gurumdds_cpp/type_support.hpp"
 #include "rmw_gurumdds_cpp/type_support_service.hpp"
 
 extern "C"
@@ -404,6 +405,7 @@ rmw_create_service(
   }
   std::memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
 
+  rmw_gurumdds_cpp::set_service_typesupport(response_writer, request_reader, type_support);
   if (rmw_gurumdds_cpp::graph_cache::on_service_created(ctx, node, service_info) != RMW_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to update graph for service creation");
     goto fail;
@@ -918,34 +920,7 @@ rmw_send_response(
     }
     free(dds_response);
   } else {
-    void * dds_response = rmw_gurumdds_cpp::allocate_response_enhanced(
-      type_support->data,
-      type_support->typesupport_identifier,
-      ros_response,
-      &size
-    );
-
-    if (dds_response == nullptr) {
-      // Error message already set
-      return RMW_RET_ERROR;
-    }
-
-    bool res = rmw_gurumdds_cpp::serialize_response_enhanced(
-      type_support->data,
-      type_support->typesupport_identifier,
-      ros_response,
-      dds_response,
-      size
-    );
-
-    if (!res) {
-      // Error message already set
-      free(dds_response);
-      return RMW_RET_ERROR;
-    }
-
-    dds_SampleInfoEx sampleinfo_ex;
-    std::memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
+    dds_SampleInfoEx sampleinfo_ex{};
     rmw_gurumdds_cpp::ros_sn_to_dds_sn(request_header->sequence_number, &sampleinfo_ex.seq);
     rmw_gurumdds_cpp::ros_guid_to_dds_guid(
       request_header->writer_guid,
@@ -960,14 +935,12 @@ rmw_send_response(
       request_header->sequence_number,
       rmw_gurumdds_cpp::dds_time_to_i64(sampleinfo_ex.info.source_timestamp));
 
-    if (dds_DataWriter_raw_write_w_sampleinfoex(
-        response_writer, dds_response, size, &sampleinfo_ex) != dds_RETCODE_OK)
+    if (dds_DataWriter_write_w_sampleinfoex(
+        response_writer, ros_response, &sampleinfo_ex) != dds_RETCODE_OK)
     {
       RMW_SET_ERROR_MSG("failed to send response");
-      free(dds_response);
       return RMW_RET_ERROR;
     }
-    free(dds_response);
   }
 
   return RMW_RET_OK;

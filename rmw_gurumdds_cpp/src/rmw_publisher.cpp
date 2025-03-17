@@ -346,32 +346,6 @@ rmw_ret_t publish(
     return RMW_RET_ERROR;
   }
 
-  size_t size = 0;
-  void * dds_message = allocate_message(
-    rosidl_typesupport->data,
-    rosidl_typesupport->typesupport_identifier,
-    ros_message,
-    &size
-  );
-
-  if (dds_message == nullptr) {
-    // Error message already set
-    return RMW_RET_ERROR;
-  }
-
-  bool result = serialize_ros_to_cdr(
-    rosidl_typesupport->data,
-    rosidl_typesupport->typesupport_identifier,
-    ros_message,
-    dds_message,
-    size
-  );
-  if (!result) {
-    RMW_SET_ERROR_MSG("failed to serialize message");
-    free(dds_message);
-    return RMW_RET_ERROR;
-  }
-
   dds_SampleInfoEx sampleinfo_ex;
   std::memset(&sampleinfo_ex, 0, sizeof(dds_SampleInfoEx));
   ros_sn_to_dds_sn(++publisher_info->sequence_number, &sampleinfo_ex.seq);
@@ -387,21 +361,17 @@ rmw_ret_t publish(
     rmw_gurumdds_cpp::dds_time_to_i64(sampleinfo_ex.info.source_timestamp)
   );
 
-  dds_ReturnCode_t ret = dds_DataWriter_raw_write_w_sampleinfoex(
-      topic_writer, dds_message, size, &sampleinfo_ex);
+  dds_ReturnCode_t ret = dds_DataWriter_write_w_sampleinfoex(
+      topic_writer, ros_message, &sampleinfo_ex);
 
   if (ret != dds_RETCODE_OK) {
     std::stringstream errmsg;
     errmsg << "failed to publish data: " << dds_ReturnCode_to_string(ret) << ", " << ret;
     RMW_SET_ERROR_MSG(errmsg.str().c_str());
-    free(dds_message);
     return RMW_RET_ERROR;
   }
 
   RCUTILS_LOG_DEBUG_NAMED(RMW_GURUMDDS_ID, "Published data on topic %s", publisher->topic_name);
-
-  free(dds_message);
-
   return RMW_RET_OK;
 }
 } // namespace rmw_gurumdds_cpp

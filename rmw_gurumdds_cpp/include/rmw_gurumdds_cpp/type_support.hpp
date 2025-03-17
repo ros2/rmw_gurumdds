@@ -19,6 +19,7 @@
 
 #include "dds_include.hpp"
 #include "rosidl_runtime_c/message_type_support_struct.h"
+#include "rosidl_runtime_c/service_type_support_struct.h"
 namespace rmw_gurumdds_cpp
 {
 dds_TypeSupport*
@@ -32,6 +33,11 @@ void set_type_support_ops(
   dds_TypeSupport* dds_type_support,
   const rosidl_message_type_support_t* type_support
   );
+
+void set_service_typesupport(dds_DataWriter* writer, dds_DataReader* reader, const rosidl_service_type_support_t* rosidl_typesupport);
+
+void set_client_typesupport(dds_DataWriter* writer, dds_DataReader* reader, const rosidl_service_type_support_t* rosidl_typesupport);
+
 }
 
 #endif  // RMW_GURUMDDS__TYPE_SUPPORT_HPP_
