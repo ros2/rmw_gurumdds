@@ -9,7 +9,8 @@
   <maintainer email="seontai@gurum.cc">Seontai Kim</maintainer>
   <license>Apache License 2.0</license>
 
-  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros_core</buildtool_depend>
   <buildtool_depend>rosidl_cmake</buildtool_depend>
 
   <build_depend>gurumdds-3.2</build_depend>
