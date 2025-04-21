@@ -57,6 +57,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     goto fail;
   }
 
+  new(wait_set_info) rmw_gurumdds_cpp::WaitSetInfo{};
   wait_set_info->wait_set = dds_WaitSet_create();
   if (wait_set_info->wait_set == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate wait set");
@@ -96,6 +97,7 @@ fail:
 
   if (wait_set != nullptr) {
     if (wait_set->data != nullptr) {
+      wait_set_info->~WaitSetInfo();
       rmw_free(wait_set->data);
     }
 
@@ -129,16 +131,10 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
     dds_WaitSet_delete(wait_set_info->wait_set);
   }
 
-  wait_set_info = nullptr;
-
-  if (wait_set->data != nullptr) {
-    rmw_free(wait_set->data);
-  }
-
-  if (wait_set != nullptr) {
-    rmw_wait_set_free(wait_set);
-  }
-
+  wait_set_info->~WaitSetInfo();
+  rmw_free(wait_set->data);
+  wait_set->data = nullptr;
+  rmw_wait_set_free(wait_set);
   return RMW_RET_OK;
 }
 

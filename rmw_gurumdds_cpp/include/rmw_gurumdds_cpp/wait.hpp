@@ -16,6 +16,10 @@
 #define RMW_GURUMDDS__WAIT_HPP_
 
 #include "rmw/rmw.h"
+#include "rmw_gurumdds_cpp/event_info_common.hpp"
+#include "rmw_gurumdds_cpp/event_info_service.hpp"
+#include <vector>
+#include <unordered_set>
 
 namespace rmw_gurumdds_cpp
 {
@@ -24,6 +28,13 @@ struct WaitSetInfo
   dds_WaitSet * wait_set;
   dds_ConditionSeq * active_conditions;
   dds_ConditionSeq * attached_conditions;
+  std::vector<SubscriberInfo*> cached_subscriptions;
+  std::vector<dds_GuardCondition*> cached_guard_conditions;
+  std::vector<ServiceInfo*> cached_service_conditions;
+  std::vector<ClientInfo*> cached_client_conditions;
+  std::vector<EventInfo*> cached_event_conditions;
+  std::unordered_set<dds_Condition*> cached_status_conditions;
+  std::mutex lock;
 };
 
 rmw_ret_t
