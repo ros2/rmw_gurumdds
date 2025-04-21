@@ -56,7 +56,6 @@ if(NOT tracetools_FOUND)
 endif()
 
 include_directories(include)
-ament_export_include_directories(include ${GurumDDS_INCLUDE_DIR})
 include_directories(${GurumDDS_INCLUDE_DIR})
 link_directories(${GurumDDS_LIBRARY_DIRS})
 
