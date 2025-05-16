@@ -2,6 +2,25 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2025-05-16)
+-----------
+* Fix a segfault on the dpf's initialization is failed
+* Remove ament dependency of GurumDDS
+* Improve performance of `rmw_wait`
+* Reduce memcpy and memset
+* Add read entity's qos from profile
+  This allows changing DDS QoS, which is not supported in ROS2.
+* Fix order of parameters in call initialize_node
+* Remove additional member field for unused basic service support
+* Instrument client/service for end-to-end request/response tracking
+* Drop support for float128
+* Add tracepoints to pub/sub
+* Make rmw_destroy_wait_set return RMW_RET_INVALID_ARGUMENT
+* Make rmw_service_server_is_available return RMW_RET_INVALID_ARGUMENT
+* Use rmw_namespace_validation_result_string() in rmw_create_node
+* Remove rmw_localhost_only_t
+* Contributors: gurum, kumazuma
+
 5.0.0 (2024-10-17)
 ------------------
 * Refactor type_support_service
