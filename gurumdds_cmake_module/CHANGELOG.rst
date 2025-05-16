@@ -2,6 +2,9 @@
 Changelog for package gurumdds_cmake_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.0.0 (2025-05-19)
+------------------
+
 5.0.0 (2024-10-17)
 ------------------
 * docs: update README.md and maintainers
