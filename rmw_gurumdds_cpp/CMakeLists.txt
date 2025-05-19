@@ -104,18 +104,18 @@ add_library(rmw_gurumdds_cpp
   src/type_support_service.cpp
   src/wait.cpp
 )
-
-ament_target_dependencies(rmw_gurumdds_cpp
-  "GurumDDS"
-  "rcpputils"
-  "rcutils"
-  "rmw"
-  "rmw_dds_common"
-  "rosidl_runtime_c"
-  "rosidl_runtime_cpp"
-  "rosidl_typesupport_introspection_c"
-  "rosidl_typesupport_introspection_cpp"
-  "tracetools"
+target_link_libraries(rmw_gurumdds_cpp PUBLIC
+  ${rmw_dds_common_TARGETS}
+  GurumDDS
+  "rcpputils::rcpputils"
+  "rcutils::rcutils"
+  "rmw::rmw"
+  "rmw_dds_common::rmw_dds_common_library"
+  "rosidl_runtime_c::rosidl_runtime_c"
+  "rosidl_runtime_cpp::rosidl_runtime_cpp"
+  "rosidl_typesupport_introspection_c::rosidl_typesupport_introspection_c"
+  "rosidl_typesupport_introspection_cpp::rosidl_typesupport_introspection_cpp"
+  "tracetools::tracetools"
 )
 ament_export_libraries(rmw_gurumdds_cpp)
 

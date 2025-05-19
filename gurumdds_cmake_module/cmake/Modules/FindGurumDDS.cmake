@@ -110,3 +110,10 @@ find_package_handle_standard_args(GurumDDS
   GurumDDS_LIBRARIES
   GurumDDS_GURUMIDL
 )
+
+add_library(GurumDDS SHARED IMPORTED)
+set_target_properties(GurumDDS PROPERTIES
+        IMPORTED_LOCATION ${GurumDDS_LIBRARIES}
+)
+
+target_include_directories(GurumDDS INTERFACE ${GurumDDS_INCLUDE_DIR})
