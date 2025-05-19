@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__NAMES_AND_TYPES_HELPERS_HPP_
-#define RMW_GURUMDDS__NAMES_AND_TYPES_HELPERS_HPP_
+#ifndef RMW_GURUMDDS_CPP__NAMES_AND_TYPES_HELPERS_HPP_
+#define RMW_GURUMDDS_CPP__NAMES_AND_TYPES_HELPERS_HPP_
 
 #include <map>
 #include <set>
@@ -55,6 +55,6 @@ create_topic_name(
   const char * topic_name,
   const char * suffix,
   const rmw_qos_profile_t * qos_policies);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__NAMES_AND_TYPES_HELPERS_HPP_
+#endif  // RMW_GURUMDDS_CPP__NAMES_AND_TYPES_HELPERS_HPP_

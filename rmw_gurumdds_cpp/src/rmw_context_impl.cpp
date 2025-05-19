@@ -208,7 +208,7 @@ void on_subscription_changed(
       endp_guid.entityId);
   }
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 rmw_context_impl_s::rmw_context_impl_s(rmw_context_t* const base)
   : common_ctx(),

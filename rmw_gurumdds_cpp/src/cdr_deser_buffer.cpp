@@ -266,4 +266,4 @@ void CdrDeserializationBuffer::copy_arr(uint64_t * arr, size_t cnt) {
   }
   advance(cnt * sizeof(uint64_t));
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

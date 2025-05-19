@@ -194,4 +194,4 @@ create_topic_name(
     suffix,
     qos_policies->avoid_ros_namespace_conventions);
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

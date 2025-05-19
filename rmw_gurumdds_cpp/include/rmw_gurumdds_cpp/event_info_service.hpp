@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__EVENT_INFO_SERVICE_HPP_
-#define RMW_GURUMDDS__EVENT_INFO_SERVICE_HPP_
+#ifndef RMW_GURUMDDS_CPP__EVENT_INFO_SERVICE_HPP_
+#define RMW_GURUMDDS_CPP__EVENT_INFO_SERVICE_HPP_
 
 #include "rmw/event_callback_type.h"
 #include "rmw/types.h"
@@ -74,6 +74,6 @@ struct ServiceInfo {
     return rmw_gurumdds_cpp::count_unread(request_reader, data_seq, info_seq, raw_data_sizes);
   }
 };
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__EVENT_INFO_SERVICE_HPP_
+#endif  // RMW_GURUMDDS_CPP__EVENT_INFO_SERVICE_HPP_

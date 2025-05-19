@@ -159,11 +159,13 @@ serialize_service_basic(
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return serialize_service_basic<rosidl_typesupport_introspection_c__MessageMembers>(
-      untyped_members, reinterpret_cast<const uint8_t *>(ros_service), reinterpret_cast<uint8_t *>(dds_service), size,
+      untyped_members, reinterpret_cast<const uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service), size,
       sequence_number, client_guid, is_request);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_service_basic<rosidl_typesupport_introspection_cpp::MessageMembers>(
-      untyped_members, reinterpret_cast<const uint8_t *>(ros_service), reinterpret_cast<uint8_t *>(dds_service), size,
+      untyped_members, reinterpret_cast<const uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service), size,
       sequence_number, client_guid, is_request);
   }
 
@@ -520,4 +522,4 @@ deserialize_response_enhanced(
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__RMW_SUBSCRIPTION_HPP_
-#define RMW_GURUMDDS__RMW_SUBSCRIPTION_HPP_
+#ifndef RMW_GURUMDDS_CPP__RMW_SUBSCRIPTION_HPP_
+#define RMW_GURUMDDS_CPP__RMW_SUBSCRIPTION_HPP_
 
 namespace rmw_gurumdds_cpp
 {
@@ -32,6 +32,6 @@ rmw_ret_t
 destroy_subscription(
   rmw_context_impl_t * const ctx,
   rmw_subscription_t * const subscription);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__RMW_SUBSCRIPTION_HPP_
+#endif  // RMW_GURUMDDS_CPP__RMW_SUBSCRIPTION_HPP_

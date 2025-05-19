@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__VISIBILITY_CONTROL_H_
-#define RMW_GURUMDDS__VISIBILITY_CONTROL_H_
+#ifndef RMW_GURUMDDS_CPP__VISIBILITY_CONTROL_H_
+#define RMW_GURUMDDS_CPP__VISIBILITY_CONTROL_H_
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
@@ -46,4 +46,4 @@
   #define RMW_GURUMDDS_CPP_PUBLIC_TYPE
 #endif
 
-#endif // RMW_GURUMDDS__VISIBILITY_CONTROL_H_
+#endif  // RMW_GURUMDDS_CPP__VISIBILITY_CONTROL_H_

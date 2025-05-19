@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__TYPE_SUPPORT_SERVICE_HPP_
-#define RMW_GURUMDDS__TYPE_SUPPORT_SERVICE_HPP_
+#ifndef RMW_GURUMDDS_CPP__TYPE_SUPPORT_SERVICE_HPP_
+#define RMW_GURUMDDS_CPP__TYPE_SUPPORT_SERVICE_HPP_
+
+#include "rmw_gurumdds_cpp/type_support_common.hpp"
 
 #include <string>
 #include <utility>
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
-#include "rmw/impl/cpp/macros.hpp"
-
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/identifier.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
 #include "rosidl_typesupport_introspection_c/service_introspection.h"
 
+#include "rmw/impl/cpp/macros.hpp"
 #include "rosidl_typesupport_introspection_cpp/field_types.hpp"
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
 #include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
-
-#include "rmw_gurumdds_cpp/type_support_common.hpp"
+#include "rmw_gurumdds_cpp/message_deserializer.hpp"
+#include "rmw_gurumdds_cpp/message_serializer.hpp"
 
 #define GET_TYPENAME(T) \
   typename std::remove_pointer<typename std::remove_const<decltype(T)>::type>::type
@@ -340,8 +341,8 @@ ros_sn_to_dds_sn(int64_t sn_ros, uint64_t * sn_dds);
 
 inline void
 dds_sn_to_ros_sn(uint64_t sn_dds, int64_t * sn_ros);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 #include "rmw_gurumdds_cpp/type_support_service.inl"
 
-#endif // RMW_GURUMDDS__TYPE_SUPPORT_SERVICE_HPP_
+#endif  // RMW_GURUMDDS_CPP__TYPE_SUPPORT_SERVICE_HPP_

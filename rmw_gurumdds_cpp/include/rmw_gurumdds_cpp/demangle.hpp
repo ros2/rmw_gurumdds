@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__DEMANGLE_HPP_
-#define RMW_GURUMDDS__DEMANGLE_HPP_
+#ifndef RMW_GURUMDDS_CPP__DEMANGLE_HPP_
+#define RMW_GURUMDDS_CPP__DEMANGLE_HPP_
 
 #include <string>
 
@@ -43,9 +43,9 @@ demangle_service_type_only(const std::string & dds_type_name);
 // Used when ros names are not mangled.
 std::string
 identity_demangle(const std::string & name);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 using DemangleFunction = std::string (*)(const std::string &);
 using MangleFunction = DemangleFunction;
 
-#endif // RMW_GURUMDDS__DEMANGLE_HPP_
+#endif  // RMW_GURUMDDS_CPP__DEMANGLE_HPP_

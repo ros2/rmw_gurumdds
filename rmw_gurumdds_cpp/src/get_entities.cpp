@@ -153,4 +153,4 @@ get_response_data_writer(rmw_service_t * service)
   ServiceInfo * impl = static_cast<ServiceInfo *>(service->data);
   return impl->response_writer;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

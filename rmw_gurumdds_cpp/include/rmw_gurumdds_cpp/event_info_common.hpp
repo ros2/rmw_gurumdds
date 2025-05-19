@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__EVENT_INFO_COMMON_HPP_
-#define RMW_GURUMDDS__EVENT_INFO_COMMON_HPP_
+#ifndef RMW_GURUMDDS_CPP__EVENT_INFO_COMMON_HPP_
+#define RMW_GURUMDDS_CPP__EVENT_INFO_COMMON_HPP_
 
 #include <map>
 #include <mutex>
@@ -59,7 +59,6 @@ struct EventInfo
     int32_t total_count,
     int32_t total_count_change
     ) = 0;
-
 };
 
 struct PublisherInfo : EventInfo
@@ -206,7 +205,8 @@ public:
   void on_inconsistent_topic(const dds_InconsistentTopicStatus& status);
 
 private:
-  static void on_inconsistent_topic(const dds_Topic* the_topic, const dds_InconsistentTopicStatus* status);
+  static void on_inconsistent_topic(const dds_Topic* the_topic,
+                                    const dds_InconsistentTopicStatus* status);
 
 private:
   static std::map<dds_Topic*, TopicEventListener*> table_;
@@ -215,6 +215,6 @@ private:
   std::recursive_mutex mutex_;
   std::vector<EventInfo*> event_list_;
 };
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__EVENT_INFO_COMMON_HPP_
+#endif  // RMW_GURUMDDS_CPP__EVENT_INFO_COMMON_HPP_

@@ -232,7 +232,7 @@ static rmw_ret_t add_local_subscriber(
   dds_DataReaderQos dr_qos;
   dds_DataReaderQos * dr_qos_ptr = &dr_qos;
 
-  dds_Topic * topic = reinterpret_cast<dds_Topic *>(dds_DataReader_get_topicdescription(datareader));
+  auto topic = reinterpret_cast<dds_Topic *>(dds_DataReader_get_topicdescription(datareader));
   const char * topic_name = dds_Topic_get_name(topic);
   const char * type_name = dds_Topic_get_type_name(topic);
 
@@ -482,7 +482,8 @@ on_publisher_created(
   const rmw_node_t * const node,
   PublisherInfo * const pub)
 {
-  const rosidl_type_hash_s& type_hash = *pub->rosidl_message_typesupport->get_type_hash_func(pub->rosidl_message_typesupport);
+  auto msg_typesupport = pub->rosidl_message_typesupport;
+  auto& type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
   rmw_ret_t rc = add_local_publisher(ctx, node, pub->topic_writer, type_hash, pub->publisher_gid);
   if (RMW_RET_OK != rc) {
     RMW_SET_ERROR_MSG("failed to add local publisher");
@@ -528,7 +529,8 @@ on_subscriber_created(
   const rmw_node_t * const node,
   SubscriberInfo * const sub)
 {
-  const rosidl_type_hash_s& type_hash = *sub->rosidl_message_typesupport->get_type_hash_func(sub->rosidl_message_typesupport);
+  auto msg_typesupport = sub->rosidl_message_typesupport;
+  auto& type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
   rmw_ret_t rc = add_local_subscriber(ctx, node, sub->topic_reader, type_hash, sub->subscriber_gid);
   if (RMW_RET_OK != rc) {
     RMW_SET_ERROR_MSG("failed to add local subscriber");
@@ -666,7 +668,8 @@ on_client_created(
   const rosidl_type_hash_s* type_hash;
   type_support = client->service_typesupport->response_typesupport;
   type_hash = type_support->get_type_hash_func(type_support);
-  if (RMW_RET_OK != add_local_subscriber(ctx, node, client->response_reader, *type_hash, sub_gid)) {
+  if (RMW_RET_OK != add_local_subscriber(ctx, node, client->response_reader, *type_hash,
+                                         sub_gid)) {
     RMW_SET_ERROR_MSG("failed to add local subscriber");
     return RMW_RET_ERROR;
   }
@@ -680,7 +683,8 @@ on_client_created(
   }
   add_pub = true;
 
-  if(RMW_RET_OK != ctx->common_ctx.add_client_graph(pub_gid, sub_gid, node->name, node->namespace_)) {
+  if(RMW_RET_OK != ctx->common_ctx.add_client_graph(pub_gid, sub_gid, node->name,
+                                                    node->namespace_)) {
     RMW_SET_ERROR_MSG("failed to add client graph");
     return RMW_RET_ERROR;
   }
@@ -717,12 +721,14 @@ on_participant_info(rmw_context_impl_t * ctx)
   rmw_dds_common::msg::ParticipantEntitiesInfo msg;
 
   do {
-    if (RMW_RET_OK != rmw_take(ctx->common_ctx.sub, &msg, &taken, nullptr)) {
+    if (RMW_RET_OK != rmw_take(ctx->common_ctx.sub, &msg, &taken,
+                               nullptr)) {
       RMW_SET_ERROR_MSG("failed to take discovery sample");
       return RMW_RET_ERROR;
     }
     if (taken) {
-      if (std::memcmp(&msg.gid.data, ctx->common_ctx.gid.data, RMW_GID_STORAGE_SIZE) == 0) {
+      if (std::memcmp(&msg.gid.data, ctx->common_ctx.gid.data,
+                      RMW_GID_STORAGE_SIZE) == 0) {
         continue;
       }
 
@@ -855,4 +861,4 @@ remove_entity(
 
   return remove_entity(ctx, gid, is_reader);
 }
-} // namespace rmw_gurumdds_cpp::graph_cache
+}  // namespace rmw_gurumdds_cpp::graph_cache

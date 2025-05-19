@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__DDS_INCLUDE_HPP_
-#define RMW_GURUMDDS__DDS_INCLUDE_HPP_
+#ifndef RMW_GURUMDDS_CPP__DDS_INCLUDE_HPP_
+#define RMW_GURUMDDS_CPP__DDS_INCLUDE_HPP_
 
 #include <gurumdds/dcps.h>
 
-#endif // RMW_GURUMDDS__DDS_INCLUDE_HPP_
+#endif  // RMW_GURUMDDS_CPP__DDS_INCLUDE_HPP_

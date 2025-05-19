@@ -20,9 +20,7 @@ namespace rmw_gurumdds_cpp
 CdrBuffer::CdrBuffer(uint8_t * buf, size_t size)
   : buf_{buf}
   , offset_{}
-  , size_{size} {
-
-}
+  , size_{size} {};
 
 size_t CdrBuffer::get_offset() const {
   return offset_;
@@ -41,4 +39,4 @@ void CdrBuffer::roundup(uint32_t align) {
 void CdrBuffer::advance(size_t cnt) {
   offset_ += cnt;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

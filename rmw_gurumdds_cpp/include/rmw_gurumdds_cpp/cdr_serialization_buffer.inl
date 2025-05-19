@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__CDR_SERIALIZATION_BUFFER_INL_
-#define RMW_GURUMDDS__CDR_SERIALIZATION_BUFFER_INL_
+#ifndef RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_
+#define RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_
 
 namespace rmw_gurumdds_cpp
 {
@@ -215,6 +215,6 @@ inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint64_t * arr, si
   }
   advance(cnt * sizeof(uint64_t));
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS__CDR_SERIALIZATION_BUFFER_INL_
+#endif  // RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_

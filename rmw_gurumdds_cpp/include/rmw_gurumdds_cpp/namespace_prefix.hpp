@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__NAMESPACE_PREFIX_HPP_
-#define RMW_GURUMDDS__NAMESPACE_PREFIX_HPP_
+#ifndef RMW_GURUMDDS_CPP__NAMESPACE_PREFIX_HPP_
+#define RMW_GURUMDDS_CPP__NAMESPACE_PREFIX_HPP_
 
 #include <string>
 #include <vector>
@@ -36,6 +36,6 @@ std::string strip_ros_prefix_if_exists(const std::string & topic_name);
 
 /// Returns the list of ros prefixes
 const std::vector<std::string> & get_all_ros_prefixes();
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__NAMESPACE_PREFIX_HPP_
+#endif  // RMW_GURUMDDS_CPP__NAMESPACE_PREFIX_HPP_

@@ -60,4 +60,4 @@ const std::vector<std::string> & get_all_ros_prefixes()
 {
   return ros_prefixes;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
