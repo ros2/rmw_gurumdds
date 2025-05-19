@@ -72,9 +72,9 @@ struct PublisherInfo : EventInfo
   rmw_gid_t publisher_gid;
   dds_DataWriter * topic_writer;
   std::mutex mutex_event;
-  rmw_event_callback_t on_new_event_cb[RMW_EVENT_INVALID] = { };
-  const void * user_data_cb[RMW_EVENT_INVALID] = { };
-  dds_GuardCondition* event_guard_cond[RMW_EVENT_INVALID] = { };
+  rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = { };
+  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = { };
+  dds_GuardCondition* event_guard_cond[RMW_EVENT_TYPE_MAX] = { };
   dds_StatusMask mask = 0;
   bool inconsistent_topic_changed = false;
   dds_InconsistentTopicStatus inconsistent_topic_status = { };
@@ -130,9 +130,9 @@ struct SubscriberInfo : EventInfo
   const char * implementation_identifier;
   rmw_context_impl_t * ctx;
   std::mutex mutex_event;
-  rmw_event_callback_t on_new_event_cb[RMW_EVENT_INVALID] = { };
-  const void * user_data_cb[RMW_EVENT_INVALID] = { };
-  dds_GuardCondition* event_guard_cond[RMW_EVENT_INVALID] = { };
+  rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = { };
+  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = { };
+  dds_GuardCondition* event_guard_cond[RMW_EVENT_TYPE_MAX] = { };
   dds_StatusMask mask = 0;
   bool requested_deadline_missed_changed = false;
   dds_RequestedDeadlineMissedStatus requested_deadline_missed_status = { };

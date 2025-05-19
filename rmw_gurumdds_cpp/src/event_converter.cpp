@@ -16,6 +16,7 @@
 
 /// mapping of RMW_EVENT to the corresponding dds_StatusKind.
 static const dds_StatusKind g_mask_map[] {
+  0,
   dds_LIVELINESS_CHANGED_STATUS,  // RMW_EVENT_LIVELINESS_CHANGED
   dds_REQUESTED_DEADLINE_MISSED_STATUS,  // RMW_EVENT_REQUESTED_DEADLINE_MISSED
   dds_REQUESTED_INCOMPATIBLE_QOS_STATUS,  // RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE
@@ -42,7 +43,8 @@ dds_StatusKind get_status_kind_from_rmw(const rmw_event_type_t event_t)
 
 bool is_event_supported(const rmw_event_type_t event_t)
 {
-  return event_t < RMW_EVENT_INVALID;
+  static_assert(sizeof(g_mask_map)/sizeof(g_mask_map[0]) == RMW_EVENT_TYPE_MAX);
+  return RMW_EVENT_INVALID < event_t && event_t < RMW_EVENT_TYPE_MAX;
 }
 
 rmw_ret_t check_dds_ret_code(const dds_ReturnCode_t dds_return_code)

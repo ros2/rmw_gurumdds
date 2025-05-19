@@ -48,6 +48,11 @@ init_rmw_event(
 
 extern "C"
 {
+bool
+rmw_event_type_is_supported(rmw_event_type_t rmw_event_type) {
+  return rmw_gurumdds_cpp::is_event_supported(rmw_event_type);
+}
+
 rmw_ret_t
 rmw_publisher_event_init(
   rmw_event_t * rmw_event,
