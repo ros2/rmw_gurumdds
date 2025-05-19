@@ -6,6 +6,7 @@ Installation guide is available [here](https://docs.ros.org/en/humble/Installati
 Required version of GurumDDS depends on the version of this project.
 | rmw_gurumdds             | GurumDDS                    |
 |--------------------------|-----------------------------|
+| >= 6.0.0                 | >= 3.2.9                    |
 | >= 5.0.0                 | >= 3.2.0                    |
 | >= 3.6.0, < 5.0.0        | 3.1.x                       |
 | >= 3.4.2, < 3.6.0        | 3.0.x                       |
