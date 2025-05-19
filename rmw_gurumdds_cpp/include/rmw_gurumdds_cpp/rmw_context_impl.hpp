@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__RMW_CONTEXT_IMPL_HPP_
-#define RMW_GURUMDDS__RMW_CONTEXT_IMPL_HPP_
+#ifndef RMW_GURUMDDS_CPP__RMW_CONTEXT_IMPL_HPP_
+#define RMW_GURUMDDS_CPP__RMW_CONTEXT_IMPL_HPP_
 
 #include <memory>
 #include <mutex>
@@ -57,7 +57,7 @@ void on_subscription_changed(
   const dds_DomainParticipant * a_participant,
   const dds_SubscriptionBuiltinTopicData * data,
   dds_InstanceHandle_t handle);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 struct rmw_context_impl_s
 {
@@ -67,7 +67,9 @@ struct rmw_context_impl_s
   dds_DomainId_t domain_id;
   dds_DomainParticipant * participant;
 
-  /* used for all DDS writers/readers created to support rmw_gurumdds_cpp::(Publisher/Subscriber)Info. */
+  /* used for all DDS writers/readers created to support
+   * rmw_gurumdds_cpp::(Publisher/Subscriber)Info.
+   * */
   dds_Publisher * publisher;
   dds_Subscriber * subscriber;
 
@@ -108,4 +110,4 @@ struct rmw_context_impl_s
   finalize();
 };
 
-#endif // RMW_GURUMDDS__RMW_CONTEXT_IMPL_HPP_
+#endif  // RMW_GURUMDDS_CPP__RMW_CONTEXT_IMPL_HPP_

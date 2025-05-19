@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__GID_HPP_
-#define RMW_GURUMDDS__GID_HPP_
+#ifndef RMW_GURUMDDS_CPP__GID_HPP_
+#define RMW_GURUMDDS_CPP__GID_HPP_
 
 #include "rmw/types.h"
 
@@ -40,12 +40,12 @@ struct Guid_t: public dds_GUID_t
 
   Guid_t();
 
-  Guid_t(const dds_GUID_t & other);
+  explicit Guid_t(const dds_GUID_t & other);
 
-  Guid_t(const dds_ParticipantBuiltinTopicData& builtin_topic_data);
+  explicit Guid_t(const dds_ParticipantBuiltinTopicData& builtin_topic_data);
 
   template<typename TBuiltinTopicData>
-  Guid_t(const TBuiltinTopicData& builtin_topic_data);
+  explicit Guid_t(const TBuiltinTopicData& builtin_topic_data);
 
   template<typename TBuiltinTopicData>
   static Guid_t for_participant(const TBuiltinTopicData& builtin_topic_data);
@@ -55,9 +55,9 @@ struct Guid_t: public dds_GUID_t
   bool operator!=(const Guid_t & other) const;
 
   bool operator<(const Guid_t & other) const;
-}; // struct Guid_t
-} // namespace rmw_gurumdds_cpp
+};  // struct Guid_t
+}  // namespace rmw_gurumdds_cpp
 
 #include "rmw_gurumdds_cpp/gid.inl"
 
-#endif // RMW_GURUMDDS__GID_HPP_
+#endif  // RMW_GURUMDDS_CPP__GID_HPP_

@@ -244,4 +244,4 @@ deserialize_cdr_to_ros(
   return false;
 }
 
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

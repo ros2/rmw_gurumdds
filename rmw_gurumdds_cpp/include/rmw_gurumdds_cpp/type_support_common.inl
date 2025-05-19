@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__TYPE_SUPPORT_COMMON_INL
-#define RMW_GURUMDDS__TYPE_SUPPORT_COMMON_INL
+#ifndef RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_INL
+#define RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_INL
 
 #include <sstream>
 
@@ -205,6 +205,6 @@ create_metastring(const void * untyped_members)
 
   return metastring.str();
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS__TYPE_SUPPORT_COMMON_INL
+#endif  // RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_INL

@@ -295,26 +295,37 @@ wait(
     return RMW_RET_ERROR;
   }
 
-  bool need_reattached = false;
-  need_reattached = check_reattached(wait_set_info->cached_subscriptions, (subscriptions != nullptr) ? subscriptions->subscribers : nullptr,
-                                     subscriptions != nullptr ? subscriptions->subscriber_count : 0);
+  bool reattached = false;
+  reattached = check_reattached(wait_set_info->cached_subscriptions,
+                                subscriptions != nullptr ?
+                                subscriptions->subscribers : nullptr,
+                                subscriptions != nullptr ?
+                                subscriptions->subscriber_count : 0);
 
-  if(!need_reattached)
-    need_reattached = check_reattached(wait_set_info->cached_guard_conditions, (guard_conditions != nullptr) ? guard_conditions->guard_conditions : nullptr,
-                                       guard_conditions != nullptr ? guard_conditions->guard_condition_count : 0);
+  if(!reattached)
+    reattached =
+        check_reattached(wait_set_info->cached_guard_conditions,
+                         guard_conditions != nullptr ?
+                         guard_conditions->guard_conditions : nullptr,
+                         guard_conditions != nullptr ?
+                         guard_conditions->guard_condition_count : 0);
 
-  if(!need_reattached)
-    need_reattached = check_reattached(wait_set_info->cached_service_conditions, (services != nullptr) ? services->services : nullptr,
+  if(!reattached)
+    reattached = check_reattached(wait_set_info->cached_service_conditions,
+                                       services != nullptr ? services->services : nullptr,
                                        services != nullptr ? services->service_count : 0);
 
-  if(!need_reattached)
-    need_reattached = check_reattached(wait_set_info->cached_client_conditions, (clients != nullptr) ? clients->clients : nullptr,
+  if(!reattached)
+    reattached = check_reattached(wait_set_info->cached_client_conditions,
+                                       clients != nullptr ? clients->clients : nullptr,
                                        clients != nullptr ? clients->client_count : 0);
 
-  if(!need_reattached)
-    need_reattached = check_reattached(wait_set_info->cached_event_conditions, events != nullptr ? events->events : nullptr, events != nullptr ? events->event_count : 0);
+  if(!reattached)
+    reattached = check_reattached(wait_set_info->cached_event_conditions,
+                                       events != nullptr ? events->events : nullptr,
+                                       events != nullptr ? events->event_count : 0);
 
-  if(need_reattached) {
+  if(reattached) {
     dds_ConditionSeq * attached_conditions =
         static_cast<dds_ConditionSeq *>(wait_set_info->attached_conditions);
     dds_ReturnCode_t ret = dds_WaitSet_get_conditions(dds_wait_set, attached_conditions);
@@ -331,7 +342,6 @@ wait(
       do {
         length -= 1;
         dds_ConditionSeq_remove(attached_conditions, length);
-
       } while(length != 0);
     }
 
@@ -345,7 +355,8 @@ wait(
       for(uint32_t i = 0; i < subscriptions->subscriber_count; ++i) {
         auto it = static_cast<SubscriberInfo*>(subscriptions->subscribers[i]);
         if(it != nullptr)
-          dds_WaitSet_attach_condition(wait_set_info->wait_set, reinterpret_cast<dds_Condition*>(it->read_condition));
+          dds_WaitSet_attach_condition(wait_set_info->wait_set,
+                                       reinterpret_cast<dds_Condition*>(it->read_condition));
 
         wait_set_info->cached_subscriptions.push_back(it);
       }
@@ -355,7 +366,8 @@ wait(
       for(uint32_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
         auto it = static_cast<dds_GuardCondition*>(guard_conditions->guard_conditions[i]);
         if(it != nullptr)
-          dds_WaitSet_attach_condition(wait_set_info->wait_set, reinterpret_cast<dds_Condition*>(it));
+          dds_WaitSet_attach_condition(wait_set_info->wait_set,
+                                       reinterpret_cast<dds_Condition*>(it));
 
         wait_set_info->cached_guard_conditions.push_back(it);
       }
@@ -365,7 +377,8 @@ wait(
       for(uint32_t i = 0; i < services->service_count; ++i) {
         auto it = static_cast<ServiceInfo*>(services->services[i]);
         if(it != nullptr)
-          dds_WaitSet_attach_condition(wait_set_info->wait_set, reinterpret_cast<dds_Condition*>(it->read_condition));
+          dds_WaitSet_attach_condition(wait_set_info->wait_set,
+                                       reinterpret_cast<dds_Condition*>(it->read_condition));
 
         wait_set_info->cached_service_conditions.push_back(it);
       }
@@ -375,7 +388,8 @@ wait(
       for(uint32_t i = 0; i < clients->client_count; ++i) {
         auto it = static_cast<ClientInfo*>(clients->clients[i]);
         if(it != nullptr)
-          dds_WaitSet_attach_condition(wait_set_info->wait_set, reinterpret_cast<dds_Condition*>(it->read_condition));
+          dds_WaitSet_attach_condition(wait_set_info->wait_set,
+                                       reinterpret_cast<dds_Condition*>(it->read_condition));
 
         wait_set_info->cached_client_conditions.push_back(it);
       }
@@ -439,7 +453,8 @@ wait(
       }
 
       if (guard_conditions != nullptr) {
-        memset(guard_conditions->guard_conditions, 0, sizeof(void*) * guard_conditions->guard_condition_count);
+        memset(guard_conditions->guard_conditions, 0,
+               sizeof(void*) * guard_conditions->guard_condition_count);
       }
 
       if (services != nullptr) {
@@ -596,4 +611,4 @@ wait(
   atexit.cancel();
   return rret;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

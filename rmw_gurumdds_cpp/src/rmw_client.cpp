@@ -83,7 +83,8 @@ rmw_create_client(
   }
 
   const rosidl_service_type_support_t * type_support =
-    get_service_typesupport_handle(type_supports, rosidl_typesupport_introspection_c__identifier);
+    get_service_typesupport_handle(type_supports,
+                                   rosidl_typesupport_introspection_c__identifier);
   if (type_support == nullptr) {
     rcutils_reset_error();
     type_support = get_service_typesupport_handle(
@@ -136,10 +137,12 @@ rmw_create_client(
   std::string writer_profile_name;
   std::string reader_profile_name;
   const rosidl_type_hash_t* type_hash;
-
+  const rosidl_message_type_support_t * req_typesupport;
+  const rosidl_message_type_support_t * res_typesupport;
   // Create topic and type name strings
   service_type_name =
-    rmw_gurumdds_cpp::create_service_type_name(type_support->data, type_support->typesupport_identifier);
+    rmw_gurumdds_cpp::create_service_type_name(type_support->data,
+                                               type_support->typesupport_identifier);
   request_type_name = service_type_name.first;
   response_type_name = service_type_name.second;
   if (request_type_name.empty() || response_type_name.empty()) {
@@ -156,12 +159,15 @@ rmw_create_client(
   request_topic_name.reserve(256);
   response_topic_name.reserve(256);
   request_topic_name = rmw_gurumdds_cpp::create_topic_name(
-    rmw_gurumdds_cpp::ros_service_requester_prefix, service_name, "Request", &adapted_qos_policies);
+    rmw_gurumdds_cpp::ros_service_requester_prefix, service_name, "Request",
+    &adapted_qos_policies);
   response_topic_name = rmw_gurumdds_cpp::create_topic_name(
-    rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "Reply", &adapted_qos_policies);
+    rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "Reply",
+    &adapted_qos_policies);
 
   service_metastring =
-    rmw_gurumdds_cpp::create_service_metastring(type_support->data, type_support->typesupport_identifier);
+    rmw_gurumdds_cpp::create_service_metastring(type_support->data,
+                                                type_support->typesupport_identifier);
   request_metastring = service_metastring.first;
   response_metastring = service_metastring.second;
   if (request_metastring.empty() || response_metastring.empty()) {
@@ -245,7 +251,8 @@ rmw_create_client(
     }
 
     response_topic = dds_DomainParticipant_create_topic(
-      participant, response_topic_name.c_str(), response_type_name.c_str(), &topic_qos, nullptr, 0);
+      participant, response_topic_name.c_str(), response_type_name.c_str(), &topic_qos, nullptr,
+      0);
     if (response_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
       dds_TopicQos_finalize(&topic_qos);
@@ -269,7 +276,8 @@ rmw_create_client(
     }
   }
 
-  ret = dds_DomainParticipantFactory_get_datawriter_qos_from_profile(writer_profile_name.c_str(), &datawriter_qos);
+  ret = dds_DomainParticipantFactory_get_datawriter_qos_from_profile(writer_profile_name.c_str(),
+                                                                     &datawriter_qos);
   if(ret != dds_RETCODE_OK) {
     ret = dds_Publisher_get_default_datawriter_qos(publisher, &datawriter_qos);
     if (ret != dds_RETCODE_OK) {
@@ -279,7 +287,8 @@ rmw_create_client(
   }
 
   // Create datawriter for request
-  type_hash = type_support->request_typesupport->get_type_hash_func(type_support->request_typesupport);
+  req_typesupport = type_support->request_typesupport;
+  type_hash = req_typesupport->get_type_hash_func(req_typesupport);
   if (!rmw_gurumdds_cpp::get_datawriter_qos(&adapted_qos_policies, *type_hash, &datawriter_qos)) {
     // Error message already set
     goto fail;
@@ -299,7 +308,8 @@ rmw_create_client(
     goto fail;
   }
 
-  ret = dds_DomainParticipantFactory_get_datareader_qos_from_profile(reader_profile_name.c_str(), &datareader_qos);
+  ret = dds_DomainParticipantFactory_get_datareader_qos_from_profile(reader_profile_name.c_str(),
+                                                                     &datareader_qos);
   if(ret != dds_RETCODE_OK) {
     ret = dds_Subscriber_get_default_datareader_qos(subscriber, &datareader_qos);
     if (ret != dds_RETCODE_OK) {
@@ -308,8 +318,10 @@ rmw_create_client(
     }
   }
 
-  type_hash = type_support->response_typesupport->get_type_hash_func(type_support->response_typesupport);
-  if (!rmw_gurumdds_cpp::get_datareader_qos(&adapted_qos_policies, *type_hash, &datareader_qos)) {
+  res_typesupport = type_support->response_typesupport;
+  type_hash = res_typesupport->get_type_hash_func(res_typesupport);
+  if (!rmw_gurumdds_cpp::get_datareader_qos(&adapted_qos_policies, *type_hash,
+                                            &datareader_qos)) {
     // error message already set
     goto fail;
   }
@@ -328,8 +340,9 @@ rmw_create_client(
     goto fail;
   }
 
-  read_condition = dds_DataReader_create_readcondition(
-    response_reader, dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
+  read_condition =
+      dds_DataReader_create_readcondition(response_reader, dds_ANY_SAMPLE_STATE,
+                                          dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
   if (read_condition == nullptr) {
     RMW_SET_ERROR_MSG("failed to create read condition");
     goto fail;
@@ -359,11 +372,13 @@ rmw_create_client(
 
   dds_DataReader_set_listener_context(response_reader, client_info);
   response_listener.on_data_available = [](const dds_DataReader * response_reader){
-    dds_DataReader* reader = const_cast<dds_DataReader*>(response_reader);
-    auto* info = static_cast<rmw_gurumdds_cpp::ClientInfo*>(dds_DataReader_get_listener_context(reader));
+    auto* reader = const_cast<dds_DataReader*>(response_reader);
+    auto* info =
+        static_cast<rmw_gurumdds_cpp::ClientInfo*>(dds_DataReader_get_listener_context(reader));
     std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
     if(info->event_callback_data.callback) {
-      info->event_callback_data.callback(info->event_callback_data.user_data, info->count_unread());
+      info->event_callback_data.callback(info->event_callback_data.user_data,
+                                         info->count_unread());
     }
   };
 
@@ -399,12 +414,14 @@ rmw_create_client(
 
   rmw_client->implementation_identifier = RMW_GURUMDDS_ID;
   rmw_client->data = client_info;
-  rmw_client->service_name = reinterpret_cast<const char *>(rmw_allocate(strlen(service_name) + 1));
+  rmw_client->service_name =
+      reinterpret_cast<const char *>(rmw_allocate(strlen(service_name) + 1));
   if (rmw_client->service_name == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for client name");
     goto fail;
   }
-  std::memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
+  std::memcpy(const_cast<char *>(rmw_client->service_name), service_name,
+              strlen(service_name) + 1);
 
   rmw_gurumdds_cpp::set_client_typesupport(request_writer, response_reader, type_support);
   if (rmw_gurumdds_cpp::graph_cache::on_client_created(ctx, node, client_info) != RMW_RET_OK) {
@@ -692,7 +709,8 @@ rmw_client_request_publisher_get_actual_qos(
   qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
   qos->lifespan = rmw_gurumdds_cpp::convert_lifespan(&dds_qos.lifespan);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
-  qos->liveliness_lease_duration = rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+  qos->liveliness_lease_duration =
+      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
@@ -741,7 +759,8 @@ rmw_client_response_subscription_get_actual_qos(
   qos->durability = rmw_gurumdds_cpp::convert_durability(&dds_qos.durability);
   qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
-  qos->liveliness_lease_duration = rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+  qos->liveliness_lease_duration =
+      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
@@ -1021,7 +1040,8 @@ rmw_take_response(
         int64_t sequence_number = 0;
         int8_t client_guid[16] = {0};
         dds_SampleInfoEx * sampleinfo_ex = reinterpret_cast<dds_SampleInfoEx *>(sample_info);
-        rmw_gurumdds_cpp::dds_guid_to_ros_guid(reinterpret_cast<int8_t *>(&sampleinfo_ex->src_guid), client_guid);
+        rmw_gurumdds_cpp::dds_guid_to_ros_guid(
+            reinterpret_cast<int8_t *>(&sampleinfo_ex->src_guid), client_guid);
         rmw_gurumdds_cpp::dds_sn_to_ros_sn(sampleinfo_ex->seq, &sequence_number);
 
         bool res = rmw_gurumdds_cpp::deserialize_response_enhanced(
@@ -1107,12 +1127,14 @@ rmw_client_set_on_new_response_callback(
     client_info->event_callback_data.callback = callback;
     client_info->event_callback_data.user_data = user_data;
     mask |= dds_DATA_AVAILABLE_STATUS;
-    dds_rc = dds_DataReader_set_listener(client_info->response_reader, &client_info->response_listener, mask);
+    dds_rc = dds_DataReader_set_listener(client_info->response_reader,
+                                         &client_info->response_listener, mask);
   } else {
     client_info->event_callback_data.callback = nullptr;
     client_info->event_callback_data.user_data = nullptr;
     mask &= ~dds_DATA_AVAILABLE_STATUS;
-    dds_rc = dds_DataReader_set_listener(client_info->response_reader, &client_info->response_listener, mask);
+    dds_rc = dds_DataReader_set_listener(client_info->response_reader,
+                                         &client_info->response_listener, mask);
   }
 
   return rmw_gurumdds_cpp::check_dds_ret_code(dds_rc);

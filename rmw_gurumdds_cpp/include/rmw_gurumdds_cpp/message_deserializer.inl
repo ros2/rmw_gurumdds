@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__MESSAGE_DESERIALIZER_INL_
-#define RMW_GURUMDDS__MESSAGE_DESERIALIZER_INL_
+#ifndef RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_
+#define RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_
 
 namespace rmw_gurumdds_cpp
 {
@@ -393,6 +393,6 @@ inline void MessageDeserializer<MessageMembersT>::read_struct_arr(const MessageM
     );
   }
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS__MESSAGE_DESERIALIZER_INL_
+#endif  // RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_

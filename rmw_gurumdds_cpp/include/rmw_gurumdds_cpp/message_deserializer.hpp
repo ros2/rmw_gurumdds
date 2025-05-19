@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__MESSAGE_DESERIALIZER_HPP_
-#define RMW_GURUMDDS__MESSAGE_DESERIALIZER_HPP_
+#ifndef RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_HPP_
+#define RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_HPP_
 
-#include "rosidl_runtime_cpp/bounded_vector.hpp"
+#include <utility>
+#include <vector>
+#include <string>
 
 #include "rosidl_runtime_c/primitives_sequence.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
@@ -23,15 +25,13 @@
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/u16string.h"
 #include "rosidl_runtime_c/u16string_functions.h"
-
-#include "rosidl_typesupport_introspection_cpp/field_types.hpp"
-#include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
-
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
 
+#include "rosidl_runtime_cpp/bounded_vector.hpp"
+#include "rosidl_typesupport_introspection_cpp/field_types.hpp"
+#include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
 #include "cdr_buffer.hpp"
-
-#include <utility>
+#include "rmw_gurumdds_cpp/message_converter.hpp"
 
 namespace rmw_gurumdds_cpp
 {
@@ -45,6 +45,7 @@ public:
   explicit MessageDeserializer(CdrDeserializationBuffer & buffer);
 
   void deserialize(const MessageMembersT * members, uint8_t * output);
+
 private:
   void read_boolean(
     const MessageMemberT * member,
@@ -73,8 +74,8 @@ private:
 
   CdrDeserializationBuffer & buffer_;
 };
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 #include "message_deserializer.inl"
 
-#endif  // RMW_GURUMDDS__MESSAGE_DESERIALIZER_HPP_
+#endif  // RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_HPP_

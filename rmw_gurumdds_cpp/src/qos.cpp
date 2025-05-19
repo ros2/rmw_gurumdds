@@ -283,4 +283,4 @@ convert_qos_policy(const dds_QosPolicyId_t policy_id)
       return RMW_QOS_POLICY_INVALID;
   }
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

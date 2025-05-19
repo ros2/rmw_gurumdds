@@ -117,7 +117,7 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  rmw_gurumdds_cpp::WaitSetInfo * wait_set_info = static_cast<rmw_gurumdds_cpp::WaitSetInfo *>(wait_set->data);
+  auto * wait_set_info = static_cast<rmw_gurumdds_cpp::WaitSetInfo *>(wait_set->data);
 
   if (wait_set_info->active_conditions != nullptr) {
     dds_ConditionSeq_delete(wait_set_info->active_conditions);

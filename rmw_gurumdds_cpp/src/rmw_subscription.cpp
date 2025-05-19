@@ -104,7 +104,8 @@ create_subscription(
     return nullptr;
   }
 
-  dds_typesupport = create_type_support_and_register(participant, type_support, type_name, metastring);
+  dds_typesupport =
+      create_type_support_and_register(participant, type_support, type_name, metastring);
   if (dds_typesupport == nullptr) {
     return nullptr;
   }
@@ -120,7 +121,8 @@ create_subscription(
     }
 
     topic = dds_DomainParticipant_create_topic(
-      participant, processed_topic_name.c_str(), type_name.c_str(), &topic_qos, nullptr, 0);
+      participant, processed_topic_name.c_str(), type_name.c_str(), &topic_qos, nullptr,
+      0);
     if (topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
       dds_TopicQos_finalize(&topic_qos);
@@ -203,42 +205,51 @@ create_subscription(
   }
 
   dds_DataReader_set_listener_context(topic_reader, subscriber_info);
-  topic_listener.on_requested_deadline_missed = [](const dds_DataReader* topic_reader,
-                                                   const dds_RequestedDeadlineMissedStatus* status) {
-    dds_DataReader* reader = const_cast<dds_DataReader*>(topic_reader);
-    SubscriberInfo* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
+  topic_listener.on_requested_deadline_missed =
+      [](const dds_DataReader* topic_reader,
+          const dds_RequestedDeadlineMissedStatus* status) {
+    auto* reader = const_cast<dds_DataReader*>(topic_reader);
+    auto* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
     info->on_requested_deadline_missed(*status);
   };
 
-  topic_listener.on_requested_incompatible_qos = [](const dds_DataReader* topic_reader,
-                                                    const dds_RequestedIncompatibleQosStatus* status) {
-    dds_DataReader* reader = const_cast<dds_DataReader*>(topic_reader);
-    SubscriberInfo* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
+  topic_listener.on_requested_incompatible_qos =
+      [](const dds_DataReader* topic_reader,
+          const dds_RequestedIncompatibleQosStatus* status) {
+    auto* reader = const_cast<dds_DataReader*>(topic_reader);
+    auto* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
     info->on_requested_incompatible_qos(*status);
   };
 
   topic_listener.on_data_available = [](const dds_DataReader * topic_reader) {
-    dds_DataReader* reader = const_cast<dds_DataReader*>(topic_reader);
-    SubscriberInfo* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
+    auto* reader = const_cast<dds_DataReader*>(topic_reader);
+    auto* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
     info->on_data_available();
   };
 
-  topic_listener.on_liveliness_changed = [](const dds_DataReader* topic_reader, const dds_LivelinessChangedStatus* status) {
-    dds_DataReader* reader = const_cast<dds_DataReader*>(topic_reader);
-    SubscriberInfo* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
+  topic_listener.on_liveliness_changed = [](const dds_DataReader* topic_reader,
+      const dds_LivelinessChangedStatus* status) {
+    auto* reader = const_cast<dds_DataReader*>(topic_reader);
+    auto* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
     info->on_liveliness_changed(*status);
   };
 
-  topic_listener.on_subscription_matched = [](const dds_DataReader* topic_reader, const dds_SubscriptionMatchedStatus* status) {
-    dds_DataReader* reader = const_cast<dds_DataReader*>(topic_reader);
-    SubscriberInfo* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
+  topic_listener.on_subscription_matched = [](const dds_DataReader* topic_reader,
+      const dds_SubscriptionMatchedStatus* status) {
+    auto* reader = const_cast<dds_DataReader*>(topic_reader);
+    auto* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
     info->on_subscription_matched(*status);
   };
 
-  topic_listener.on_sample_lost = [](const dds_DataReader* topic_reader, const dds_SampleLostStatus* status) {
-    dds_DataReader* reader = const_cast<dds_DataReader*>(topic_reader);
-    SubscriberInfo* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
+  topic_listener.on_sample_lost = [](const dds_DataReader* topic_reader,
+      const dds_SampleLostStatus* status) {
+    auto* reader = const_cast<dds_DataReader*>(topic_reader);
+    auto* info = static_cast<SubscriberInfo*>(dds_DataReader_get_listener_context(reader));
     info->on_sample_lost(*status);
+  };
+
+  auto init_guard_cond = [&subscriber_info](rmw_event_type_t type) {
+    subscriber_info->event_guard_cond[type] = dds_GuardCondition_create();
   };
 
   subscriber_info->topic_reader = topic_reader;
@@ -250,12 +261,13 @@ create_subscription(
   subscriber_info->rosidl_message_typesupport = type_support;
   subscriber_info->implementation_identifier = RMW_GURUMDDS_ID;
   subscriber_info->ctx = ctx;
-  subscriber_info->event_guard_cond[RMW_EVENT_LIVELINESS_CHANGED] = dds_GuardCondition_create();
-  subscriber_info->event_guard_cond[RMW_EVENT_REQUESTED_DEADLINE_MISSED] = dds_GuardCondition_create();
-  subscriber_info->event_guard_cond[RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE] = dds_GuardCondition_create();
-  subscriber_info->event_guard_cond[RMW_EVENT_MESSAGE_LOST] = dds_GuardCondition_create();
-  subscriber_info->event_guard_cond[RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE] = dds_GuardCondition_create();
-  subscriber_info->event_guard_cond[RMW_EVENT_SUBSCRIPTION_MATCHED] = dds_GuardCondition_create();
+
+  init_guard_cond(RMW_EVENT_LIVELINESS_CHANGED);
+  init_guard_cond(RMW_EVENT_REQUESTED_DEADLINE_MISSED);
+  init_guard_cond(RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE);
+  init_guard_cond(RMW_EVENT_MESSAGE_LOST);
+  init_guard_cond(RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE);
+  init_guard_cond(RMW_EVENT_SUBSCRIPTION_MATCHED);
   dds_TypeSupport* reader_dds_type = dds_DataReader_get_typesupport(topic_reader);
   set_type_support_ops(reader_dds_type, type_support);
 
@@ -297,7 +309,8 @@ create_subscription(
   rmw_subscription->is_cft_enabled = false;
 
   if (!internal) {
-    if (rmw_gurumdds_cpp::graph_cache::on_subscriber_created(ctx, node, subscriber_info) != RMW_RET_OK) {
+    if (rmw_gurumdds_cpp::graph_cache::on_subscriber_created(ctx, node, subscriber_info) !=
+    RMW_RET_OK) {
       RMW_SET_ERROR_MSG("failed to update graph for subscriber");
       return nullptr;
     }
@@ -308,7 +321,8 @@ create_subscription(
 
   scope_exit_rmw_subscription_delete.cancel();
 
-  TRACETOOLS_TRACEPOINT(rmw_subscription_init, rmw_subscription, subscriber_info->subscriber_gid.data);
+  TRACETOOLS_TRACEPOINT(rmw_subscription_init, rmw_subscription,
+                        subscriber_info->subscriber_gid.data);
   return rmw_subscription;
 }
 
@@ -335,7 +349,8 @@ destroy_subscription(
       reinterpret_cast<dds_Topic *>(dds_DataReader_get_topicdescription(
         subscriber_info->topic_reader));
 
-    ret = dds_DataReader_delete_readcondition(subscriber_info->topic_reader, subscriber_info->read_condition);
+    ret = dds_DataReader_delete_readcondition(subscriber_info->topic_reader,
+                                              subscriber_info->read_condition);
     if (dds_RETCODE_OK != ret) {
       RMW_SET_ERROR_MSG("failed to delete read condition");
       return RMW_RET_ERROR;
@@ -360,7 +375,7 @@ destroy_subscription(
     }
   }
 
-  for(auto condition: subscriber_info->event_guard_cond) {
+  for(auto condition : subscriber_info->event_guard_cond) {
     if(nullptr != condition) {
       dds_GuardCondition_delete(condition);
     }
@@ -396,7 +411,8 @@ take(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_reader, RMW_RET_ERROR);
 
   dds_SampleInfoEx sample_info{};
-  dds_ReturnCode_t ret = dds_DataReader_take_next_sample_w_info_ex(topic_reader, ros_message, &sample_info);
+  dds_ReturnCode_t ret = dds_DataReader_take_next_sample_w_info_ex(topic_reader, ros_message,
+                                                                   &sample_info);
   if (ret == dds_RETCODE_NO_DATA) {
     RCUTILS_LOG_DEBUG_NAMED(
       RMW_GURUMDDS_ID, "No data on topic %s", subscription->topic_name);
@@ -508,7 +524,8 @@ take_serialized(
 
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to take data");
-    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                   sample_sizes);
     dds_DataSeq_delete(data_values);
     dds_SampleInfoSeq_delete(sample_infos);
     dds_UnsignedLongSeq_delete(sample_sizes);
@@ -524,7 +541,8 @@ take_serialized(
     void * sample = dds_DataSeq_get(data_values, 0);
     if (sample == nullptr) {
       RMW_SET_ERROR_MSG("failed to take data");
-      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                     sample_sizes);
       dds_DataSeq_delete(data_values);
       dds_SampleInfoSeq_delete(sample_infos);
       dds_UnsignedLongSeq_delete(sample_sizes);
@@ -537,7 +555,8 @@ take_serialized(
       rmw_ret_t rmw_ret = rmw_serialized_message_resize(serialized_message, sample_size);
       if (rmw_ret != RMW_RET_OK) {
         // Error message already set
-        dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+        dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                       sample_sizes);
         dds_DataSeq_delete(data_values);
         dds_SampleInfoSeq_delete(sample_infos);
         dds_UnsignedLongSeq_delete(sample_sizes);
@@ -575,7 +594,8 @@ take_serialized(
     }
   }
 
-  dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+  dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                 sample_sizes);
   dds_DataSeq_delete(data_values);
   dds_SampleInfoSeq_delete(sample_infos);
   dds_UnsignedLongSeq_delete(sample_sizes);
@@ -589,7 +609,7 @@ take_serialized(
 
   return RMW_RET_OK;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 extern "C"
 {
@@ -642,7 +662,8 @@ rmw_create_subscription(
   // Adapt any 'best available' QoS options
   rmw_qos_profile_t adapted_qos_policies = *qos_policies;
   rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_topic_subscription(
-    node, topic_name, &adapted_qos_policies, rmw_get_publishers_info_by_topic);
+    node, topic_name, &adapted_qos_policies,
+    rmw_get_publishers_info_by_topic);
   if (ret != RMW_RET_OK) {
     return nullptr;
   }
@@ -680,7 +701,8 @@ rmw_create_subscription(
     topic_name,
     &adapted_qos_policies,
     subscription_options,
-    RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST == ctx->base->options.discovery_options.automatic_discovery_range);
+    RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST ==
+    ctx->base->options.discovery_options.automatic_discovery_range);
 
   if (rmw_sub == nullptr) {
     RMW_SET_ERROR_MSG("failed to create RMW subscription");
@@ -722,7 +744,8 @@ rmw_subscription_count_matched_publishers(
   }
 
   dds_InstanceHandleSeq * seq = dds_InstanceHandleSeq_create(4);
-  if (dds_DataReader_get_matched_publications(topic_reader, seq) != dds_RETCODE_OK) {
+  if (dds_DataReader_get_matched_publications(topic_reader, seq) !=
+  dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to get matched publications");
     dds_InstanceHandleSeq_delete(seq);
     return RMW_RET_ERROR;
@@ -771,7 +794,8 @@ rmw_subscription_get_actual_qos(
   qos->durability = rmw_gurumdds_cpp::convert_durability(&dds_qos.durability);
   qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
-  qos->liveliness_lease_duration = rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+  qos->liveliness_lease_duration =
+      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
@@ -912,7 +936,7 @@ rmw_take_sequence(
   message_sequence->size = 0;
   message_info_sequence->size = 0;
 
-  rmw_gurumdds_cpp::SubscriberInfo * info = static_cast<rmw_gurumdds_cpp::SubscriberInfo *>(subscription->data);
+  auto * info = static_cast<rmw_gurumdds_cpp::SubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
 
   dds_DataReader * topic_reader = info->topic_reader;
@@ -941,19 +965,22 @@ rmw_take_sequence(
 
   while (*taken < count) {
     dds_ReturnCode_t ret = dds_DataReader_raw_take(
-      topic_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, count,
+      topic_reader, dds_HANDLE_NIL, data_values, sample_infos,
+      sample_sizes, count,
       dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
     if (ret == dds_RETCODE_NO_DATA) {
       RCUTILS_LOG_DEBUG_NAMED(
         RMW_GURUMDDS_ID, "No data on topic %s", subscription->topic_name);
-      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                     sample_sizes);
       break;
     }
 
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to take data");
-      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+      dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                     sample_sizes);
       dds_DataSeq_delete(data_values);
       dds_SampleInfoSeq_delete(sample_infos);
       dds_UnsignedLongSeq_delete(sample_sizes);
@@ -971,7 +998,8 @@ rmw_take_sequence(
         void * sample = dds_DataSeq_get(data_values, i);
         if (sample == nullptr) {
           RMW_SET_ERROR_MSG("failed to get message");
-          dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+          dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                         sample_sizes);
           dds_DataSeq_delete(data_values);
           dds_SampleInfoSeq_delete(sample_infos);
           dds_UnsignedLongSeq_delete(sample_sizes);
@@ -987,7 +1015,8 @@ rmw_take_sequence(
         );
         if (!result) {
           RMW_SET_ERROR_MSG("failed to deserialize message");
-          dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+          dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                         sample_sizes);
           dds_DataSeq_delete(data_values);
           dds_SampleInfoSeq_delete(sample_infos);
           dds_UnsignedLongSeq_delete(sample_sizes);
@@ -1019,7 +1048,8 @@ rmw_take_sequence(
         (*taken)++;
       }
     }
-    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos, sample_sizes);
+    dds_DataReader_raw_return_loan(topic_reader, data_values, sample_infos,
+                                   sample_sizes);
   }
 
   message_sequence->size = *taken;
@@ -1156,7 +1186,8 @@ rmw_subscription_set_on_new_message_callback(
     subscriber_info->mask &= ~dds_DATA_AVAILABLE_STATUS;
   }
 
-  dds_rc = dds_DataReader_set_listener(subscriber_info->topic_reader, &subscriber_info->topic_listener, subscriber_info->mask);
+  dds_rc = dds_DataReader_set_listener(subscriber_info->topic_reader,
+                                       &subscriber_info->topic_listener, subscriber_info->mask);
 
   return rmw_gurumdds_cpp::check_dds_ret_code(dds_rc);
 }

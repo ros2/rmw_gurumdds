@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__CONTEXT_LISTENER_THREAD_HPP_
-#define RMW_GURUMDDS__CONTEXT_LISTENER_THREAD_HPP_
+#ifndef RMW_GURUMDDS_CPP__CONTEXT_LISTENER_THREAD_HPP_
+#define RMW_GURUMDDS_CPP__CONTEXT_LISTENER_THREAD_HPP_
 
 namespace rmw_gurumdds_cpp
 {
@@ -22,6 +22,6 @@ run_listener_thread(rmw_context_t * ctx);
 
 rmw_ret_t
 stop_listener_thread(rmw_context_t * ctx);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__CONTEXT_LISTENER_THREAD_HPP_
+#endif  // RMW_GURUMDDS_CPP__CONTEXT_LISTENER_THREAD_HPP_

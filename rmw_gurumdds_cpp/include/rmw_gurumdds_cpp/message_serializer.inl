@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__MESSAGE_SERIALIZER_INL_
-#define RMW_GURUMDDS__MESSAGE_SERIALIZER_INL_
+#ifndef RMW_GURUMDDS_CPP__MESSAGE_SERIALIZER_INL_
+#define RMW_GURUMDDS_CPP__MESSAGE_SERIALIZER_INL_
 
 namespace rmw_gurumdds_cpp
 {
@@ -304,6 +304,6 @@ inline void MessageSerializer<SERIALIZE, MessageMembersT>::serialize_primitive(
     buffer << *reinterpret_cast<const T *>(input + member->offset_);
   }
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS__MESSAGE_SERIALIZER_INL_
+#endif  // RMW_GURUMDDS_CPP__MESSAGE_SERIALIZER_INL_

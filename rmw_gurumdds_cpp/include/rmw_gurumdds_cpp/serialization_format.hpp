@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__SERIALIZATION_FORMAT_HPP_
-#define RMW_GURUMDDS__SERIALIZATION_FORMAT_HPP_
+#ifndef RMW_GURUMDDS_CPP__SERIALIZATION_FORMAT_HPP_
+#define RMW_GURUMDDS_CPP__SERIALIZATION_FORMAT_HPP_
 
 extern const char * const gurumdds_serialization_format;
 
-#endif // RMW_GURUMDDS__SERIALIZATION_FORMAT_HPP_
+#endif  // RMW_GURUMDDS_CPP__SERIALIZATION_FORMAT_HPP_

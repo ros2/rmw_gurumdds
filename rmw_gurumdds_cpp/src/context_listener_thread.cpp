@@ -254,4 +254,4 @@ stop_listener_thread(rmw_context_t * ctx)
   RCUTILS_LOG_DEBUG_NAMED(RMW_GURUMDDS_ID, "[listener thread] stopped");
   return RMW_RET_OK;
 }
-} //namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

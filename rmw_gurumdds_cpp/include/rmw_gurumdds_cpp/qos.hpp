@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__QOS_HPP_
-#define RMW_GURUMDDS__QOS_HPP_
+#ifndef RMW_GURUMDDS_CPP__QOS_HPP_
+#define RMW_GURUMDDS_CPP__QOS_HPP_
 
 #include <cassert>
 #include <limits>
@@ -70,6 +70,6 @@ convert_liveliness_lease_duration(const dds_LivelinessQosPolicy * const policy);
 
 rmw_qos_policy_kind_t
 convert_qos_policy(const dds_QosPolicyId_t policy_id);
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
-#endif // RMW_GURUMDDS__QOS_HPP_
+#endif  // RMW_GURUMDDS_CPP__QOS_HPP_

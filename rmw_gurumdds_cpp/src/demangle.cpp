@@ -157,4 +157,4 @@ identity_demangle(const std::string & name)
 {
   return name;
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp

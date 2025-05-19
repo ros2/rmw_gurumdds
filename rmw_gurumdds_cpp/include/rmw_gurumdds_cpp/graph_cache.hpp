@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_GURUMDDS__GRAPH_CACHE_HPP_
-#define RMW_GURUMDDS__GRAPH_CACHE_HPP_
+#ifndef RMW_GURUMDDS_CPP__GRAPH_CACHE_HPP_
+#define RMW_GURUMDDS_CPP__GRAPH_CACHE_HPP_
 
 #include "rmw/rmw.h"
 
@@ -127,6 +127,6 @@ remove_entity(
   rmw_context_impl_t * const ctx,
   const dds_GUID_t * const guid,
   const bool is_reader);
-} // namespace rmw_gurumdds_cpp::graph_cache
+}  // namespace rmw_gurumdds_cpp::graph_cache
 
-#endif // RMW_GURUMDDS__GRAPH_CACHE_HPP_
+#endif  // RMW_GURUMDDS_CPP__GRAPH_CACHE_HPP_

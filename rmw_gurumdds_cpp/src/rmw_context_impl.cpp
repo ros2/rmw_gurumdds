@@ -208,7 +208,7 @@ void on_subscription_changed(
       endp_guid.entityId);
   }
 }
-} // namespace rmw_gurumdds_cpp
+}  // namespace rmw_gurumdds_cpp
 
 rmw_context_impl_s::rmw_context_impl_s(rmw_context_t* const base)
   : common_ctx(),
@@ -357,8 +357,8 @@ rmw_context_impl_s::initialize_participant(
   static_discovery_id += node_name;
 
   /* Create DomainParticipant */
-  if (RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST == this->base->options.discovery_options.automatic_discovery_range) {
-    // TODO: localhost only
+  if (RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST ==
+  base->options.discovery_options.automatic_discovery_range) {
     dds_StringProperty props[] = {
       {const_cast<char *>("rtps.interface.ip"),
         const_cast<void *>(static_cast<const void *>("127.0.0.1"))},
