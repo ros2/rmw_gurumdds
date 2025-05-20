@@ -2,6 +2,12 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.0.1 (2025-05-20)
+-----------
+* Fix cpplint warnings
+* Replace deprecated ament_target_dependencies
+* Contributors: kumazuma
+
 6.0.0 (2025-05-19)
 -----------
 * Update rmw event impl
