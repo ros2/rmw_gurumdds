@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>gurumdds_cmake_module</name>
-  <version>5.0.1</version>
+  <version>6.0.1</version>
   <description>Provide CMake module to find GurumNetworks GurumDDS.</description>
   <maintainer email="donghyeon@gurum.cc">Donghyeon Lee</maintainer>
   <maintainer email="hyunsoo@gurum.cc">Hyunsoo Kim</maintainer>
