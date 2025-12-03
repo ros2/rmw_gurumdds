@@ -15,7 +15,7 @@
 #include "rmw_gurumdds_cpp/event_converter.hpp"
 
 /// mapping of RMW_EVENT to the corresponding dds_StatusKind.
-static const dds_StatusKind g_mask_map[] {
+static const dds_StatusKind g_mask_map[RMW_EVENT_INVALID] {
   dds_LIVELINESS_CHANGED_STATUS,  // RMW_EVENT_LIVELINESS_CHANGED
   dds_REQUESTED_DEADLINE_MISSED_STATUS,  // RMW_EVENT_REQUESTED_DEADLINE_MISSED
   dds_REQUESTED_INCOMPATIBLE_QOS_STATUS,  // RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE
@@ -42,7 +42,7 @@ dds_StatusKind get_status_kind_from_rmw(const rmw_event_type_t event_t)
 
 bool is_event_supported(const rmw_event_type_t event_t)
 {
-  return event_t < RMW_EVENT_INVALID;
+  return g_mask_map[static_cast<int>(event_t)] != 0;
 }
 
 rmw_ret_t check_dds_ret_code(const dds_ReturnCode_t dds_return_code)
@@ -59,3 +59,8 @@ rmw_ret_t check_dds_ret_code(const dds_ReturnCode_t dds_return_code)
   }
 }
 }  // namespace rmw_gurumdds_cpp
+
+bool
+rmw_event_type_is_supported(rmw_event_type_t rmw_event_type) {
+    return rmw_gurumdds_cpp::is_event_supported(rmw_event_type);
+}
