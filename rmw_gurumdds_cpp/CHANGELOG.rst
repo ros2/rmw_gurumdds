@@ -2,6 +2,19 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2025-12-03)
+------------------
+* Implement `rmw_event_type_is_supported`
+* Fix cpplint warnings
+* Remove ament dependency of GurumDDS
+* Improve performance of `rmw_wait`
+* Reduce memcpy and memset
+* Add read entity's qos from profile
+  This allows changing DDS QoS, which is not supported in ROS2.
+* Fix order of parameters in call initialize_node
+* Remove additional member field for unused basic service support
+* Contributors: kumazuma
+
 5.0.0 (2024-10-17)
 ------------------
 * Refactor type_support_service

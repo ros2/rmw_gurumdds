@@ -2,6 +2,11 @@
 Changelog for package gurumdds_cmake_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2025-12-03)
+------------------
+* Fix FindGurumDDS.cmake by adding `/usr/lib` path to find_package
+* Contributors: gurum
+
 5.0.0 (2024-10-17)
 ------------------
 * docs: update README.md and maintainers
