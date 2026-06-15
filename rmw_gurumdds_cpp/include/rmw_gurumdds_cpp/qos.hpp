@@ -36,6 +36,17 @@ int64_t
 dds_time_to_i64(const dds_Time_t & t);
 
 bool
+get_topic_qos(
+  const rmw_qos_profile_t * qos_policies,
+  dds_TopicQos * topic_qos);
+
+bool
+get_datareader_qos(
+  const rmw_qos_profile_t * qos_profile,
+  const rosidl_type_hash_t & type_hash,
+  dds_DataReaderQos * datareader_qos);
+
+bool
 get_datawriter_qos(
   const rmw_qos_profile_t * qos_profile,
   const rosidl_type_hash_t & type_hash,
@@ -45,7 +56,31 @@ bool
 get_datareader_qos(
   const rmw_qos_profile_t * qos_profile,
   const rosidl_type_hash_t & type_hash,
-  dds_DataReaderQos * datareader_qos);
+  dds_DataReaderQos * datareader_qos,
+  const rosidl_type_hash_t & service_type_hash);
+
+bool
+get_datawriter_qos(
+  const rmw_qos_profile_t * qos_profile,
+  const rosidl_type_hash_t & type_hash,
+  dds_DataWriterQos * datawriter_qos,
+  const rosidl_type_hash_t & service_type_hash);
+
+//backend_buffer 전용
+bool
+get_datawriter_qos(
+  const rmw_qos_profile_t * qos_profile,
+  const rosidl_type_hash_t & type_hash,
+  dds_DataWriterQos * datawriter_qos,
+  std::unordered_map<std::string, std::string> & backend_metadata);
+
+//backend_buffer 전용
+bool
+get_datareader_qos(
+  const rmw_qos_profile_t * qos_profile,
+  const rosidl_type_hash_t & type_hash,
+  dds_DataReaderQos * datareader_qos,
+  std::unordered_map<std::string, std::string> & backend_metadata);
 
 rmw_qos_history_policy_t
 convert_history(const dds_HistoryQosPolicy * const policy);
@@ -70,6 +105,24 @@ convert_liveliness_lease_duration(const dds_LivelinessQosPolicy * const policy);
 
 rmw_qos_policy_kind_t
 convert_qos_policy(const dds_QosPolicyId_t policy_id);
+
+std::string
+encode_buffer_backends_for_user_data(
+  const std::unordered_map<std::string, std::string> & backends);
+
+std::unordered_map<std::string, std::string>
+parse_buffer_backends_from_user_data(const uint8_t * data, size_t size);
+
+std::string
+encode_endpoint_gid_for_user_data(const rmw_gid_t & gid, const char * tag);
+
+bool
+parse_endpoint_gid_from_user_data(
+  const uint8_t * data, size_t size, const char * tag, rmw_gid_t & gid);
+
+bool
+is_valid_qos(const rmw_qos_profile_t * qos);
+
 }  // namespace rmw_gurumdds_cpp
 
 #endif  // RMW_GURUMDDS_CPP__QOS_HPP_

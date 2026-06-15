@@ -41,6 +41,8 @@
 #include "rmw_gurumdds_cpp/type_support.hpp"
 #include "rmw_gurumdds_cpp/type_support_service.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
+#include "rmw_gurumdds_cpp/raii.hpp"
+#include "rmw_gurumdds_cpp/etc.hpp"
 
 extern "C"
 {
@@ -51,21 +53,33 @@ rmw_create_client(
   const char * service_name,
   const rmw_qos_profile_t * qos_policies)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, nullptr);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return nullptr);
-  RMW_CHECK_ARGUMENT_FOR_NULL(type_supports, nullptr);
-  RMW_CHECK_ARGUMENT_FOR_NULL(service_name, nullptr);
+  CHECK_ALL_PTRS_NULL(node,type_supports, service_name, qos_policies);
+  CHECK_ID_NULL(node);
+
   if (strlen(service_name) == 0) {
     RMW_SET_ERROR_MSG("client topic is empty");
     return nullptr;
   }
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
 
-   // Adapt any 'best available' QoS options
+  if (!rmw_gurumdds_cpp::is_valid_qos(qos_policies)) {
+    return nullptr;
+  }
+
+  const rosidl_service_type_support_t * type_support =
+    get_service_typesupport_handle(type_supports,
+                                  rosidl_typesupport_introspection_c__identifier);
+  if (type_support == nullptr) {
+    rcutils_reset_error();
+    type_support = get_service_typesupport_handle(
+      type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+    if (type_support == nullptr) {
+      rcutils_reset_error();
+      RMW_SET_ERROR_MSG("type support not from this implementation");
+      return nullptr;
+    }
+  }
+
+  // Adapt any 'best available' QoS options
   rmw_qos_profile_t adapted_qos_policies =
     rmw_dds_common::qos_profile_update_best_available_for_services(*qos_policies);
 
@@ -78,20 +92,6 @@ rmw_create_client(
     if (validation_result != RMW_TOPIC_VALID) {
       const char * reason = rmw_full_topic_name_validation_result_string(validation_result);
       RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("service name is invalid: %s", reason);
-      return nullptr;
-    }
-  }
-
-  const rosidl_service_type_support_t * type_support =
-    get_service_typesupport_handle(type_supports,
-                                   rosidl_typesupport_introspection_c__identifier);
-  if (type_support == nullptr) {
-    rcutils_reset_error();
-    type_support = get_service_typesupport_handle(
-      type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
-    if (type_support == nullptr) {
-      rcutils_reset_error();
-      RMW_SET_ERROR_MSG("type support not from this implementation");
       return nullptr;
     }
   }
@@ -112,9 +112,9 @@ rmw_create_client(
   dds_DataWriter * request_writer = nullptr;
   dds_DataReader * response_reader = nullptr;
   dds_DataReaderListener response_listener;
-  dds_DataSeq* data_seq = nullptr;
-  dds_SampleInfoSeq* info_seq = nullptr;
-  dds_UnsignedLongSeq* raw_data_sizes = nullptr;
+  // dds_DataSeq* data_seq = nullptr;
+  // dds_SampleInfoSeq* info_seq = nullptr;
+  // dds_UnsignedLongSeq* raw_data_sizes = nullptr;
   dds_ReadCondition * read_condition = nullptr;
   dds_TypeSupport * request_typesupport = nullptr;
   dds_TypeSupport * response_typesupport = nullptr;
@@ -122,6 +122,10 @@ rmw_create_client(
   dds_TopicDescription * topic_desc = nullptr;
   dds_Topic * request_topic = nullptr;
   dds_Topic * response_topic = nullptr;
+
+  raii::dds_DataSeq data_seq;
+  raii::dds_SampleInfoSeq info_seq;
+  raii::dds_UnsignedLongSeq raw_data_sizes;
 
   uint8_t client_guid[16] = {0};
   dds_ReturnCode_t ret;
@@ -137,8 +141,25 @@ rmw_create_client(
   std::string writer_profile_name;
   std::string reader_profile_name;
   const rosidl_type_hash_t* type_hash;
+  const rosidl_type_hash_t * client_type_hash;
   const rosidl_message_type_support_t * req_typesupport;
   const rosidl_message_type_support_t * res_typesupport;
+
+  // auto seq_fail = [&]{
+  //   if(data_seq != nullptr){
+  //     dds_DataSeq_delete(data_seq);
+  //   }
+  //   if(info_seq != nullptr){
+  //     dds_SampleInfoSeq_delete(info_seq);
+  //   }
+  //   if(raw_data_sizes != nullptr){
+  //     dds_UnsignedLongSeq_delete(raw_data_sizes);
+  //   }
+  // };
+
+  client_type_hash =
+    type_supports->get_type_hash_func(type_supports);
+
   // Create topic and type name strings
   service_type_name =
     rmw_gurumdds_cpp::create_service_type_name(type_support->data,
@@ -147,7 +168,7 @@ rmw_create_client(
   response_type_name = service_type_name.second;
   if (request_type_name.empty() || response_type_name.empty()) {
     RMW_SET_ERROR_MSG("failed to create type name");
-    return nullptr;
+    goto fail;
   }
 
   writer_profile_name = service_name;
@@ -172,7 +193,7 @@ rmw_create_client(
   response_metastring = service_metastring.second;
   if (request_metastring.empty() || response_metastring.empty()) {
     RMW_SET_ERROR_MSG("failed to create metastring");
-    return nullptr;
+    goto fail;
   }
 
   request_typesupport = dds_TypeSupport_create(request_metastring.c_str());
@@ -282,15 +303,21 @@ rmw_create_client(
     ret = dds_Publisher_get_default_datawriter_qos(publisher, &datawriter_qos);
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get default datawriter qos");
-      return nullptr;
+      goto fail;
     }
   }
 
   // Create datawriter for request
   req_typesupport = type_support->request_typesupport;
   type_hash = req_typesupport->get_type_hash_func(req_typesupport);
-  if (!rmw_gurumdds_cpp::get_datawriter_qos(&adapted_qos_policies, *type_hash, &datawriter_qos)) {
+  if (!rmw_gurumdds_cpp::get_datawriter_qos(
+    &adapted_qos_policies, 
+    *type_hash, 
+    &datawriter_qos,
+    *client_type_hash
+    )) {
     // Error message already set
+    dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
 
@@ -308,21 +335,26 @@ rmw_create_client(
     goto fail;
   }
 
+  //datareader
   ret = dds_DomainParticipantFactory_get_datareader_qos_from_profile(reader_profile_name.c_str(),
                                                                      &datareader_qos);
   if(ret != dds_RETCODE_OK) {
     ret = dds_Subscriber_get_default_datareader_qos(subscriber, &datareader_qos);
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get default datareader qos");
-      return nullptr;
+      goto fail;
     }
   }
 
   res_typesupport = type_support->response_typesupport;
   type_hash = res_typesupport->get_type_hash_func(res_typesupport);
-  if (!rmw_gurumdds_cpp::get_datareader_qos(&adapted_qos_policies, *type_hash,
-                                            &datareader_qos)) {
+  if (!rmw_gurumdds_cpp::get_datareader_qos(
+    &adapted_qos_policies, 
+    *type_hash,
+    &datareader_qos,
+    *client_type_hash)) {
     // error message already set
+    dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
 
@@ -354,20 +386,21 @@ rmw_create_client(
     goto fail;
   }
 
-  data_seq = dds_DataSeq_create(1);
+
+  data_seq = raii::dds_DataSeq_create(1);
   if (nullptr == data_seq) {
     RMW_SET_ERROR_MSG("failed to allocate data_seq");
-    return nullptr;
+    goto fail;
   }
-  info_seq = dds_SampleInfoSeq_create(1);
+  info_seq = raii::dds_SampleInfoSeq_create(1);
   if (nullptr == info_seq) {
     RMW_SET_ERROR_MSG("failed to allocate info_seq");
-    return nullptr;
+    goto fail;
   }
-  raw_data_sizes = dds_UnsignedLongSeq_create(1);
+  raw_data_sizes = raii::dds_UnsignedLongSeq_create(1);
   if (nullptr == raw_data_sizes) {
     RMW_SET_ERROR_MSG("failed to allocate raw_data_sizes");
-    return nullptr;
+    goto fail;
   }
 
   dds_DataReader_set_listener_context(response_reader, client_info);
@@ -393,6 +426,8 @@ rmw_create_client(
   client_info->service_typesupport = type_support;
   client_info->sequence_number = 0;
   client_info->ctx = ctx;
+  // client_info->request_topic_name = std::move(request_topic_name);
+  // client_info->response_topic_name = std::move(response_topic_name);
 
   // Set GUID
   dds_DataWriter_get_guid(request_writer, client_guid);
@@ -449,13 +484,6 @@ rmw_create_client(
   return rmw_client;
 
 fail:
-  if (rmw_client != nullptr) {
-    if (rmw_client->service_name != nullptr) {
-      rmw_free(const_cast<char *>(rmw_client->service_name));
-    }
-    rmw_client_free(rmw_client);
-  }
-
   if (request_writer != nullptr) {
     dds_Publisher_delete_datawriter(publisher, request_writer);
   }
@@ -486,24 +514,23 @@ fail:
   if (client_info != nullptr) {
     delete client_info;
   }
+
+  if (rmw_client != nullptr) {
+    if (rmw_client->service_name != nullptr) {
+      rmw_free(const_cast<char *>(rmw_client->service_name));
+    }
+    rmw_client_free(rmw_client);
+  }
+
   return nullptr;
 }
 
 rmw_ret_t
 rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  CHECK_ALL_PTRS_CODE(node, client);
+  CHECK_ID_CODE(node);
+  CHECK_ID_CODE(client);
 
   dds_ReturnCode_t ret;
   rmw_context_impl_t * ctx = node->context->impl;
@@ -520,9 +547,9 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
       }
     }
 
-    dds_DataSeq_delete(client_info->data_seq);
-    dds_SampleInfoSeq_delete(client_info->info_seq);
-    dds_UnsignedLongSeq_delete(client_info->raw_data_sizes);
+    // dds_DataSeq_delete(client_info->data_seq);
+    // dds_SampleInfoSeq_delete(client_info->info_seq);
+    // dds_UnsignedLongSeq_delete(client_info->raw_data_sizes);
 
     if (client_info->response_reader != nullptr) {
       if (client_info->read_condition != nullptr) {
@@ -557,6 +584,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
       node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
     rmw_free(const_cast<char *>(client->service_name));
   }
+  
   rmw_client_free(client);
 
   return RMW_RET_OK;
@@ -568,19 +596,9 @@ rmw_service_server_is_available(
   const rmw_client_t * client,
   bool * is_available)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(is_available, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(node, client, is_available);
+  CHECK_ID_CODE(node);
+  CHECK_ID_CODE(client);
 
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(client->data);
   if (client_info == nullptr) {
@@ -602,7 +620,7 @@ rmw_service_server_is_available(
 
   *is_available = false;
 
-  dds_InstanceHandleSeq * seq = dds_InstanceHandleSeq_create(4);
+  raii::dds_InstanceHandleSeq seq = raii::dds_InstanceHandleSeq_create(4);
   if (seq == nullptr) {
     RMW_SET_ERROR_MSG("failed to create instance handle sequence");
     return RMW_RET_ERROR;
@@ -623,7 +641,7 @@ rmw_service_server_is_available(
     return RMW_RET_OK;
   }
 
-  seq = dds_InstanceHandleSeq_create(4);
+  seq = raii::dds_InstanceHandleSeq_create(4);
   if (seq == nullptr) {
     RMW_SET_ERROR_MSG("failed to create instance handle sequence");
     return RMW_RET_ERROR;
@@ -652,13 +670,8 @@ rmw_service_server_is_available(
 rmw_ret_t
 rmw_get_gid_for_client(const rmw_client_t * client, rmw_gid_t * gid)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(gid, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  CHECK_ALL_PTRS_CODE(client, gid);
+  CHECK_ID_CODE(client);
 
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(client->data);
   if (client_info == nullptr) {
@@ -677,13 +690,8 @@ rmw_client_request_publisher_get_actual_qos(
   const rmw_client_t * client,
   rmw_qos_profile_t * qos)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(client, qos);
+  CHECK_ID_CODE(client);
 
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(client->data);
   if (client_info == nullptr) {
@@ -728,13 +736,8 @@ rmw_client_response_subscription_get_actual_qos(
   const rmw_client_t * client,
   rmw_qos_profile_t * qos)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(client, qos);
+  CHECK_ID_CODE(client);
 
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(client->data);
   if (client_info == nullptr) {
@@ -779,14 +782,8 @@ rmw_send_request(
   const void * ros_request,
   int64_t * sequence_id)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(sequence_id, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(client, ros_request, sequence_id);
+  CHECK_ID_CODE(client);
 
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(client->data);
   if (client_info == nullptr) {
@@ -875,14 +872,8 @@ rmw_take_response(
   void * ros_response,
   bool * taken)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier, RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(client, request_header, ros_response, taken);
+  CHECK_ID_CODE(client);
 
   *taken = false;
 
@@ -904,28 +895,34 @@ rmw_take_response(
     return RMW_RET_ERROR;
   }
 
-  dds_DataSeq * data_values = dds_DataSeq_create(1);
+  raii::dds_DataSeq data_values = raii::dds_DataSeq_create(1);
   if (data_values == nullptr) {
     RMW_SET_ERROR_MSG("failed to create data sequence");
     return RMW_RET_ERROR;
   }
 
-  dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
+  raii::dds_SampleInfoSeq sample_infos = raii::dds_SampleInfoSeq_create(1);
   if (sample_infos == nullptr) {
     RMW_SET_ERROR_MSG("failed to create sample info sequence");
-    dds_DataSeq_delete(data_values);
     return RMW_RET_ERROR;
   }
 
-  dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
+  raii::dds_UnsignedLongSeq sample_sizes = raii::dds_UnsignedLongSeq_create(1);
   if (sample_sizes == nullptr) {
     RMW_SET_ERROR_MSG("failed to create sample size sequence");
-    dds_DataSeq_delete(data_values);
-    dds_SampleInfoSeq_delete(sample_infos);
     return RMW_RET_ERROR;
   }
 
   dds_ReturnCode_t ret = dds_RETCODE_OK;
+
+  auto ret_loan = rcpputils::make_scope_exit(
+    [&](){
+      dds_DataReader_raw_return_loan(
+        response_reader,
+        data_values,
+        sample_infos,
+        sample_sizes);
+    });
 
   if (client_info->ctx->service_mapping_basic) {
     while (ret == dds_RETCODE_OK) {
@@ -934,19 +931,11 @@ rmw_take_response(
         dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
       if (ret == dds_RETCODE_NO_DATA) {
-        dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_OK;
       }
 
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to take data");
-        dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
 
@@ -954,10 +943,6 @@ rmw_take_response(
       if (sample_info->valid_data) {
         void * sample = dds_DataSeq_get(data_values, 0);
         if (sample == nullptr) {
-          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-          dds_DataSeq_delete(data_values);
-          dds_SampleInfoSeq_delete(sample_infos);
-          dds_UnsignedLongSeq_delete(sample_sizes);
           return RMW_RET_ERROR;
         }
         uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
@@ -978,10 +963,6 @@ rmw_take_response(
 
         if (!res) {
           // Error message already set
-          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-          dds_DataSeq_delete(data_values);
-          dds_SampleInfoSeq_delete(sample_infos);
-          dds_UnsignedLongSeq_delete(sample_sizes);
           return RMW_RET_ERROR;
         }
 
@@ -998,7 +979,7 @@ rmw_take_response(
           *taken = true;
         }
       }
-      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
+
       if (*taken) {
         break;
       }
@@ -1010,19 +991,11 @@ rmw_take_response(
         dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
       if (ret == dds_RETCODE_NO_DATA) {
-        dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_OK;
       }
 
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to take data");
-        dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
 
@@ -1030,10 +1003,6 @@ rmw_take_response(
       if (sample_info->valid_data) {
         void * sample = dds_DataSeq_get(data_values, 0);
         if (sample == nullptr) {
-          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-          dds_DataSeq_delete(data_values);
-          dds_SampleInfoSeq_delete(sample_infos);
-          dds_UnsignedLongSeq_delete(sample_sizes);
           return RMW_RET_ERROR;
         }
         uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
@@ -1054,10 +1023,6 @@ rmw_take_response(
 
         if (!res) {
           // Error message already set
-          dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
-          dds_DataSeq_delete(data_values);
-          dds_SampleInfoSeq_delete(sample_infos);
-          dds_UnsignedLongSeq_delete(sample_sizes);
           return RMW_RET_ERROR;
         }
 
@@ -1074,16 +1039,11 @@ rmw_take_response(
           *taken = true;
         }
       }
-      dds_DataReader_raw_return_loan(response_reader, data_values, sample_infos, sample_sizes);
       if (*taken) {
         break;
       }
     }
   }
-
-  dds_DataSeq_delete(data_values);
-  dds_SampleInfoSeq_delete(sample_infos);
-  dds_UnsignedLongSeq_delete(sample_sizes);
 
   TRACETOOLS_TRACEPOINT(
     rmw_take_response,
@@ -1102,12 +1062,9 @@ rmw_client_set_on_new_response_callback(
   rmw_event_callback_t callback,
   const void * user_data)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(rmw_client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    rmw_client,
-    rmw_client->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  CHECK_ALL_PTRS_CODE(rmw_client);
+  CHECK_ID_CODE(rmw_client);
+  
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(rmw_client->data);
   if (client_info == nullptr) {
     RMW_SET_ERROR_MSG("invalid client data");

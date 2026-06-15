@@ -66,6 +66,8 @@ Guid_t Guid_t::for_participant(const TBuiltinTopicData& builtin_topic_data) {
   guid.entityId = rmw_gurumdds_cpp::Guid_t::ENTITYID_PARTICIPANT;
   return guid;
 }
+
+
 }  // namespace rmw_gurumdds_cpp
 
 #endif  // RMW_GURUMDDS_CPP__GID_INL_

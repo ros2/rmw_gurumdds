@@ -109,7 +109,7 @@ void rmw_gurumdds_listener_thread(rmw_context_impl_t * ctx)
   attached_exit = true;
   attached_condition_count += 1;
 
-  waitset_info->active_conditions = dds_ConditionSeq_create(attached_condition_count);
+  waitset_info->active_conditions = raii::dds_ConditionSeq_create(attached_condition_count);
   if (waitset_info->active_conditions == nullptr) {
     RMW_SET_ERROR_MSG("failed to create condition sequence");
     goto cleanup;

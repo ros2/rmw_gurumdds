@@ -7,6 +7,7 @@
   <maintainer email="donghyeon@gurum.cc">Donghyeon Lee</maintainer>
   <maintainer email="hyunsoo@gurum.cc">Hyunsoo Kim</maintainer>
   <maintainer email="seontai@gurum.cc">Seontai Kim</maintainer>
+  <maintainer email="minjae@gurum.cc">Minjae Kwon</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -24,6 +25,17 @@
   <build_depend>rosidl_typesupport_introspection_c</build_depend>
   <build_depend>rosidl_typesupport_introspection_cpp</build_depend>
   <build_depend>tracetools</build_depend>
+  <build_depend>rosidl_buffer_backend_registry</build_depend>
+  <build_depend>rosidl_dynamic_typesupport</build_depend>
+  <!--fastrtps dependencies-->
+  <build_depend>rmw_fastrtps_cpp</build_depend>
+  <build_depend>fastcdr</build_depend>
+  <build_depend>rosidl_typesupport_fastrtps_c</build_depend>
+  <build_depend>rosidl_typesupport_fastrtps_cpp</build_depend>
+  <build_depend>rmw_fastrtps_shared_cpp</build_depend>
+  <build_depend>rosidl_dynamic_typesupport_fastrtps</build_depend>
+
+
 
   <build_export_depend>gurumdds-3.2</build_export_depend>
   <build_export_depend>gurumdds_cmake_module</build_export_depend>
@@ -33,10 +45,29 @@
   <build_export_depend>rosidl_typesupport_introspection_c</build_export_depend>
   <build_export_depend>rosidl_typesupport_introspection_cpp</build_export_depend>
   <build_export_depend>tracetools</build_export_depend>
+  <build_export_depend>rosidl_dynamic_typesupport</build_export_depend>
+  <!--fastrtps dependencies-->
+  <build_export_depend>rmw_fastrtps_cpp</build_export_depend>
+  <build_export_depend>fastcdr</build_export_depend>
+  <build_export_depend>rmw_fastrtps_shared_cpp</build_export_depend>
+  <build_export_depend>rosidl_typesupport_fastrtps_c</build_export_depend>
+  <build_export_depend>rosidl_typesupport_fastrtps_cpp</build_export_depend>
+    <!-- 필요해지면 추가.
+  <build_export_depend>rosidl_dynamic_typesupport_fastrtps</build_export_depend>
+  -->
 
+  <exec_depend>rcpputils</exec_depend>
   <exec_depend>rcutils</exec_depend>
   <exec_depend>rmw</exec_depend>
-
+  <exec_depend>rosidl_dynamic_typesupport</exec_depend>
+  <exec_depend>tracetools</exec_depend>
+  <exec_depend>rosidl_buffer_backend_registry</exec_depend>
+  <!--fastrtps dependencies-->
+  <exec_depend>rmw_fastrtps_cpp</exec_depend>
+  <exec_depend>rmw_fastrtps_shared_cpp</exec_depend>
+  <!--
+    <exec_depend>rosidl_dynamic_typesupport_fastrtps</exec_depend>
+  -->
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

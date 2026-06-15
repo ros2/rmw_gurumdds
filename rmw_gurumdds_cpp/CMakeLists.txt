@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(rmw_gurumdds_cpp)
 
 # Default to C++17
@@ -15,6 +15,9 @@ find_package(ament_cmake_ros_core REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(gurumdds_cmake_module REQUIRED)
+find_package(rosidl_typesupport_fastrtps_c REQUIRED)
+find_package(rosidl_typesupport_fastrtps_cpp REQUIRED)
+find_package(rosidl_buffer_backend_registry REQUIRED)
 
 find_package(GurumDDS QUIET MODULE)
 if(GurumDDS_FOUND)
@@ -44,10 +47,26 @@ if(NOT rosidl_typesupport_introspection_cpp_FOUND)
   return()
 endif()
 
-find_package(rmw REQUIRED)
 find_package(rmw_dds_common REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_runtime_cpp REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
+find_package(rosidl_runtime_cpp REQUIRED)
+find_package(rosidl_typesupport_introspection_c REQUIRED)
+find_package(rosidl_typesupport_introspection_cpp REQUIRED)
+find_package(rosidl_dynamic_typesupport REQUIRED)
+find_package(rmw REQUIRED)
+find_package(rcutils REQUIRED)
+find_package(rcpputils REQUIRED)
+find_package(rosidl_buffer_backend_registry REQUIRED)
+
+#fastrtps dependencies
+find_package(rmw_fastrtps_cpp REQUIRED)
+find_package(fastcdr REQUIRED)
+find_package(rosidl_typesupport_fastrtps_c REQUIRED)
+find_package(rosidl_typesupport_fastrtps_cpp REQUIRED)
+find_package(rmw_fastrtps_shared_cpp REQUIRED)
+find_package(rosidl_dynamic_typesupport_fastrtps REQUIRED)
 
 find_package(tracetools REQUIRED)
 if(NOT tracetools_FOUND)
@@ -103,6 +122,10 @@ add_library(rmw_gurumdds_cpp
   src/type_support_common.cpp
   src/type_support_service.cpp
   src/wait.cpp
+
+  #backend_buffer
+  src/buffer_endpoint_registry.cpp
+  src/buffer_backend_loader.cpp
 )
 target_link_libraries(rmw_gurumdds_cpp PUBLIC
   ${rmw_dds_common_TARGETS}
@@ -116,6 +139,16 @@ target_link_libraries(rmw_gurumdds_cpp PUBLIC
   "rosidl_typesupport_introspection_c::rosidl_typesupport_introspection_c"
   "rosidl_typesupport_introspection_cpp::rosidl_typesupport_introspection_cpp"
   "tracetools::tracetools"
+  rosidl_buffer_backend_registry::rosidl_buffer_backend_registry
+
+  #fastrtps dependencies
+  rmw_fastrtps_cpp::rmw_fastrtps_cpp
+  fastcdr
+  rosidl_typesupport_fastrtps_c::rosidl_typesupport_fastrtps_c
+  rosidl_typesupport_fastrtps_cpp::rosidl_typesupport_fastrtps_cpp
+  rosidl_dynamic_typesupport::rosidl_dynamic_typesupport
+  rosidl_dynamic_typesupport_fastrtps::rosidl_dynamic_typesupport_fastrtps
+  rmw_fastrtps_shared_cpp::rmw_fastrtps_shared_cpp
 )
 ament_export_libraries(rmw_gurumdds_cpp)
 
@@ -126,9 +159,18 @@ ament_export_dependencies(
   rmw_dds_common
   rosidl_runtime_c
   rosidl_runtime_cpp
+  rosidl_typesupport_fastrtps_c
+  rosidl_typesupport_fastrtps_cpp
   rosidl_typesupport_introspection_c
   rosidl_typesupport_introspection_cpp
   tracetools
+
+  #fastrtps dependencies
+  rmw_fastrtps_cpp
+  rmw_fastrtps_shared_cpp
+  fastcdr
+  #필요해지면 추가할 것.
+  #rosidl_dynamic_typesupport_fastrtps
 )
 
 register_rmw_implementation(

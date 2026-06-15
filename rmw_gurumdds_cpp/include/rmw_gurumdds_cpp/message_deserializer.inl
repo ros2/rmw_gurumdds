@@ -25,6 +25,10 @@ inline MessageDeserializer<MessageMembersT>::MessageDeserializer(CdrDeserializat
 
 template<typename MessageMembersT>
 inline void MessageDeserializer<MessageMembersT>::deserialize(const MessageMembersT *members, uint8_t *output) {
+  if(members == nullptr || output == nullptr){
+    throw std::runtime_error("CDR bad argument");
+  }
+
   for (uint32_t i = 0; i < members->member_count_; i++) {
     auto member = members->members_ + i;
     switch (member->type_id_) {
@@ -76,6 +80,11 @@ inline void MessageDeserializer<MessageMembersT>::read_boolean(const MessageMemb
       // Sequence
       uint32_t size = 0;
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size()) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+
       if constexpr (LANGUAGE_KIND == LanguageKind::C) {
         auto seq_ptr = (reinterpret_cast<rosidl_runtime_c__boolean__Sequence *>(output + member->offset_));
         if (seq_ptr->data) {
@@ -141,9 +150,15 @@ inline void MessageDeserializer<MessageMembersT>::read_wchar(const MessageMember
 
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (!member->array_size_ || member->is_upper_bound_) {
+
       // Sequence
       uint32_t size = 0;
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size() / sizeof(uint16_t)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+      
       auto seq_ptr = reinterpret_cast<rosidl_runtime_c__wchar__Sequence *>(output + member->offset_);
       if (seq_ptr->data) {
         rosidl_runtime_c__wchar__Sequence__fini(seq_ptr);
@@ -172,6 +187,11 @@ inline void MessageDeserializer<MessageMembersT>::read_wchar(const MessageMember
       // Sequence
       uint32_t size = 0;
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size() / sizeof(uint16_t)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+
       member->resize_function(output + member->offset_, static_cast<size_t>(size));
     }
 
@@ -189,9 +209,14 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (member->is_array_) {
       if (!member->array_size_ || member->is_upper_bound_) {
+
         // Sequence
         uint32_t size = 0;
         buffer_ >> size;
+
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
 
         auto seq_ptr =
           (reinterpret_cast<rosidl_runtime_c__String__Sequence *>(output + member->offset_));
@@ -214,7 +239,7 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
       } else {
         auto arr = reinterpret_cast<rosidl_runtime_c__String *>(output + member->offset_);
         for (uint32_t i = 0; i < member->array_size_; i++) {
-          if (arr == nullptr) {
+          if (arr[i].data == nullptr) {
             if (!rosidl_runtime_c__String__init(&arr[i])) {
               throw std::runtime_error("Failed to initialize string");
             }
@@ -239,6 +264,11 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
       if (!member->array_size_ || member->is_upper_bound_) {
         // Sequence
         buffer_ >> size;
+
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
+
         member->resize_function(output + member->offset_, size);
       }
 
@@ -261,10 +291,15 @@ inline void MessageDeserializer<MessageMembersT>::read_primitive(const MessageMe
   }
 
   uint32_t size = 0;
+
   PrimitiveT* arr = nullptr;
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (!member->array_size_ || member->is_upper_bound_) {
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size() / sizeof(PrimitiveT)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
       auto seq_ptr = reinterpret_cast<rmw_gurumdds_cpp::rmw_seq_t<PrimitiveT>*>(output + member->offset_);
       if(nullptr != seq_ptr->data) {
         seq_ptr->fini();
@@ -285,6 +320,10 @@ inline void MessageDeserializer<MessageMembersT>::read_primitive(const MessageMe
   if constexpr (LANGUAGE_KIND == LanguageKind::CXX) {
     if (!member->array_size_ || member->is_upper_bound_) {
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size() / sizeof(PrimitiveT)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
       member->resize_function(output + member->offset_, static_cast<size_t>(size));
     } else {
       size = member->array_size_;
@@ -304,6 +343,10 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
         // Sequence
         uint32_t size = 0;
         buffer_ >> size;
+
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
 
         auto seq_ptr =
           (reinterpret_cast<rosidl_runtime_c__U16String__Sequence *>(
@@ -327,7 +370,7 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
       } else {
         auto arr = reinterpret_cast<rosidl_runtime_c__U16String *>(output + member->offset_);
         for (uint32_t i = 0; i < member->array_size_; i++) {
-          if (arr == nullptr) {
+          if (arr[i].data == nullptr) {
             if (!rosidl_runtime_c__U16String__init(&arr[i])) {
               throw std::runtime_error("Failed to initialize string");
             }
@@ -352,6 +395,10 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
       if (!member->array_size_ || member->is_upper_bound_) {
         // Sequence
         buffer_ >> size;
+
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
         member->resize_function(output + member->offset_, size);
       }
 
@@ -373,9 +420,16 @@ inline void MessageDeserializer<MessageMembersT>::read_struct_arr(const MessageM
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size()) {
+        throw std::runtime_error("invalid string sequence size");
+      }
       member->resize_function(output + member->offset_, static_cast<size_t>(size));
     }
 
+    if (size > buffer_.get_remaining_size()) {
+      throw std::runtime_error("invalid string sequence size");
+    }
     size = member->size_function(output + member->offset_);
     for (uint32_t j = 0; j < size; j++) {
       deserialize(

@@ -64,13 +64,13 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     goto fail;
   }
 
-  wait_set_info->active_conditions = dds_ConditionSeq_create(4);
+  wait_set_info->active_conditions = raii::dds_ConditionSeq_create(4);
   if (wait_set_info->active_conditions == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate active_conditions sequence");
     goto fail;
   }
 
-  wait_set_info->attached_conditions = dds_ConditionSeq_create(4);
+  wait_set_info->attached_conditions = raii::dds_ConditionSeq_create(4);
   if (wait_set_info->attached_conditions == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate attached_conditions sequence");
     goto fail;
@@ -80,13 +80,13 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 
 fail:
   if (wait_set_info != nullptr) {
-    if (wait_set_info->active_conditions != nullptr) {
-      dds_ConditionSeq_delete(wait_set_info->active_conditions);
-    }
+    // if (wait_set_info->active_conditions != nullptr) {
+    //   dds_ConditionSeq_delete(wait_set_info->active_conditions);
+    // }
 
-    if (wait_set_info->attached_conditions != nullptr) {
-      dds_ConditionSeq_delete(wait_set_info->attached_conditions);
-    }
+    // if (wait_set_info->attached_conditions != nullptr) {
+    //   dds_ConditionSeq_delete(wait_set_info->attached_conditions);
+    // }
 
     if (wait_set_info->wait_set != nullptr) {
       dds_WaitSet_delete(wait_set_info->wait_set);

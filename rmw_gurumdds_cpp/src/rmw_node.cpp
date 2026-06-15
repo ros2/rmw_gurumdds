@@ -33,27 +33,6 @@
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
-static inline rmw_ret_t
-get_node_names(
-  const char * implementation_identifier,
-  const rmw_node_t * node,
-  rcutils_string_array_t * node_names,
-  rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * enclaves)
-{
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier, implementation_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  auto common_ctx = &node->context->impl->common_ctx;
-  return common_ctx->graph_cache.get_node_names(
-    node_names,
-    node_namespaces,
-    enclaves,
-    &allocator);
-}
-
 extern "C"
 {
 rmw_node_t *
@@ -220,7 +199,23 @@ rmw_get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces)
 {
-  return get_node_names(RMW_GURUMDDS_ID, node, node_names, node_namespaces, nullptr);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node_names, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node_namespaces, RMW_RET_INVALID_ARGUMENT);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node,
+    node->implementation_identifier, 
+    RMW_GURUMDDS_ID,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  auto common_ctx = &node->context->impl->common_ctx;
+  return common_ctx->graph_cache.get_node_names(
+    node_names,
+    node_namespaces,
+    nullptr,
+    &allocator);
 }
 
 rmw_ret_t
@@ -230,6 +225,23 @@ rmw_get_node_names_with_enclaves(
   rcutils_string_array_t * node_namespaces,
   rcutils_string_array_t * enclaves)
 {
-  return get_node_names(RMW_GURUMDDS_ID, node, node_names, node_namespaces, enclaves);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node_names, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(node_namespaces, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(enclaves, RMW_RET_INVALID_ARGUMENT);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node,
+    node->implementation_identifier, 
+    RMW_GURUMDDS_ID,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  auto common_ctx = &node->context->impl->common_ctx;
+  return common_ctx->graph_cache.get_node_names(
+    node_names,
+    node_namespaces,
+    enclaves,
+    &allocator);
 }
 }  // extern "C"

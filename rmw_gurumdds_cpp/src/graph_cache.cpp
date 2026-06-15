@@ -19,6 +19,8 @@
 #include "rmw/qos_profiles.h"
 #include "rmw_dds_common/qos.hpp"
 
+#include "rcutils/logging.h"
+
 #include "rmw_gurumdds_cpp/context_listener_thread.hpp"
 #include "rmw_gurumdds_cpp/graph_cache.hpp"
 #include "rmw_gurumdds_cpp/qos.hpp"
@@ -26,6 +28,8 @@
 #include "rmw_gurumdds_cpp/gid.hpp"
 #include "rmw_gurumdds_cpp/rmw_publisher.hpp"
 #include "rmw_gurumdds_cpp/rmw_subscription.hpp"
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
 
@@ -42,6 +46,7 @@ static rmw_ret_t add_entity(
   const dds_DeadlineQosPolicy * const deadline,
   const dds_LivelinessQosPolicy * const liveliness,
   const dds_LifespanQosPolicy * const lifespan,
+  const dds_UserDataQosPolicy * const userdata,
   const bool is_reader,
   const bool local) {
   RCUTILS_UNUSED(local);
@@ -92,14 +97,32 @@ static rmw_ret_t add_entity(
     is_reader,
     local);
 
-  if (!ctx->common_ctx.graph_cache.add_entity(
+  rosidl_type_hash_t ser_type_hash;
+  rosidl_type_hash_t * ser_type_hash_ptr = nullptr;
+  if (RMW_RET_OK == rmw_dds_common::parse_sertype_hash_from_user_data(
+            userdata->value, userdata->size, ser_type_hash))
+  {
+    ser_type_hash_ptr = &ser_type_hash;
+  }
+
+  std::string ud;
+  if (userdata->size > 0) {
+    ud.assign(
+      reinterpret_cast<const char *>(userdata->value),
+      userdata->size);
+  }
+
+  bool add_res = ctx->common_ctx.graph_cache.add_entity(
     *endp_gid,
     std::string(topic_name),
     std::string(type_name),
     type_hash,
     *dp_gid,
     qos_profile,
-    is_reader)) {
+    is_reader,
+    ser_type_hash_ptr);
+
+  if (!add_res) {
     RCUTILS_LOG_DEBUG_NAMED(
       RMW_GURUMDDS_ID,
       "failed to add entity to cache: "
@@ -167,20 +190,14 @@ static rmw_ret_t add_local_publisher(
     reinterpret_cast<const uint32_t *>(gid.data)[3]);
 
   dds_DataWriterQos dw_qos;
-  dds_DataWriterQos * dw_qos_ptr = &dw_qos;
+  //dds_DataWriterQos * dw_qos_ptr = &dw_qos;
 
   dds_Topic * topic = dds_DataWriter_get_topic(datawriter);
   const char * topic_name = dds_Topic_get_name(topic);
   const char * type_name = dds_Topic_get_type_name(topic);
 
-  dds_ReturnCode_t ret = dds_DataWriterQos_copy(&dw_qos, &dds_DATAWRITER_QOS_DEFAULT);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to initialize DataWriterQos");
-    return RMW_RET_ERROR;
-  }
-
-  auto scope_exit_qos_reset = rcpputils::make_scope_exit([dw_qos_ptr]() {
-    if (dds_RETCODE_OK != dds_DataWriterQos_finalize(dw_qos_ptr)) {
+  auto scope_exit_qos_reset = rcpputils::make_scope_exit([&dw_qos]() {
+    if (dds_RETCODE_OK != dds_DataWriterQos_finalize(&dw_qos)) {
       RMW_SET_ERROR_MSG("failed to finalize DataWriterQos");
     }
   });
@@ -203,6 +220,7 @@ static rmw_ret_t add_local_publisher(
     &dw_qos.deadline,
     &dw_qos.liveliness,
     &dw_qos.lifespan,
+    &dw_qos.user_data,
     false,
     true);
 }
@@ -230,20 +248,14 @@ static rmw_ret_t add_local_subscriber(
     reinterpret_cast<const uint32_t *>(gid.data)[3]);
 
   dds_DataReaderQos dr_qos;
-  dds_DataReaderQos * dr_qos_ptr = &dr_qos;
+  //dds_DataReaderQos * dr_qos_ptr = &dr_qos;
 
   auto topic = reinterpret_cast<dds_Topic *>(dds_DataReader_get_topicdescription(datareader));
   const char * topic_name = dds_Topic_get_name(topic);
   const char * type_name = dds_Topic_get_type_name(topic);
 
-  dds_ReturnCode_t ret = dds_DataReaderQos_copy(&dr_qos, &dds_DATAREADER_QOS_DEFAULT);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to initialize DataReaderQos");
-    return RMW_RET_ERROR;
-  }
-
-  auto scope_exit_qos_reset = rcpputils::make_scope_exit([dr_qos_ptr]() {
-    if (dds_RETCODE_OK != dds_DataReaderQos_finalize(dr_qos_ptr)) {
+  auto scope_exit_qos_reset = rcpputils::make_scope_exit([&dr_qos]() {
+    if (dds_RETCODE_OK != dds_DataReaderQos_finalize(&dr_qos)) {
       RMW_SET_ERROR_MSG("failed to finalize DataReaderQos");
     }
   });
@@ -266,6 +278,7 @@ static rmw_ret_t add_local_subscriber(
     &dr_qos.deadline,
     &dr_qos.liveliness,
     nullptr,
+    &dr_qos.user_data,
     true,
     true);
 }
@@ -284,6 +297,8 @@ initialize(rmw_context_impl_t * const ctx)
   rmw_publisher_options_t publisher_options = rmw_get_default_publisher_options();
   rmw_subscription_options_t subscription_options = rmw_get_default_subscription_options();
 
+  const char * const topic_name_partinfo = "ros_discovery_info";
+
   // This is currently not implemented in gurumdds
   subscription_options.ignore_local_publications = true;
 
@@ -291,7 +306,9 @@ initialize(rmw_context_impl_t * const ctx)
     rosidl_typesupport_cpp::get_message_type_support_handle<
     rmw_dds_common::msg::ParticipantEntitiesInfo>();
 
-  const char * const topic_name_partinfo = "ros_discovery_info";
+  if(type_supports_partinfo == nullptr) {
+    return RMW_RET_ERROR;
+  }
 
   ctx->common_ctx.pub =
     rmw_gurumdds_cpp::create_publisher(
@@ -349,7 +366,6 @@ initialize(rmw_context_impl_t * const ctx)
 
   ctx->common_ctx.publish_callback = [](const rmw_publisher_t * pub, const void * msg) {
     return rmw_gurumdds_cpp::publish(
-      RMW_GURUMDDS_ID,
       pub,
       msg,
       nullptr);
@@ -389,6 +405,13 @@ finalize(rmw_context_impl_t * const ctx)
       RMW_SET_ERROR_MSG("failed to destroy discovery subscriber");
       return RMW_RET_ERROR;
     }
+
+    if(ctx->common_ctx.sub->topic_name != nullptr){
+      rmw_free(const_cast<char*>(ctx->common_ctx.sub->topic_name));
+      ctx->common_ctx.sub->topic_name = nullptr;
+    }
+
+    rmw_subscription_free(ctx->common_ctx.sub);
     ctx->common_ctx.sub = nullptr;
   }
 
@@ -399,6 +422,13 @@ finalize(rmw_context_impl_t * const ctx)
       RMW_SET_ERROR_MSG("failed to destroy discovery publisher");
       return RMW_RET_ERROR;
     }
+
+    if(ctx->common_ctx.pub->topic_name != nullptr){
+      rmw_free(const_cast<char*>(ctx->common_ctx.pub->topic_name));
+      ctx->common_ctx.pub->topic_name = nullptr;
+    }
+
+    rmw_publisher_free(ctx->common_ctx.pub);
     ctx->common_ctx.pub = nullptr;
   }
 
@@ -484,6 +514,8 @@ on_publisher_created(
 {
   auto msg_typesupport = pub->rosidl_message_typesupport;
   auto& type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
+
+
   rmw_ret_t rc = add_local_publisher(ctx, node, pub->topic_writer, type_hash, pub->publisher_gid);
   if (RMW_RET_OK != rc) {
     RMW_SET_ERROR_MSG("failed to add local publisher");
@@ -583,7 +615,7 @@ on_service_created(
   bool add_sub = false;
 
   auto scope_exit_entities_reset = rcpputils::make_scope_exit(
-    [ctx, pub_gid, sub_gid, add_sub, add_pub]()
+    [&]()
     {
       if (add_sub) {
         remove_entity(ctx, sub_gid, true);
@@ -654,7 +686,7 @@ on_client_created(
   bool add_sub = false;
 
   auto scope_exit_entities_reset = rcpputils::make_scope_exit(
-    [ctx, pub_gid, sub_gid, add_sub, add_pub]()
+    [&]()
     {
       if (add_sub) {
         remove_entity(ctx, sub_gid, true);
@@ -700,16 +732,19 @@ on_client_deleted(
   ClientInfo * const client)
 {
   bool failed = false;
+
   rmw_ret_t rc = remove_entity(ctx, client->subscriber_gid, true);
-  failed = failed && (RMW_RET_OK == rc);
+  failed = failed || (RMW_RET_OK != rc);
 
   rc = remove_entity(ctx, client->publisher_gid, false);
-  failed = failed && (RMW_RET_OK == rc);
+  failed = failed || (RMW_RET_OK != rc);
 
-  rc = ctx->common_ctx.remove_service_graph(
-    client->subscriber_gid, client->publisher_gid, node->name, node->namespace_
-  );
-  failed = failed && (RMW_RET_OK == rc);
+  rc = ctx->common_ctx.remove_client_graph(
+    client->publisher_gid,
+    client->subscriber_gid,
+    node->name,
+    node->namespace_);
+  failed = failed || (RMW_RET_OK != rc);
 
   return failed ? RMW_RET_ERROR : RMW_RET_OK;
 }
@@ -793,8 +828,10 @@ remove_participant(
 rmw_ret_t
 add_remote_entity(
   rmw_context_impl_t * ctx,
-  const dds_GUID_t * const endp_guid,
-  const dds_GUID_t * const dp_guid,
+  // const dds_GUID_t * const endp_guid,
+  // const dds_GUID_t * const dp_guid,
+  const rmw_gid_t & endp_gid,
+  const rmw_gid_t & dp_gid,
   const char * const topic_name,
   const char * const type_name,
   const dds_UserDataQosPolicy& user_data,
@@ -805,10 +842,6 @@ add_remote_entity(
   const dds_LifespanQosPolicy * const lifespan,
   const bool is_reader)
 {
-  rmw_gid_t endp_gid, dp_gid;
-  rmw_gurumdds_cpp::guid_to_gid(*endp_guid, endp_gid);
-  rmw_gurumdds_cpp::guid_to_gid(*dp_guid, dp_gid);
-
   if (0 == std::memcmp(dp_gid.data, ctx->common_ctx.gid.data, RMW_GID_STORAGE_SIZE)) {
     // Ignore own announcements
     return RMW_RET_OK;
@@ -834,6 +867,7 @@ add_remote_entity(
       deadline,
       liveliness,
       lifespan,
+      &user_data,
       is_reader,
       false))
   {

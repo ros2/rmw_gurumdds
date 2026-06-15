@@ -56,6 +56,22 @@ struct Guid_t: public dds_GUID_t
 
   bool operator<(const Guid_t & other) const;
 };  // struct Guid_t
+
+template<typename TByte>
+void
+copy_from_gurumdds_guid_to_byte_array(
+  const dds_GUID_t & guid,
+  TByte * guid_byte_array)
+{
+  static_assert(
+    std::is_same<uint8_t, TByte>::value || std::is_same<int8_t, TByte>::value,
+    "TByte should be either int8_t or uint8_t");
+  assert(guid_byte_array);
+  constexpr auto prefix_size = sizeof(guid.prefix);
+  constexpr auto id_size = sizeof(guid.entityId);
+  memcpy(guid_byte_array, &guid.prefix, prefix_size);
+  memcpy(&guid_byte_array[prefix_size], &guid.entityId, id_size);
+}
 }  // namespace rmw_gurumdds_cpp
 
 #include "rmw_gurumdds_cpp/gid.inl"

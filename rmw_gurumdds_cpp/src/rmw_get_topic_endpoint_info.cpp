@@ -27,6 +27,7 @@
 #include "rmw_gurumdds_cpp/namespace_prefix.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/gid.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 
 extern "C"
 {
@@ -55,7 +56,7 @@ rmw_get_publishers_info_by_topic(
 
   auto common_ctx = &node->context->impl->common_ctx;
   std::string mangled_topic_name = topic_name;
-  DemangleFunction demangle_type = rmw_gurumdds_cpp::identity_demangle;
+  rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::identity_demangle;
   if (!no_mangle) {
     mangled_topic_name =
         rmw_gurumdds_cpp::create_topic_name(rmw_gurumdds_cpp::ros_topic_prefix, topic_name, "",
@@ -95,7 +96,7 @@ rmw_get_subscriptions_info_by_topic(
 
   auto common_ctx = &node->context->impl->common_ctx;
   std::string mangled_topic_name = topic_name;
-  DemangleFunction demangle_type = rmw_gurumdds_cpp::identity_demangle;
+  rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::identity_demangle;
   if (!no_mangle) {
     mangled_topic_name =
         rmw_gurumdds_cpp::create_topic_name(rmw_gurumdds_cpp::ros_topic_prefix, topic_name, "",

@@ -21,14 +21,19 @@
 #include "rmw/rmw.h"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 #include "rmw_gurumdds_cpp/event_info_service.hpp"
+#include "rmw_gurumdds_cpp/rmw_subscription.hpp"
+#include "rmw_gurumdds_cpp/rmw_publisher.hpp"
+#include "rmw_gurumdds_cpp/raii.hpp"
 
 namespace rmw_gurumdds_cpp
 {
 struct WaitSetInfo
 {
   dds_WaitSet * wait_set;
-  dds_ConditionSeq * active_conditions;
-  dds_ConditionSeq * attached_conditions;
+  // dds_ConditionSeq * active_conditions;
+  // dds_ConditionSeq * attached_conditions;
+  raii::dds_ConditionSeq active_conditions;
+  raii::dds_ConditionSeq attached_conditions;
   std::vector<SubscriberInfo*> cached_subscriptions;
   std::vector<dds_GuardCondition*> cached_guard_conditions;
   std::vector<ServiceInfo*> cached_service_conditions;

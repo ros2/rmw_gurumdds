@@ -33,6 +33,7 @@ typedef SSIZE_T ssize_t;
 
 #include "rmw_gurumdds_cpp/message_converter.hpp"
 #include "rmw_gurumdds_cpp/type_support_common.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 
 namespace rmw_gurumdds_cpp
 {
@@ -133,7 +134,7 @@ create_metastring(const void * untyped_members, const char * identifier)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return create_metastring<rosidl_typesupport_introspection_c__MessageMembers>(untyped_members);
-  } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
+  }else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return create_metastring<rosidl_typesupport_introspection_cpp::MessageMembers>(untyped_members);
   }
 

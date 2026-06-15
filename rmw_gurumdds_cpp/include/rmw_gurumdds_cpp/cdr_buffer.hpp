@@ -45,6 +45,8 @@ public:
 
   size_t get_offset() const;
 
+  size_t get_remaining_size() const;
+
   void roundup(uint32_t align);
 
 protected:

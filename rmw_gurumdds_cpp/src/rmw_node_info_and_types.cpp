@@ -34,13 +34,14 @@
 #include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 
 using GetNamesAndTypesByNodeFunction = rmw_ret_t (*)(
   rmw_dds_common::Context *,
   const std::string &,
   const std::string &,
-  DemangleFunction,
-  DemangleFunction,
+  rmw_gurumdds_cpp::DemangleFunction,
+  rmw_gurumdds_cpp::DemangleFunction,
   rcutils_allocator_t *,
   rmw_names_and_types_t *);
 
@@ -50,8 +51,8 @@ get_topic_names_and_types_by_node(
   rcutils_allocator_t * allocator,
   const char * node_name,
   const char * node_namespace,
-  DemangleFunction demangle_topic,
-  DemangleFunction demangle_type,
+  rmw_gurumdds_cpp::DemangleFunction demangle_topic,
+  rmw_gurumdds_cpp::DemangleFunction demangle_type,
   bool no_demangle,
   GetNamesAndTypesByNodeFunction get_names_and_types_by_node,
   rmw_names_and_types_t * topic_names_and_types)
@@ -108,8 +109,8 @@ get_reader_names_and_types_by_node(
   rmw_dds_common::Context * common_context,
   const std::string & node_name,
   const std::string & node_namespace,
-  DemangleFunction demangle_topic,
-  DemangleFunction demangle_type,
+  rmw_gurumdds_cpp::DemangleFunction demangle_topic,
+  rmw_gurumdds_cpp::DemangleFunction demangle_type,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
@@ -127,8 +128,8 @@ get_writer_names_and_types_by_node(
   rmw_dds_common::Context * common_context,
   const std::string & node_name,
   const std::string & node_namespace,
-  DemangleFunction demangle_topic,
-  DemangleFunction demangle_type,
+  rmw_gurumdds_cpp::DemangleFunction demangle_topic,
+  rmw_gurumdds_cpp::DemangleFunction demangle_type,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {

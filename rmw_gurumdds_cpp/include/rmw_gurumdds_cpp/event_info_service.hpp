@@ -45,6 +45,8 @@ struct ClientInfo
   dds_SampleInfoSeq * info_seq;
   dds_UnsignedLongSeq * raw_data_sizes;
   event_callback_data_t event_callback_data;
+  // std::string request_topic_name;
+  // std::string response_topic_name;
 
   size_t count_unread()
   {

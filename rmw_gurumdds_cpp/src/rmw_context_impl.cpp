@@ -18,16 +18,55 @@
 #include <string>
 #include <vector>
 
+#include "rmw_gurumdds_cpp/namespace_prefix.hpp"
 #include "rmw/impl/cpp/key_value.hpp"
 
 #include "rmw_gurumdds_cpp/gid.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
+#include "rmw_gurumdds_cpp/backend_buffer.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
+#include "rmw_gurumdds_cpp/rmw_subscription.hpp"
+
 using rmw_dds_common::msg::ParticipantEntitiesInfo;
+
+namespace {
+//backend_buffer
+void notify_backend_buffer(rmw_context_impl_t * ctx,
+  const rmw_gid_t & endp_gid,
+  const char * const topic_name,
+  const dds_UserDataQosPolicy& user_data,
+  const bool is_reader){
+  auto * ctx_backend = ctx->buffer_endpoint_registry;
+  
+  if(ctx_backend == nullptr) {
+    return;
+  }
+  
+  auto backends = rmw_gurumdds_cpp::parse_buffer_backends_from_user_data(user_data.value, user_data.size);
+
+  if(backends.empty()) {
+    return;
+  }
+
+  rmw_gurumdds_cpp::BufferEndpointInfo info;
+  info.gid = endp_gid;
+  info.topic_name = rmw_gurumdds_cpp::strip_ros_prefix_if_exists(topic_name);
+  info.backend_metadata = std::move(backends);
+
+  if (is_reader) {
+    ctx_backend->notify_subscriber_discovered(info);
+  } else {
+    ctx_backend->notify_publisher_discovered(info);
+  }
+
+  return;
+}
+}
 
 namespace rmw_gurumdds_cpp
 {
-static inline std::map<std::string, std::vector<uint8_t>>
+inline std::map<std::string, std::vector<uint8_t>>
 parse_map(uint8_t * const data, const uint32_t data_len)
 {
   std::vector<uint8_t> data_vec(data, data + data_len);
@@ -36,7 +75,7 @@ parse_map(uint8_t * const data, const uint32_t data_len)
   return map;
 }
 
-static inline rmw_ret_t
+inline rmw_ret_t
 get_user_data_key(
   dds_ParticipantBuiltinTopicData * data,
   const std::string& key,
@@ -126,10 +165,13 @@ void on_publication_changed(
       endp_guid.entityId);
     rmw_gurumdds_cpp::graph_cache::remove_entity(ctx, &endp_guid, false);
   } else {
+    rmw_gid_t endp_gid,dp_gid;
+    rmw_gurumdds_cpp::guid_to_gid(endp_guid, endp_gid);
+    rmw_gurumdds_cpp::guid_to_gid(dp_guid, dp_gid);
     rmw_gurumdds_cpp::graph_cache::add_remote_entity(
       ctx,
-      &endp_guid,
-      &dp_guid,
+      endp_gid,
+      dp_gid,
       data->topic_name,
       data->type_name,
       data->user_data,
@@ -151,6 +193,8 @@ void on_publication_changed(
       endp_guid_prefix[1],
       endp_guid_prefix[2],
       endp_guid.entityId);
+      
+    notify_backend_buffer(ctx, endp_gid, data->topic_name, data->user_data, false);
   }
 }
 
@@ -159,6 +203,7 @@ void on_subscription_changed(
   const dds_SubscriptionBuiltinTopicData * data,
   dds_InstanceHandle_t handle)
 {
+  
   auto * participant = const_cast<dds_DomainParticipant *>(a_participant);
   auto * ctx = reinterpret_cast<rmw_context_impl_t *>(
     dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0)
@@ -181,10 +226,13 @@ void on_subscription_changed(
       endp_guid.entityId);
     rmw_gurumdds_cpp::graph_cache::remove_entity(ctx, &endp_guid, false);
   } else {
+    rmw_gid_t endp_gid,dp_gid;
+    rmw_gurumdds_cpp::guid_to_gid(endp_guid, endp_gid);
+    rmw_gurumdds_cpp::guid_to_gid(dp_guid, dp_gid);
     rmw_gurumdds_cpp::graph_cache::add_remote_entity(
       ctx,
-      &endp_guid,
-      &dp_guid,
+      endp_gid,
+      dp_gid,
       data->topic_name,
       data->type_name,
       data->user_data,
@@ -206,9 +254,12 @@ void on_subscription_changed(
       endp_guid_prefix[1],
       endp_guid_prefix[2],
       endp_guid.entityId);
+
+    notify_backend_buffer(ctx, endp_gid, data->topic_name, data->user_data, true);
   }
 }
-}  // namespace rmw_gurumdds_cpp
+}
+
 
 rmw_context_impl_s::rmw_context_impl_s(rmw_context_t* const base)
   : common_ctx(),
@@ -299,6 +350,7 @@ rmw_context_impl_s::initialize_participant(
 
   dds_DomainParticipantFactory * factory = dds_DomainParticipantFactory_get_instance();
   if (factory == nullptr) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "initialize_participant: get factory");
     RMW_SET_ERROR_MSG("failed to get domain participant factory");
     return RMW_RET_ERROR;
   }
@@ -325,6 +377,7 @@ rmw_context_impl_s::initialize_participant(
   dds_ReturnCode_t ret =
     dds_DomainParticipantFactory_get_default_participant_qos(factory, &participant_qos);
   if (ret != dds_RETCODE_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to get default domain participant qos");
     RMW_SET_ERROR_MSG("failed to get default domain participant qos");
     return RMW_RET_ERROR;
   }
@@ -356,6 +409,7 @@ rmw_context_impl_s::initialize_participant(
   static_discovery_id += node_namespace;
   static_discovery_id += node_name;
 
+  
   /* Create DomainParticipant */
   if (RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST ==
   base->options.discovery_options.automatic_discovery_range) {
@@ -373,7 +427,12 @@ rmw_context_impl_s::initialize_participant(
       {nullptr, nullptr},
     };
     this->participant = dds_DomainParticipantFactory_create_participant_w_props(
-      factory, this->domain_id, &participant_qos, nullptr, 0, props);
+      factory, 
+      this->domain_id, 
+      &participant_qos, 
+      nullptr,
+      0, 
+      props);
   } else {
     dds_StringProperty props[] = {
       {const_cast<char *>("gurumdds.static_discovery.id"),
@@ -387,10 +446,16 @@ rmw_context_impl_s::initialize_participant(
       {nullptr, nullptr},
     };
     this->participant = dds_DomainParticipantFactory_create_participant_w_props(
-      factory, this->domain_id, &participant_qos, nullptr, 0, props);
+      factory, 
+      this->domain_id, 
+      &participant_qos, 
+      nullptr,
+      0,  
+      props);
   }
 
   if (this->participant == nullptr) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to create DomainParticipant");
     RMW_SET_ERROR_MSG("failed to create DomainParticipant");
     return RMW_RET_ERROR;
   }
@@ -398,6 +463,7 @@ rmw_context_impl_s::initialize_participant(
   /* Create Publisher */
   ret = dds_DomainParticipant_get_default_publisher_qos(this->participant, &publisher_qos);
   if (ret != dds_RETCODE_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to get default publisher qos");
     RMW_SET_ERROR_MSG("failed to get default publisher qos");
     return RMW_RET_ERROR;
   }
@@ -405,12 +471,14 @@ rmw_context_impl_s::initialize_participant(
   this->publisher =
     dds_DomainParticipant_create_publisher(this->participant, &publisher_qos, nullptr, 0);
   if (this->publisher == nullptr) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to create publisher");
     RMW_SET_ERROR_MSG("failed to create publisher");
     return RMW_RET_ERROR;
   }
 
   ret = dds_PublisherQos_finalize(&publisher_qos);
   if (ret != dds_RETCODE_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to finalize publisher qos");
     RMW_SET_ERROR_MSG("failed to finalize publisher qos");
     return RMW_RET_ERROR;
   }
@@ -418,6 +486,7 @@ rmw_context_impl_s::initialize_participant(
   /* Create Subscriber */
   ret = dds_DomainParticipant_get_default_subscriber_qos(this->participant, &subscriber_qos);
   if (ret != dds_RETCODE_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to get default subscriber qos");
     RMW_SET_ERROR_MSG("failed to get default subscriber qos");
     return RMW_RET_ERROR;
   }
@@ -425,18 +494,21 @@ rmw_context_impl_s::initialize_participant(
   this->subscriber =
     dds_DomainParticipant_create_subscriber(this->participant, &subscriber_qos, nullptr, 0);
   if (this->subscriber == nullptr) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to create subscriber");
     RMW_SET_ERROR_MSG("failed to create subscriber");
     return RMW_RET_ERROR;
   }
 
   ret = dds_SubscriberQos_finalize(&subscriber_qos);
   if (ret != dds_RETCODE_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failedto finalize subscriber qos");
     RMW_SET_ERROR_MSG("failedto finalize subscriber qos");
     return RMW_RET_ERROR;
   }
 
   // Initialize graph_cache
   if (rmw_gurumdds_cpp::graph_cache::initialize(this) != RMW_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to initialize graph cache");
     RMW_SET_ERROR_MSG("failed to initialize graph cache");
     return RMW_RET_ERROR;
   }

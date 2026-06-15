@@ -141,6 +141,16 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   const char * env_name = "RMW_GURUMDDS_INIT_LOG";
   char * env_value = nullptr;
 
+  auto fail = [&]() {
+      if (context->impl != nullptr) {
+        context->impl->finalize();
+        delete context->impl;
+        context->impl = nullptr;
+      }
+      *context = zero_context;
+      return ret;
+  };
+
   const char * mapping_env = "RMW_GURUMDDS_REQUEST_REPLY_MAPPING";
   char * mapping_env_value = nullptr;
   bool service_mapping_basic = false;
@@ -156,14 +166,18 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   context->impl = new (std::nothrow) rmw_context_impl_t(context);
   if (context->impl == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate rmw context impl");
-    goto fail;
+    return fail();
   }
   context->impl->is_shutdown = false;
   context->impl->service_mapping_basic = service_mapping_basic;
 
+  //backend_buffer
+  context->impl->buffer_serialization_context = nullptr;
+  context->impl->buffer_endpoint_registry = nullptr;
+
   ret = rmw_init_options_copy(options, &context->options);
   if (ret != RMW_RET_OK) {
-    goto fail;
+    return fail();
   }
 
   dpf = dds_DomainParticipantFactory_get_instance();
@@ -174,7 +188,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
       RMW_SAFE_FWRITE_TO_STDERR("failed to fini rmw init options");
     }
     ret = RMW_RET_ERROR;
-    goto fail;
+    return fail();
   }
 
   env_value = getenv(env_name);
@@ -186,16 +200,34 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
     }
   }
 
-  return RMW_RET_OK;
-
-fail:
-  if (context->impl != nullptr) {
-    context->impl->finalize();
-    delete context->impl;
-    context->impl = nullptr;
+  //backend_buffer
+  auto buffer_context = new (std::nothrow) rmw_gurumdds_cpp::BufferBackendContext();
+  if (nullptr == buffer_context) {
+    RMW_SET_ERROR_MSG("failed to allocate buffer backend context");
+    return RMW_RET_BAD_ALLOC;
   }
-  *context = zero_context;
-  return ret;
+  context->impl->buffer_serialization_context = buffer_context;
+
+  auto buffer_endpoint_registry = new (std::nothrow) rmw_gurumdds_cpp::BufferEndpointRegistry();
+  if (nullptr == buffer_endpoint_registry) {
+    delete buffer_context;
+    context->impl->buffer_serialization_context = nullptr;
+    RMW_SET_ERROR_MSG("failed to allocate buffer endpoint registry");
+    return RMW_RET_BAD_ALLOC;
+  }
+  context->impl->buffer_endpoint_registry = buffer_endpoint_registry;
+
+  //차후 try-catch 제거해야함.
+  try {
+    rmw_gurumdds_cpp::initialize_buffer_backends(*buffer_context);
+  } catch (const std::exception & e) {
+    // Non-fatal: buffer backends are optional.
+    RCUTILS_LOG_INFO_NAMED(
+      "rmw_gurumdds_cpp",
+      "Buffer backends not available: %s", e.what());
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
@@ -213,6 +245,14 @@ rmw_shutdown(rmw_context_t * context)
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   context->impl->is_shutdown = true;
+
+  //backend_buffer
+  auto * buffer_context = static_cast<rmw_gurumdds_cpp::BufferBackendContext *>(
+    context->impl->buffer_serialization_context);
+  if (buffer_context) {
+    rmw_gurumdds_cpp::shutdown_buffer_backends(*buffer_context);
+  }
+  
   return RMW_RET_OK;
 }
 
@@ -242,6 +282,21 @@ rmw_context_fini(rmw_context_t * context)
     ret_exit = ret;
   }
 
+  //backend_buffer
+  auto * buffer_context = static_cast<rmw_gurumdds_cpp::BufferBackendContext *>(
+    context->impl->buffer_serialization_context);
+  if (buffer_context) {
+    delete buffer_context;
+    context->impl->buffer_serialization_context = nullptr;
+  }
+
+  auto * buffer_endpoint_registry = static_cast<rmw_gurumdds_cpp::BufferEndpointRegistry *>(
+    context->impl->buffer_endpoint_registry);
+  if (buffer_endpoint_registry) {
+    delete buffer_endpoint_registry;
+    context->impl->buffer_endpoint_registry = nullptr;
+  }
+
   ret = rmw_init_options_fini(&context->options);
   if (ret != RMW_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to finalize rmw context options");
@@ -250,6 +305,8 @@ rmw_context_fini(rmw_context_t * context)
 
   delete context->impl;
   *context = rmw_get_zero_initialized_context();
+
+  dds_DomainParticipantFactory_shutdown();
 
   return ret_exit;
 }

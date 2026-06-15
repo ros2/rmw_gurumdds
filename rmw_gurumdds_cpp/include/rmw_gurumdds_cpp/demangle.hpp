@@ -45,7 +45,4 @@ std::string
 identity_demangle(const std::string & name);
 }  // namespace rmw_gurumdds_cpp
 
-using DemangleFunction = std::string (*)(const std::string &);
-using MangleFunction = DemangleFunction;
-
 #endif  // RMW_GURUMDDS_CPP__DEMANGLE_HPP_

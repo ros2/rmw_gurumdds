@@ -27,6 +27,7 @@
 #include "rmw_gurumdds_cpp/names_and_types_helpers.hpp"
 #include "rmw_gurumdds_cpp/namespace_prefix.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 
 extern "C"
 {
@@ -112,6 +113,7 @@ rmw_count_clients(
     node->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
   int validation_result = RMW_TOPIC_VALID;
   rmw_ret_t ret = rmw_validate_full_topic_name(service_name, &validation_result, nullptr);
   if (RMW_RET_OK != ret) {
@@ -126,7 +128,13 @@ rmw_count_clients(
 
   auto common_ctx = &node->context->impl->common_ctx;
   const std::string mangled_service_name = rmw_gurumdds_cpp::create_topic_name(
-    rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "", false);
+    rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "Reply", false);
+
+  RCUTILS_LOG_DEBUG_NAMED(
+    RMW_GURUMDDS_ID,
+    "[rmw_count_clients] mangled_service_name : %s",
+    mangled_service_name.c_str()
+  );
 
   return common_ctx->graph_cache.get_reader_count(mangled_service_name, count);
 }
@@ -145,7 +153,9 @@ rmw_count_services(
     node->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
   int validation_result = RMW_TOPIC_VALID;
+  
   rmw_ret_t ret = rmw_validate_full_topic_name(service_name, &validation_result, nullptr);
   if (RMW_RET_OK != ret) {
     return ret;
@@ -159,7 +169,13 @@ rmw_count_services(
 
   auto common_ctx = &node->context->impl->common_ctx;
   const std::string mangled_service_name = rmw_gurumdds_cpp::create_topic_name(
-    rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "", false);
+    rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "Reply", false);
+
+  RCUTILS_LOG_DEBUG_NAMED(
+    RMW_GURUMDDS_ID,
+    "[rmw_count_services] mangled_service_name : %s",
+    mangled_service_name.c_str()
+  );
 
   return common_ctx->graph_cache.get_writer_count(mangled_service_name, count);
 }

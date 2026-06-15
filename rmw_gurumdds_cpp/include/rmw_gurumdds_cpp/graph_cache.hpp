@@ -19,6 +19,8 @@
 
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 #include "rmw_gurumdds_cpp/event_info_service.hpp"
+#include "rmw_gurumdds_cpp/rmw_subscription.hpp"
+#include "rmw_gurumdds_cpp/rmw_publisher.hpp"
 
 namespace rmw_gurumdds_cpp::graph_cache {
 rmw_ret_t
@@ -110,8 +112,8 @@ remove_participant(
 rmw_ret_t
 add_remote_entity(
   rmw_context_impl_t * ctx,
-  const dds_GUID_t * const endp_guid,
-  const dds_GUID_t * const dp_guid,
+  const rmw_gid_t & endp_gid,
+  const rmw_gid_t & dp_gid,
   const char * const topic_name,
   const char * const type_name,
   const dds_UserDataQosPolicy& user_data,

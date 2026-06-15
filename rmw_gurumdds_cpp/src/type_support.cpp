@@ -21,6 +21,8 @@
 #include "rmw_gurumdds_cpp/type_support_common.hpp"
 #include "rmw_gurumdds_cpp/type_support_service.hpp"
 
+#include "rcpputils/scope_exit.hpp"
+
 namespace rmw_gurumdds_cpp
 {
 
@@ -74,6 +76,7 @@ create_type_support_and_register(
   const rosidl_message_type_support_t * type_support,
   const std::string & type_name,
   const std::string & metastring) {
+
   dds_ReturnCode_t ret = dds_RETCODE_OK;
   dds_TypeSupport * dds_type_support{};
   dds_TypeSupport_ops dds_ops{};
@@ -82,13 +85,18 @@ create_type_support_and_register(
     RMW_SET_ERROR_MSG("failed to create typesupport");
     return nullptr;
   }
+  auto cleanup = rcpputils::make_scope_exit([&]{
+    dds_TypeSupport_delete(dds_type_support);
+  });
 
   dds_ops.context = const_cast<rosidl_message_type_support_t *>(type_support);
   dds_ops.get_size = get_size;
   dds_ops.get_serialized_size = get_serialize_size;
   dds_ops.serialize_direct = serialize_direct;
   dds_ops.deserialize_direct = deserialize_direct;
-  dds_TypeSupport_set_operations(dds_type_support, &dds_ops);
+  if(!dds_TypeSupport_set_operations(dds_type_support, &dds_ops)){
+    return nullptr;
+  }
   ret = dds_TypeSupport_register_type(dds_type_support, participant, type_name.c_str());
   if(dds_RETCODE_OK != ret) {
     RMW_SET_ERROR_MSG("failed to register type to domain participant");
@@ -96,12 +104,15 @@ create_type_support_and_register(
     return nullptr;
   }
 
+  cleanup.cancel();
+
   return dds_type_support;
 }
 
 void set_type_support_ops(
   dds_TypeSupport* dds_type_support,
   const rosidl_message_type_support_t* type_support) {
+    
   dds_TypeSupport_ops dds_ops{};
   dds_ops.context = const_cast<rosidl_message_type_support_t *>(type_support);
   dds_ops.get_size = get_size;

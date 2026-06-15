@@ -27,6 +27,7 @@
 #include "rmw_gurumdds_cpp/demangle.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 
 extern "C"
 {
@@ -50,8 +51,8 @@ rmw_get_topic_names_and_types(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  DemangleFunction demangle_topic = rmw_gurumdds_cpp::demangle_ros_topic_from_topic;
-  DemangleFunction demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
+  rmw_gurumdds_cpp::DemangleFunction demangle_topic = rmw_gurumdds_cpp::demangle_ros_topic_from_topic;
+  rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
 
   if (no_demangle) {
     demangle_topic = rmw_gurumdds_cpp::identity_demangle;
