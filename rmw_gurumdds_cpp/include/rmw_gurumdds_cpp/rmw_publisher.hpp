@@ -56,7 +56,7 @@ struct PublisherInfo : EventInfo
 {
   const rosidl_message_type_support_t * rosidl_message_typesupport;
   const rosidl_message_type_support_t * fastrtps_message_typesupport;
-  
+
   //코드 정리할 때 내릴 것.
   const message_type_support_callbacks_t * get_fastrtps_type_support_callbacks() const
   {
@@ -93,21 +93,21 @@ struct PublisherInfo : EventInfo
   rmw_gid_t publisher_gid;
   dds_DataWriter * topic_writer;
   std::mutex mutex_event;
-  rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = { };
-  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = { };
-  dds_GuardCondition* event_guard_cond[RMW_EVENT_TYPE_MAX] = { };
+  rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = {};
+  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = {};
+  dds_GuardCondition * event_guard_cond[RMW_EVENT_TYPE_MAX] = {};
   dds_StatusMask mask = 0;
   bool inconsistent_topic_changed = false;
-  dds_InconsistentTopicStatus inconsistent_topic_status = { };
+  dds_InconsistentTopicStatus inconsistent_topic_status = {};
   bool offered_deadline_missed_changed = false;
-  dds_OfferedDeadlineMissedStatus offered_deadline_missed_status = { };
+  dds_OfferedDeadlineMissedStatus offered_deadline_missed_status = {};
   bool offered_incompatible_qos_changed = false;
-  dds_OfferedIncompatibleQosStatus offered_incompatible_qos_status = { };
+  dds_OfferedIncompatibleQosStatus offered_incompatible_qos_status = {};
   bool liveliness_lost_changed = false;
-  dds_LivelinessLostStatus liveliness_lost_status = { };
+  dds_LivelinessLostStatus liveliness_lost_status = {};
   bool publication_matched_changed = false;
-  dds_PublicationMatchedStatus publication_matched_status = { };
-  dds_DataWriterListener topic_listener = { };
+  dds_PublicationMatchedStatus publication_matched_status = {};
+  dds_DataWriterListener topic_listener = {};
 
   rmw_ret_t get_status(rmw_event_type_t event_type, void * event) override;
 
@@ -165,8 +165,8 @@ publish(
 }  // namespace rmw_gurumdds_cpp
 
 rmw_ret_t publish_to_buffer_endpoint(
-  const rmw_publisher_t* publisher,
-  const void* ros_message,
-  rmw_publisher_allocation_t* allocation);
+  const rmw_publisher_t * publisher,
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation);
 
 #endif  // RMW_GURUMDDS_CPP__RMW_PUBLISHER_HPP_

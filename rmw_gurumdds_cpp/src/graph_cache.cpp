@@ -48,7 +48,8 @@ static rmw_ret_t add_entity(
   const dds_LifespanQosPolicy * const lifespan,
   const dds_UserDataQosPolicy * const userdata,
   const bool is_reader,
-  const bool local) {
+  const bool local)
+{
   RCUTILS_UNUSED(local);
   size_t history_depth = RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT;
   rmw_qos_history_policy_e history_kind = RMW_QOS_POLICY_HISTORY_UNKNOWN;
@@ -144,7 +145,8 @@ static rmw_ret_t add_entity(
 static rmw_ret_t remove_entity(
   rmw_context_impl_t * const ctx,
   const rmw_gid_t gid,
-  const bool is_reader) {
+  const bool is_reader)
+{
   if (!ctx->common_ctx.graph_cache.remove_entity(gid, is_reader)) {
     RMW_SET_ERROR_MSG("failed to remove entity from graph_cache");
     return RMW_RET_ERROR;
@@ -171,7 +173,8 @@ static rmw_ret_t add_local_publisher(
   const rmw_node_t * const node,
   dds_DataWriter * const datawriter,
   const rosidl_type_hash_s & type_hash,
-  const rmw_gid_t gid) {
+  const rmw_gid_t gid)
+{
   RCUTILS_LOG_DEBUG_NAMED(
     RMW_GURUMDDS_ID,
     "[graph] local publisher created: "
@@ -197,9 +200,9 @@ static rmw_ret_t add_local_publisher(
   const char * type_name = dds_Topic_get_type_name(topic);
 
   auto scope_exit_qos_reset = rcpputils::make_scope_exit([&dw_qos]() {
-    if (dds_RETCODE_OK != dds_DataWriterQos_finalize(&dw_qos)) {
-      RMW_SET_ERROR_MSG("failed to finalize DataWriterQos");
-    }
+        if (dds_RETCODE_OK != dds_DataWriterQos_finalize(&dw_qos)) {
+          RMW_SET_ERROR_MSG("failed to finalize DataWriterQos");
+        }
   });
 
   if (dds_RETCODE_OK != dds_DataWriter_get_qos(datawriter, &dw_qos)) {
@@ -230,7 +233,8 @@ static rmw_ret_t add_local_subscriber(
   const rmw_node_t * const node,
   dds_DataReader * const datareader,
   const rosidl_type_hash_s & type_hash,
-  const rmw_gid_t gid) {
+  const rmw_gid_t gid)
+{
   RCUTILS_LOG_DEBUG_NAMED(
     RMW_GURUMDDS_ID,
     "[graph] local subscriber created: "
@@ -255,9 +259,9 @@ static rmw_ret_t add_local_subscriber(
   const char * type_name = dds_Topic_get_type_name(topic);
 
   auto scope_exit_qos_reset = rcpputils::make_scope_exit([&dr_qos]() {
-    if (dds_RETCODE_OK != dds_DataReaderQos_finalize(&dr_qos)) {
-      RMW_SET_ERROR_MSG("failed to finalize DataReaderQos");
-    }
+        if (dds_RETCODE_OK != dds_DataReaderQos_finalize(&dr_qos)) {
+          RMW_SET_ERROR_MSG("failed to finalize DataReaderQos");
+        }
   });
 
   if (dds_RETCODE_OK != dds_DataReader_get_qos(datareader, &dr_qos)) {
@@ -283,7 +287,8 @@ static rmw_ret_t add_local_subscriber(
     true);
 }
 
-namespace rmw_gurumdds_cpp::graph_cache {
+namespace rmw_gurumdds_cpp::graph_cache
+{
 rmw_ret_t
 initialize(rmw_context_impl_t * const ctx)
 {
@@ -365,11 +370,11 @@ initialize(rmw_context_impl_t * const ctx)
     });
 
   ctx->common_ctx.publish_callback = [](const rmw_publisher_t * pub, const void * msg) {
-    return rmw_gurumdds_cpp::publish(
+      return rmw_gurumdds_cpp::publish(
       pub,
       msg,
       nullptr);
-  };
+    };
 
   entity_get_gid(reinterpret_cast<dds_Entity *>(ctx->participant), ctx->common_ctx.gid);
   std::string dp_enclave = ctx->base->options.enclave;
@@ -406,8 +411,8 @@ finalize(rmw_context_impl_t * const ctx)
       return RMW_RET_ERROR;
     }
 
-    if(ctx->common_ctx.sub->topic_name != nullptr){
-      rmw_free(const_cast<char*>(ctx->common_ctx.sub->topic_name));
+    if(ctx->common_ctx.sub->topic_name != nullptr) {
+      rmw_free(const_cast<char *>(ctx->common_ctx.sub->topic_name));
       ctx->common_ctx.sub->topic_name = nullptr;
     }
 
@@ -423,8 +428,8 @@ finalize(rmw_context_impl_t * const ctx)
       return RMW_RET_ERROR;
     }
 
-    if(ctx->common_ctx.pub->topic_name != nullptr){
-      rmw_free(const_cast<char*>(ctx->common_ctx.pub->topic_name));
+    if(ctx->common_ctx.pub->topic_name != nullptr) {
+      rmw_free(const_cast<char *>(ctx->common_ctx.pub->topic_name));
       ctx->common_ctx.pub->topic_name = nullptr;
     }
 
@@ -513,7 +518,7 @@ on_publisher_created(
   PublisherInfo * const pub)
 {
   auto msg_typesupport = pub->rosidl_message_typesupport;
-  auto& type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
+  auto & type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
 
 
   rmw_ret_t rc = add_local_publisher(ctx, node, pub->topic_writer, type_hash, pub->publisher_gid);
@@ -562,7 +567,7 @@ on_subscriber_created(
   SubscriberInfo * const sub)
 {
   auto msg_typesupport = sub->rosidl_message_typesupport;
-  auto& type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
+  auto & type_hash = *msg_typesupport->get_type_hash_func(msg_typesupport);
   rmw_ret_t rc = add_local_subscriber(ctx, node, sub->topic_reader, type_hash, sub->subscriber_gid);
   if (RMW_RET_OK != rc) {
     RMW_SET_ERROR_MSG("failed to add local subscriber");
@@ -625,11 +630,11 @@ on_service_created(
       }
     });
 
-  const rosidl_message_type_support_t* type_support;
-  const rosidl_type_hash_s* type_hash;
+  const rosidl_message_type_support_t * type_support;
+  const rosidl_type_hash_s * type_hash;
   type_support = svc->service_typesupport->request_typesupport;
   type_hash = type_support->get_type_hash_func(type_support);
-  if (RMW_RET_OK != add_local_subscriber(ctx, node, svc->request_reader, *type_hash,  sub_gid)) {
+  if (RMW_RET_OK != add_local_subscriber(ctx, node, svc->request_reader, *type_hash, sub_gid)) {
     RMW_SET_ERROR_MSG("failed to add local subscriber");
     return RMW_RET_ERROR;
   }
@@ -644,7 +649,8 @@ on_service_created(
   add_pub = true;
 
   if(RMW_RET_OK != ctx->common_ctx.add_service_graph(
-    sub_gid, pub_gid, node->name, node->namespace_)) {
+    sub_gid, pub_gid, node->name, node->namespace_))
+  {
     RMW_SET_ERROR_MSG("failed to add service graph");
     return RMW_RET_ERROR;
   }
@@ -696,12 +702,13 @@ on_client_created(
       }
     });
 
-  const rosidl_message_type_support_t* type_support;
-  const rosidl_type_hash_s* type_hash;
+  const rosidl_message_type_support_t * type_support;
+  const rosidl_type_hash_s * type_hash;
   type_support = client->service_typesupport->response_typesupport;
   type_hash = type_support->get_type_hash_func(type_support);
   if (RMW_RET_OK != add_local_subscriber(ctx, node, client->response_reader, *type_hash,
-                                         sub_gid)) {
+                                         sub_gid))
+  {
     RMW_SET_ERROR_MSG("failed to add local subscriber");
     return RMW_RET_ERROR;
   }
@@ -716,7 +723,8 @@ on_client_created(
   add_pub = true;
 
   if(RMW_RET_OK != ctx->common_ctx.add_client_graph(pub_gid, sub_gid, node->name,
-                                                    node->namespace_)) {
+                                                    node->namespace_))
+  {
     RMW_SET_ERROR_MSG("failed to add client graph");
     return RMW_RET_ERROR;
   }
@@ -757,13 +765,15 @@ on_participant_info(rmw_context_impl_t * ctx)
 
   do {
     if (RMW_RET_OK != rmw_take(ctx->common_ctx.sub, &msg, &taken,
-                               nullptr)) {
+                               nullptr))
+    {
       RMW_SET_ERROR_MSG("failed to take discovery sample");
       return RMW_RET_ERROR;
     }
     if (taken) {
       if (std::memcmp(&msg.gid.data, ctx->common_ctx.gid.data,
-                      RMW_GID_STORAGE_SIZE) == 0) {
+                      RMW_GID_STORAGE_SIZE) == 0)
+      {
         continue;
       }
 
@@ -834,7 +844,7 @@ add_remote_entity(
   const rmw_gid_t & dp_gid,
   const char * const topic_name,
   const char * const type_name,
-  const dds_UserDataQosPolicy& user_data,
+  const dds_UserDataQosPolicy & user_data,
   const dds_ReliabilityQosPolicy * const reliability,
   const dds_DurabilityQosPolicy * const durability,
   const dds_DeadlineQosPolicy * const deadline,
@@ -849,7 +859,8 @@ add_remote_entity(
 
   rosidl_type_hash_s type_hash;
   if(RMW_RET_OK != rmw_dds_common::parse_type_hash_from_user_data(
-    user_data.value, user_data.size, type_hash)) {
+    user_data.value, user_data.size, type_hash))
+  {
     type_hash = rosidl_get_zero_initialized_type_hash();
     rmw_reset_error();
   }

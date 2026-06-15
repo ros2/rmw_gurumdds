@@ -58,8 +58,8 @@ void rmw_gurumdds_listener_thread(rmw_context_impl_t * ctx)
 {
   RCUTILS_LOG_DEBUG_NAMED(RMW_GURUMDDS_ID, "[listener thread] starting up...");
 
-  auto sub_partinfo
-    = reinterpret_cast<rmw_gurumdds_cpp::SubscriberInfo *>(ctx->common_ctx.sub->data);
+  auto sub_partinfo =
+    reinterpret_cast<rmw_gurumdds_cpp::SubscriberInfo *>(ctx->common_ctx.sub->data);
   dds_ReturnCode_t ret = dds_RETCODE_ERROR;
 
   uint32_t active_len = 0;

@@ -51,7 +51,8 @@ rmw_get_topic_names_and_types(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  rmw_gurumdds_cpp::DemangleFunction demangle_topic = rmw_gurumdds_cpp::demangle_ros_topic_from_topic;
+  rmw_gurumdds_cpp::DemangleFunction demangle_topic =
+    rmw_gurumdds_cpp::demangle_ros_topic_from_topic;
   rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
 
   if (no_demangle) {

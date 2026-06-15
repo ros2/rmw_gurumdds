@@ -92,7 +92,7 @@ struct rmw_context_impl_s
   //backend buffer
   rmw_gurumdds_cpp::BufferBackendContext * buffer_serialization_context;
   rmw_gurumdds_cpp::BufferEndpointRegistry * buffer_endpoint_registry;
-  
+
   //local publisher registry
   //ignore_local_publish 기능을 위해 추가.
   std::mutex local_pub_mutex;

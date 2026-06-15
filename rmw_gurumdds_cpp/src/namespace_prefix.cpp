@@ -22,8 +22,8 @@ namespace rmw_gurumdds_cpp
 const char * const ros_topic_prefix = "rt";
 const char * const ros_service_requester_prefix = "rq";
 const char * const ros_service_response_prefix = "rr";
-const std::vector<std::string> ros_prefixes
-  = {ros_topic_prefix, ros_service_requester_prefix, ros_service_response_prefix};
+const std::vector<std::string> ros_prefixes =
+{ros_topic_prefix, ros_service_requester_prefix, ros_service_response_prefix};
 
 std::string
 resolve_prefix(const std::string & name, const std::string & prefix)

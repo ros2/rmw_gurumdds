@@ -58,7 +58,7 @@ protected:
 };
 
 template<bool SERIALIZE>
-class CdrSerializationBuffer: public CdrBuffer {
+class CdrSerializationBuffer : public CdrBuffer {
 public:
   CdrSerializationBuffer(uint8_t * buf, size_t size);
 
@@ -87,7 +87,7 @@ public:
   void copy_arr(const uint64_t * arr, size_t cnt);
 };
 
-class CdrDeserializationBuffer: public CdrBuffer {
+class CdrDeserializationBuffer : public CdrBuffer {
 public:
   CdrDeserializationBuffer(uint8_t * buf, size_t size);
 

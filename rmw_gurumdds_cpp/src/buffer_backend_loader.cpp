@@ -120,7 +120,7 @@ void initialize_buffer_backends(BufferBackendContext & context)
         if (!desc) {
           throw std::runtime_error("Backend returned null descriptor instance");
         }
-        
+
         cdr.read_encapsulation();
 
         if (callbacks->cdr_deserialize_with_endpoint) {

@@ -30,20 +30,24 @@
 
 using rmw_dds_common::msg::ParticipantEntitiesInfo;
 
-namespace {
+namespace
+{
 //backend_buffer
-void notify_backend_buffer(rmw_context_impl_t * ctx,
+void notify_backend_buffer(
+  rmw_context_impl_t * ctx,
   const rmw_gid_t & endp_gid,
   const char * const topic_name,
-  const dds_UserDataQosPolicy& user_data,
-  const bool is_reader){
+  const dds_UserDataQosPolicy & user_data,
+  const bool is_reader)
+{
   auto * ctx_backend = ctx->buffer_endpoint_registry;
-  
+
   if(ctx_backend == nullptr) {
     return;
   }
-  
-  auto backends = rmw_gurumdds_cpp::parse_buffer_backends_from_user_data(user_data.value, user_data.size);
+
+  auto backends = rmw_gurumdds_cpp::parse_buffer_backends_from_user_data(user_data.value,
+      user_data.size);
 
   if(backends.empty()) {
     return;
@@ -70,15 +74,15 @@ inline std::map<std::string, std::vector<uint8_t>>
 parse_map(uint8_t * const data, const uint32_t data_len)
 {
   std::vector<uint8_t> data_vec(data, data + data_len);
-  std::map<std::string, std::vector<uint8_t>> map
-    = rmw::impl::cpp::parse_key_value(data_vec);
+  std::map<std::string, std::vector<uint8_t>> map =
+    rmw::impl::cpp::parse_key_value(data_vec);
   return map;
 }
 
 inline rmw_ret_t
 get_user_data_key(
   dds_ParticipantBuiltinTopicData * data,
-  const std::string& key,
+  const std::string & key,
   std::string & value,
   bool & found)
 {
@@ -165,7 +169,7 @@ void on_publication_changed(
       endp_guid.entityId);
     rmw_gurumdds_cpp::graph_cache::remove_entity(ctx, &endp_guid, false);
   } else {
-    rmw_gid_t endp_gid,dp_gid;
+    rmw_gid_t endp_gid, dp_gid;
     rmw_gurumdds_cpp::guid_to_gid(endp_guid, endp_gid);
     rmw_gurumdds_cpp::guid_to_gid(dp_guid, dp_gid);
     rmw_gurumdds_cpp::graph_cache::add_remote_entity(
@@ -193,7 +197,7 @@ void on_publication_changed(
       endp_guid_prefix[1],
       endp_guid_prefix[2],
       endp_guid.entityId);
-      
+
     notify_backend_buffer(ctx, endp_gid, data->topic_name, data->user_data, false);
   }
 }
@@ -203,7 +207,7 @@ void on_subscription_changed(
   const dds_SubscriptionBuiltinTopicData * data,
   dds_InstanceHandle_t handle)
 {
-  
+
   auto * participant = const_cast<dds_DomainParticipant *>(a_participant);
   auto * ctx = reinterpret_cast<rmw_context_impl_t *>(
     dds_Entity_get_context(reinterpret_cast<dds_Entity *>(participant), 0)
@@ -226,7 +230,7 @@ void on_subscription_changed(
       endp_guid.entityId);
     rmw_gurumdds_cpp::graph_cache::remove_entity(ctx, &endp_guid, false);
   } else {
-    rmw_gid_t endp_gid,dp_gid;
+    rmw_gid_t endp_gid, dp_gid;
     rmw_gurumdds_cpp::guid_to_gid(endp_guid, endp_gid);
     rmw_gurumdds_cpp::guid_to_gid(dp_guid, dp_gid);
     rmw_gurumdds_cpp::graph_cache::add_remote_entity(
@@ -261,8 +265,8 @@ void on_subscription_changed(
 }
 
 
-rmw_context_impl_s::rmw_context_impl_s(rmw_context_t* const base)
-  : common_ctx(),
+rmw_context_impl_s::rmw_context_impl_s(rmw_context_t * const base)
+: common_ctx(),
   base(base),
   domain_id(base->actual_domain_id),
   participant(nullptr),
@@ -409,10 +413,11 @@ rmw_context_impl_s::initialize_participant(
   static_discovery_id += node_namespace;
   static_discovery_id += node_name;
 
-  
+
   /* Create DomainParticipant */
   if (RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST ==
-  base->options.discovery_options.automatic_discovery_range) {
+    base->options.discovery_options.automatic_discovery_range)
+  {
     dds_StringProperty props[] = {
       {const_cast<char *>("rtps.interface.ip"),
         const_cast<void *>(static_cast<const void *>("127.0.0.1"))},
@@ -427,11 +432,11 @@ rmw_context_impl_s::initialize_participant(
       {nullptr, nullptr},
     };
     this->participant = dds_DomainParticipantFactory_create_participant_w_props(
-      factory, 
-      this->domain_id, 
-      &participant_qos, 
+      factory,
+      this->domain_id,
+      &participant_qos,
       nullptr,
-      0, 
+      0,
       props);
   } else {
     dds_StringProperty props[] = {
@@ -446,11 +451,11 @@ rmw_context_impl_s::initialize_participant(
       {nullptr, nullptr},
     };
     this->participant = dds_DomainParticipantFactory_create_participant_w_props(
-      factory, 
-      this->domain_id, 
-      &participant_qos, 
+      factory,
+      this->domain_id,
+      &participant_qos,
       nullptr,
-      0,  
+      0,
       props);
   }
 

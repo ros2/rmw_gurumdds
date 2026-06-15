@@ -36,7 +36,8 @@ struct BufferSubscriptionState
   std::unordered_map<std::string, PublisherBufferMetadata> publisher_metadata;
 };
 
-struct SeqStruct {
+struct SeqStruct
+{
   // dds_DataSeq * data_seq{nullptr};
   // dds_SampleInfoSeq * info_seq{nullptr};
   // dds_UnsignedLongSeq * raw_data_sizes{nullptr};
@@ -77,7 +78,7 @@ struct SubscriberInfo : EventInfo
   dds_Topic * cpu_topic = nullptr;
   //락 넣기 부담스러워 자료구조를 중복 배치함.
   SeqStruct cpu_seq;
-  
+
   // 이상 없으면 지울 것.
   //dds_GuardCondition * buffer_listener_guard = nullptr;
 
@@ -87,9 +88,9 @@ struct SubscriberInfo : EventInfo
   dds_DataReaderListener accel_data_reader_listener{};
   SeqStruct accel_seq;
 
-  //cpu channel member function 
+  //cpu channel member function
   void on_cpu_channel_data_available();
-  //accel channel member function 
+  //accel channel member function
   void on_accel_data_available();
 
   event_callback_data_t buffer_event_callback_data;
@@ -102,22 +103,22 @@ struct SubscriberInfo : EventInfo
   const char * implementation_identifier;
   rmw_context_impl_t * ctx;
   std::mutex mutex_event;
-  rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = { };
-  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = { };
-  dds_GuardCondition* event_guard_cond[RMW_EVENT_TYPE_MAX] = { };
+  rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = {};
+  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = {};
+  dds_GuardCondition * event_guard_cond[RMW_EVENT_TYPE_MAX] = {};
   dds_StatusMask mask = 0;
   bool requested_deadline_missed_changed = false;
-  dds_RequestedDeadlineMissedStatus requested_deadline_missed_status = { };
+  dds_RequestedDeadlineMissedStatus requested_deadline_missed_status = {};
   bool requested_incompatible_qos_changed = false;
-  dds_RequestedIncompatibleQosStatus requested_incompatible_qos_status = { };
+  dds_RequestedIncompatibleQosStatus requested_incompatible_qos_status = {};
   bool inconsistent_topic_changed = false;
-  dds_InconsistentTopicStatus inconsistent_topic_status = { };
+  dds_InconsistentTopicStatus inconsistent_topic_status = {};
   bool liveliness_changed = false;
-  dds_LivelinessChangedStatus liveliness_changed_status = { };
+  dds_LivelinessChangedStatus liveliness_changed_status = {};
   bool subscription_matched_changed = false;
-  dds_SubscriptionMatchedStatus subscription_matched_status = { };
+  dds_SubscriptionMatchedStatus subscription_matched_status = {};
   bool sample_lost_changed = false;
-  dds_SampleLostStatus sample_lost_status = { };
+  dds_SampleLostStatus sample_lost_status = {};
 
   rmw_gid_t subscriber_gid;
   dds_DataReader * topic_reader;
@@ -153,17 +154,17 @@ struct SubscriberInfo : EventInfo
     int32_t total_count,
     int32_t total_count_change) override;
 
-  void on_requested_deadline_missed(const dds_RequestedDeadlineMissedStatus& status);
+  void on_requested_deadline_missed(const dds_RequestedDeadlineMissedStatus & status);
 
-  void on_requested_incompatible_qos(const dds_RequestedIncompatibleQosStatus& status);
+  void on_requested_incompatible_qos(const dds_RequestedIncompatibleQosStatus & status);
 
   void on_data_available();
 
-  void on_liveliness_changed(const dds_LivelinessChangedStatus& status);
+  void on_liveliness_changed(const dds_LivelinessChangedStatus & status);
 
-  void on_subscription_matched(const dds_SubscriptionMatchedStatus& status);
+  void on_subscription_matched(const dds_SubscriptionMatchedStatus & status);
 
-  void on_sample_lost(const dds_SampleLostStatus& status);
+  void on_sample_lost(const dds_SampleLostStatus & status);
 
   size_t count_unread();
 };

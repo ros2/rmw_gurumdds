@@ -149,7 +149,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
       }
       *context = zero_context;
       return ret;
-  };
+    };
 
   const char * mapping_env = "RMW_GURUMDDS_REQUEST_REPLY_MAPPING";
   char * mapping_env_value = nullptr;
@@ -252,7 +252,7 @@ rmw_shutdown(rmw_context_t * context)
   if (buffer_context) {
     rmw_gurumdds_cpp::shutdown_buffer_backends(*buffer_context);
   }
-  
+
   return RMW_RET_OK;
 }
 

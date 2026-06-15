@@ -66,11 +66,15 @@
 
 namespace rmw_gurumdds_cpp
 {
-namespace{
+namespace
+{
 //이름 나중에 수정할 것.
 //fastrtps에서 rmw_create_publisher -> create_publisher 순서로 호출되는 publisher 생성 코드를 모방함.
 //create_publisher에서 backend_buffer 요소들 초기화 후, 함수로 진입해야함.
-void init_backend_buffer_publisher(PublisherInfo * publisher_info, const rmw_node_t * node, const char * topic_name) {
+void init_backend_buffer_publisher(
+  PublisherInfo * publisher_info, const rmw_node_t * node,
+  const char * topic_name)
+{
   //backend_buffer
   if (publisher_info->is_buffer_aware) {
     auto state = publisher_info->buffer_state;
@@ -78,12 +82,13 @@ void init_backend_buffer_publisher(PublisherInfo * publisher_info, const rmw_nod
     std::string base_topic = publisher_info->fastrtps_topic_name_mangled;
 
     auto * backend_context =
-      static_cast<const rmw_gurumdds_cpp::BufferBackendContext *>(publisher_info->serialization_context);
+      static_cast<const rmw_gurumdds_cpp::BufferBackendContext *>(publisher_info->
+      serialization_context);
     auto * buf_registry = static_cast<rmw_gurumdds_cpp::BufferEndpointRegistry *>(
       node->context->impl->buffer_endpoint_registry);
 
     auto callback = [state, base_topic, backend_context](
-        const rmw_gurumdds_cpp::BufferEndpointInfo & sub_info) {
+      const rmw_gurumdds_cpp::BufferEndpointInfo & sub_info) {
         if (!state->alive.load()) {
           return;
         }
@@ -91,8 +96,8 @@ void init_backend_buffer_publisher(PublisherInfo * publisher_info, const rmw_nod
         // Detect whether the discovered subscriber is CPU-only.
         // CPU-only subscribers advertise only {"cpu": ""} in their backend_metadata.
         bool sub_is_cpu_only = (sub_info.backend_metadata.size() == 1 &&
-        sub_info.backend_metadata.count("cpu") == 1) ||
-        sub_info.backend_metadata.empty();
+          sub_info.backend_metadata.count("cpu") == 1) ||
+          sub_info.backend_metadata.empty();
 
         {
           std::lock_guard<std::mutex> lock(state->mutex);
@@ -161,7 +166,7 @@ void init_backend_buffer_publisher(PublisherInfo * publisher_info, const rmw_nod
           std::string unique_topic = base_topic + "/_buf/" + sub_hex;
 
           rmw_topic_endpoint_info_t discovered_endpoint_info =
-          rmw_get_zero_initialized_topic_endpoint_info();
+            rmw_get_zero_initialized_topic_endpoint_info();
           discovered_endpoint_info.endpoint_type = RMW_ENDPOINT_SUBSCRIPTION;
           std::memcpy(
             discovered_endpoint_info.endpoint_gid,
@@ -178,7 +183,7 @@ void init_backend_buffer_publisher(PublisherInfo * publisher_info, const rmw_nod
             }
 
             std::unordered_map<std::string,
-            std::vector<std::set<uint32_t>>> backend_endpoint_groups;
+              std::vector<std::set<uint32_t>>> backend_endpoint_groups;
             (void)rosidl_buffer_backend_registry::notify_endpoint_discovered(
               backend_context->backend_instances,
               discovered_endpoint_info,
@@ -201,15 +206,15 @@ void init_backend_buffer_publisher(PublisherInfo * publisher_info, const rmw_nod
         }
       };
 
-      if (buf_registry) {
-        buf_registry->register_subscriber_discovery_callback(
+    if (buf_registry) {
+      buf_registry->register_subscriber_discovery_callback(
           topic_name,
           publisher_info->publisher_gid,
           callback);
-      }
     }
+  }
 }
-};
+}
 
 rmw_publisher_t *
 create_publisher(
@@ -381,10 +386,13 @@ create_publisher(
     }
   }
 
-  const rosidl_type_hash_t& type_hash = *gurum_type_support->get_type_hash_func(gurum_type_support);
+  const rosidl_type_hash_t & type_hash =
+    *gurum_type_support->get_type_hash_func(gurum_type_support);
 
-  if(has_buffer_fields){
-    if (!rmw_gurumdds_cpp::get_datawriter_qos(qos_policies, type_hash, &datawriter_qos, backend_metadata)) {
+  if(has_buffer_fields) {
+    if (!rmw_gurumdds_cpp::get_datawriter_qos(qos_policies, type_hash, &datawriter_qos,
+        backend_metadata))
+    {
       // Error message already set
       return nullptr;
     }
@@ -396,10 +404,10 @@ create_publisher(
   }
 
   topic_writer = dds_Publisher_create_datawriter(
-    pub, 
-    topic, 
-    &datawriter_qos, 
-    nullptr, 
+    pub,
+    topic,
+    &datawriter_qos,
+    nullptr,
     0);
   if (topic_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
@@ -415,36 +423,37 @@ create_publisher(
 
   dds_DataWriterListener listener;
   listener.on_offered_deadline_missed = [](const dds_DataWriter * topic_writer,
-                                           const dds_OfferedDeadlineMissedStatus * status) {
-    dds_DataWriter * writer = const_cast<dds_DataWriter *>(topic_writer);
-    PublisherInfo * info = static_cast<PublisherInfo*>(dds_DataWriter_get_listener_context(writer));
-    if(info == nullptr) return;
-    info->on_offered_deadline_missed(*status);
-  };
+    const dds_OfferedDeadlineMissedStatus * status) {
+      dds_DataWriter * writer = const_cast<dds_DataWriter *>(topic_writer);
+      PublisherInfo * info =
+        static_cast<PublisherInfo *>(dds_DataWriter_get_listener_context(writer));
+      if(info == nullptr) {return;}
+      info->on_offered_deadline_missed(*status);
+    };
 
   listener.on_offered_incompatible_qos = [](const dds_DataWriter * topic_writer,
-                                            const dds_OfferedIncompatibleQosStatus * status) {
-    auto * writer = const_cast<dds_DataWriter *>(topic_writer);
-    auto * info = static_cast<PublisherInfo*>(dds_DataWriter_get_listener_context(writer));
-    if(info == nullptr) return;
-    info->on_offered_incompatible_qos(*status);
-  };
+    const dds_OfferedIncompatibleQosStatus * status) {
+      auto * writer = const_cast<dds_DataWriter *>(topic_writer);
+      auto * info = static_cast<PublisherInfo *>(dds_DataWriter_get_listener_context(writer));
+      if(info == nullptr) {return;}
+      info->on_offered_incompatible_qos(*status);
+    };
 
   listener.on_liveliness_lost = [](const dds_DataWriter * topic_writer,
-      const dds_LivelinessLostStatus * status) {
-    auto * writer = const_cast<dds_DataWriter *>(topic_writer);
-    auto * info = static_cast<PublisherInfo*>(dds_DataWriter_get_listener_context(writer));
-    if(info == nullptr) return;
-    info->on_liveliness_lost(*status);
-  };
+    const dds_LivelinessLostStatus * status) {
+      auto * writer = const_cast<dds_DataWriter *>(topic_writer);
+      auto * info = static_cast<PublisherInfo *>(dds_DataWriter_get_listener_context(writer));
+      if(info == nullptr) {return;}
+      info->on_liveliness_lost(*status);
+    };
 
   listener.on_publication_matched = [](const dds_DataWriter * topic_writer,
-                                       const dds_PublicationMatchedStatus * status) {
-    auto * writer = const_cast<dds_DataWriter *>(topic_writer);
-    auto * info = static_cast<PublisherInfo*>(dds_DataWriter_get_listener_context(writer));
-    if(info == nullptr) return;
-    info->on_publication_matched(*status);
-  };
+    const dds_PublicationMatchedStatus * status) {
+      auto * writer = const_cast<dds_DataWriter *>(topic_writer);
+      auto * info = static_cast<PublisherInfo *>(dds_DataWriter_get_listener_context(writer));
+      if(info == nullptr) {return;}
+      info->on_publication_matched(*status);
+    };
 
   publisher_info = new(std::nothrow) PublisherInfo();
   if (publisher_info == nullptr) {
@@ -457,8 +466,8 @@ create_publisher(
   publisher_info->fastrtps_message_typesupport = fast_type_support;
 
   auto init_guard_cond = [&publisher_info](rmw_event_type_t type) {
-    publisher_info->event_guard_cond[type] = dds_GuardCondition_create();
-  };
+      publisher_info->event_guard_cond[type] = dds_GuardCondition_create();
+    };
 
   dds_DataWriter_set_listener_context(topic_writer, publisher_info);
   publisher_info->topic_writer = topic_writer;
@@ -477,7 +486,6 @@ create_publisher(
   // }
 
   // set_type_support_ops(reader_dds_type, gurum_type_support);
-
 
 
   ret = dds_DataWriter_set_listener(
@@ -514,8 +522,9 @@ create_publisher(
   auto scope_exit_rmw_publisher_delete = rcpputils::make_scope_exit(
     [&]() {
       dds_Publisher_delete_contained_entities(pub);
-      if(topic != nullptr)
+      if(topic != nullptr) {
         dds_DomainParticipant_delete_topic(participant, topic);
+      }
 
       if (rmw_publisher->topic_name != nullptr) {
         rmw_free(const_cast<char *>(rmw_publisher->topic_name));
@@ -542,7 +551,8 @@ create_publisher(
 
   if (!internal) {
     if (rmw_gurumdds_cpp::graph_cache::on_publisher_created(ctx, node, publisher_info) !=
-    RMW_RET_OK) {
+      RMW_RET_OK)
+    {
       RCUTILS_LOG_ERROR_NAMED(RMW_GURUMDDS_ID, "failed to update graph for publisher");
       return nullptr;
     }
@@ -570,7 +580,7 @@ create_publisher(
         backend_context->backend_instances, publisher_info->local_endpoint_info);
     }
 
-    
+
     // Create CPU-only shared channel DataWriter.
     // All CPU-only subscribers share this single channel instead of
     // individual peer-to-peer endpoints.
@@ -610,14 +620,15 @@ create_publisher(
       dds_Duration_t timeout;
       timeout.sec = 0;
       timeout.nanosec = 1;
-      publisher_info->cpu_topic = dds_DomainParticipant_find_topic(participant, cpu_topic_name.c_str(), &timeout);
+      publisher_info->cpu_topic = dds_DomainParticipant_find_topic(participant,
+          cpu_topic_name.c_str(), &timeout);
       if (publisher_info->cpu_topic == nullptr) {
         RMW_SET_ERROR_MSG("failed to find topic");
         return nullptr;
       }
     }
 
-    dds_DataWriterQos cpu_writer_qos; 
+    dds_DataWriterQos cpu_writer_qos;
     dds_DataWriter_get_qos(topic_writer, &cpu_writer_qos);
     publisher_info->cpu_data_writer = dds_Publisher_create_datawriter(
       pub, publisher_info->cpu_topic, &cpu_writer_qos, nullptr, 0);
@@ -630,11 +641,12 @@ create_publisher(
     }
     ret = dds_DataWriterQos_finalize(&cpu_writer_qos);
     if (ret != dds_RETCODE_OK) {
-        RMW_SET_ERROR_MSG("failed to finalize writer qos");
-        return nullptr;
-      }
-    
-    publisher_info->cpu_status_condition = dds_DataWriter_get_statuscondition(publisher_info->cpu_data_writer);
+      RMW_SET_ERROR_MSG("failed to finalize writer qos");
+      return nullptr;
+    }
+
+    publisher_info->cpu_status_condition =
+      dds_DataWriter_get_statuscondition(publisher_info->cpu_data_writer);
     dds_StatusCondition_set_enabled_statuses(publisher_info->cpu_status_condition, 0);
 
     RCUTILS_LOG_DEBUG_NAMED(
@@ -724,7 +736,7 @@ destroy_publisher(
     }
   }
 
-  
+
   if (publisher_info->topic_writer != nullptr) {
     dds_DataWriter_set_listener(publisher_info->topic_writer, nullptr, 0);
     dds_DataWriter_set_listener_context(publisher_info->topic_writer, nullptr);
@@ -759,13 +771,13 @@ destroy_publisher(
 
   //remove local publisher gid
   auto remove_callback = [&pub_gid](const rmw_gid_t & gid) {
-    return std::memcmp(
+      return std::memcmp(
       gid.data,
       pub_gid.data,
       RMW_GID_STORAGE_SIZE) == 0;
-  };
+    };
   {
-  std::lock_guard<std::mutex> lock(ctx->local_pub_mutex);
+    std::lock_guard<std::mutex> lock(ctx->local_pub_mutex);
 
     auto it = std::remove_if(
       ctx->local_publishers.begin(),
@@ -786,11 +798,12 @@ destroy_publisher(
 /////////////////////////////////////////////////////////////////////////////////////
 
 rmw_ret_t publish(
-  const rmw_publisher_t* publisher,
-  const void* ros_message,
-  rmw_publisher_allocation_t* allocation) {
+  const rmw_publisher_t * publisher,
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation)
+{
   CHECK_ALL_PTRS_CODE(publisher, ros_message);
-  
+
   CHECK_ID_CODE(publisher);
 
   RCUTILS_UNUSED(allocation);
@@ -831,8 +844,8 @@ rmw_ret_t publish(
   }
 
   dds_SampleInfoEx sampleinfo_ex{};
-    rmw_gurumdds_cpp::ros_sn_to_dds_sn(++publisher_info->sequence_number, &sampleinfo_ex.seq);
-    rmw_gurumdds_cpp::ros_guid_to_dds_guid(
+  rmw_gurumdds_cpp::ros_sn_to_dds_sn(++publisher_info->sequence_number, &sampleinfo_ex.seq);
+  rmw_gurumdds_cpp::ros_guid_to_dds_guid(
       reinterpret_cast<const uint8_t *>(publisher_info->publisher_gid.data),
       reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
@@ -899,7 +912,8 @@ create_pending_buffer_writers(PublisherInfo * info)
 
       dds_Topic_get_qos(info_topic, &topic_qos);
 
-      std::string type_name = create_type_name(info->rosidl_message_typesupport->data, info->rosidl_message_typesupport->typesupport_identifier);
+      std::string type_name = create_type_name(info->rosidl_message_typesupport->data,
+          info->rosidl_message_typesupport->typesupport_identifier);
 
       topic = dds_DomainParticipant_create_topic(
         info->participant, p.unique_topic.c_str(), type_name.c_str(), &topic_qos, nullptr, 0);
@@ -943,7 +957,9 @@ create_pending_buffer_writers(PublisherInfo * info)
       const size_t capacity = sizeof(user_data.value);
 
       // 버퍼 오버플로우 방지
-      if (append_size > capacity || current_size > capacity || current_size + append_size > capacity) {
+      if (append_size > capacity || current_size > capacity ||
+        current_size + append_size > capacity)
+      {
         dds_DataWriterQos_finalize(&writer_qos);
         continue;
       }
@@ -955,7 +971,8 @@ create_pending_buffer_writers(PublisherInfo * info)
 
       user_data.size = static_cast<uint32_t>(current_size + append_size);
     }
-    dds_DataWriter * data_writer = dds_Publisher_create_datawriter(info->publisher, topic, &writer_qos, nullptr, 0);
+    dds_DataWriter * data_writer = dds_Publisher_create_datawriter(info->publisher, topic,
+        &writer_qos, nullptr, 0);
     if (!data_writer) {
       if (endpoint->owns_topic) {
         dds_DomainParticipant_delete_topic(info->participant, topic);
@@ -981,11 +998,12 @@ create_pending_buffer_writers(PublisherInfo * info)
 }
 
 rmw_ret_t publish_to_buffer_endpoint(
-  const rmw_publisher_t* publisher,
-  const void* ros_message,
-  rmw_publisher_allocation_t* allocation){
+  const rmw_publisher_t * publisher,
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation)
+{
   CHECK_ALL_PTRS_CODE(publisher, ros_message);
-  
+
   RCUTILS_UNUSED(allocation);
 
   create_pending_buffer_writers(static_cast<PublisherInfo *>(publisher->data));
@@ -1027,12 +1045,12 @@ rmw_ret_t publish_to_buffer_endpoint(
 
     //응용 프로그램에서 backend 버퍼의 "cpu" fallback을 잘못 설정하면 여기서 터질 수 있음.
     //해당 문제는 fastrtps에서도 동일하게 발생함.
-    try{
+    try {
       if (!callbacks->cdr_serialize(ros_message, ser)) {
         RMW_SET_ERROR_MSG("failed to serialize ROS message with FastRTPS typesupport");
         return RMW_RET_ERROR;
       }
-    } catch(std::runtime_error & e){
+    } catch(std::runtime_error & e) {
       RCUTILS_LOG_ERROR_NAMED(
         RMW_GURUMDDS_ID,
         "Backend-buffer path mismatch detected: the publisher sent this sample through the "
@@ -1044,8 +1062,8 @@ rmw_ret_t publish_to_buffer_endpoint(
     }
 
     dds_SampleInfoEx sampleinfo_ex{};
-      rmw_gurumdds_cpp::ros_sn_to_dds_sn(++info->sequence_number, &sampleinfo_ex.seq);
-      rmw_gurumdds_cpp::ros_guid_to_dds_guid(
+    rmw_gurumdds_cpp::ros_sn_to_dds_sn(++info->sequence_number, &sampleinfo_ex.seq);
+    rmw_gurumdds_cpp::ros_guid_to_dds_guid(
         reinterpret_cast<const uint8_t *>(info->publisher_gid.data),
         reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
@@ -1119,12 +1137,12 @@ rmw_ret_t publish_to_buffer_endpoint(
     }
 
     dds_SampleInfoEx sampleinfo_ex{};
-      rmw_gurumdds_cpp::ros_sn_to_dds_sn(++info->sequence_number, &sampleinfo_ex.seq);
-      rmw_gurumdds_cpp::ros_guid_to_dds_guid(
+    rmw_gurumdds_cpp::ros_sn_to_dds_sn(++info->sequence_number, &sampleinfo_ex.seq);
+    rmw_gurumdds_cpp::ros_guid_to_dds_guid(
         reinterpret_cast<const uint8_t *>(info->publisher_gid.data),
         reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
-    
+
     dds_Time_get_current_time(&sampleinfo_ex.info.source_timestamp);
     TRACETOOLS_TRACEPOINT(
       rmw_publish,
@@ -1228,7 +1246,7 @@ rmw_create_publisher(
   rmw_context_impl_t * ctx = node->context->impl;
 
   bool internal = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST ==
-      ctx->base->options.discovery_options.automatic_discovery_range;
+    ctx->base->options.discovery_options.automatic_discovery_range;
   rmw_publisher_t * const rmw_pub =
     rmw_gurumdds_cpp::create_publisher(
     ctx,
@@ -1339,7 +1357,7 @@ rmw_ret_t
 rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 {
   CHECK_ALL_PTRS_CODE(node, publisher);
-  
+
   CHECK_ID_CODE(node);
   CHECK_ID_CODE(publisher);
 
@@ -1422,7 +1440,7 @@ rmw_publisher_get_actual_qos(
   qos->lifespan = rmw_gurumdds_cpp::convert_lifespan(&dds_qos.lifespan);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 

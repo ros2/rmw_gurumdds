@@ -75,7 +75,8 @@ void PublisherInfo::on_offered_incompatible_qos(const dds_OfferedIncompatibleQos
   dds_GuardCondition_set_trigger_value(dds_condition, true);
 }
 
-void PublisherInfo::on_liveliness_lost(const dds_LivelinessLostStatus & status) {
+void PublisherInfo::on_liveliness_lost(const dds_LivelinessLostStatus & status)
+{
   std::lock_guard guard_callback{mutex_event};
   liveliness_lost_changed = true;
   liveliness_lost_status.total_count_change += status.total_count_change;
@@ -91,7 +92,8 @@ void PublisherInfo::on_liveliness_lost(const dds_LivelinessLostStatus & status) 
   dds_GuardCondition_set_trigger_value(dds_condition, true);
 }
 
-void PublisherInfo::on_publication_matched(const dds_PublicationMatchedStatus & status) {
+void PublisherInfo::on_publication_matched(const dds_PublicationMatchedStatus & status)
+{
   std::lock_guard guard_callback{mutex_event};
   publication_matched_changed = true;
   publication_matched_status.total_count_change += status.total_count_change;
@@ -112,12 +114,13 @@ void PublisherInfo::on_publication_matched(const dds_PublicationMatchedStatus & 
 rmw_ret_t PublisherInfo::set_on_new_event_callback(
   rmw_event_type_t event_type,
   const void * user_data,
-  rmw_event_callback_t callback) {
+  rmw_event_callback_t callback)
+{
   std::lock_guard guard{mutex_event};
   dds_StatusMask event_status_type = rmw_gurumdds_cpp::get_status_kind_from_rmw(event_type);
   if(callback != nullptr) {
     int32_t changes;
-    dds_Topic* topic;
+    dds_Topic * topic;
     switch(event_type) {
       case RMW_EVENT_LIVELINESS_LOST:
         dds_DataWriter_get_liveliness_lost_status(topic_writer, &liveliness_lost_status);
@@ -155,7 +158,7 @@ rmw_ret_t PublisherInfo::set_on_new_event_callback(
         publication_matched_changed = false;
         break;
       default:
-          return RMW_RET_UNSUPPORTED;
+        return RMW_RET_UNSUPPORTED;
     }
 
     if(changes > 0) {
@@ -219,7 +222,7 @@ rmw_ret_t PublisherInfo::get_status(rmw_event_type_t event_type, void * event)
     if(inconsistent_topic_changed) {
       inconsistent_topic_changed = false;
     } else {
-      dds_Topic* const topic = dds_DataWriter_get_topic(topic_writer);
+      dds_Topic * const topic = dds_DataWriter_get_topic(topic_writer);
       dds_Topic_get_inconsistent_topic_status(topic, &inconsistent_topic_status);
     }
 
@@ -320,7 +323,7 @@ rmw_ret_t SubscriberInfo::set_on_new_event_callback(
   dds_StatusMask event_status_type = rmw_gurumdds_cpp::get_status_kind_from_rmw(event_type);
   if(callback != nullptr) {
     int32_t changes;
-    dds_Topic* topic;
+    dds_Topic * topic;
     switch(event_type) {
       case RMW_EVENT_LIVELINESS_CHANGED:
         dds_DataReader_get_liveliness_changed_status(topic_reader,
@@ -352,7 +355,7 @@ rmw_ret_t SubscriberInfo::set_on_new_event_callback(
         sample_lost_changed = false;
         break;
       case RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE:
-        topic = reinterpret_cast<dds_Topic*>(dds_DataReader_get_topicdescription(topic_reader));
+        topic = reinterpret_cast<dds_Topic *>(dds_DataReader_get_topicdescription(topic_reader));
         dds_Topic_get_inconsistent_topic_status(topic, &inconsistent_topic_status);
         changes = inconsistent_topic_status.total_count_change;
         inconsistent_topic_status.total_count_change = 0;
@@ -447,7 +450,7 @@ rmw_ret_t SubscriberInfo::get_status(rmw_event_type_t event_type, void * event)
       inconsistent_topic_changed = false;
     } else {
       auto topic =
-          reinterpret_cast<dds_Topic*>(dds_DataReader_get_topicdescription(this->topic_reader));
+        reinterpret_cast<dds_Topic *>(dds_DataReader_get_topicdescription(this->topic_reader));
       dds_Topic_get_inconsistent_topic_status(topic, &inconsistent_topic_status);
     }
 
@@ -478,7 +481,8 @@ rmw_ret_t SubscriberInfo::get_status(rmw_event_type_t event_type, void * event)
   return RMW_RET_OK;
 }
 
-void SubscriberInfo::update_inconsistent_topic(int32_t total_count, int32_t total_count_change) {
+void SubscriberInfo::update_inconsistent_topic(int32_t total_count, int32_t total_count_change)
+{
   inconsistent_topic_status.total_count_change += total_count_change;
   inconsistent_topic_status.total_count = total_count;
   inconsistent_topic_changed = true;
@@ -600,7 +604,7 @@ void SubscriberInfo::on_requested_deadline_missed(const dds_RequestedDeadlineMis
 }
 
 void SubscriberInfo::on_requested_incompatible_qos(
-    const dds_RequestedIncompatibleQosStatus & status)
+  const dds_RequestedIncompatibleQosStatus & status)
 {
   std::lock_guard guard(mutex_event);
   requested_incompatible_qos_changed = true;
@@ -617,7 +621,8 @@ void SubscriberInfo::on_requested_incompatible_qos(
   dds_GuardCondition_set_trigger_value(dds_condition, true);
 }
 
-void SubscriberInfo::on_data_available() {
+void SubscriberInfo::on_data_available()
+{
   std::lock_guard<std::mutex> guard(event_callback_data.mutex);
   if(event_callback_data.callback) {
     event_callback_data.callback(event_callback_data.user_data, count_unread());
@@ -660,7 +665,8 @@ void SubscriberInfo::on_subscription_matched(const dds_SubscriptionMatchedStatus
   dds_GuardCondition_set_trigger_value(dds_condition, true);
 }
 
-void SubscriberInfo::on_sample_lost(const dds_SampleLostStatus & status) {
+void SubscriberInfo::on_sample_lost(const dds_SampleLostStatus & status)
+{
   std::lock_guard guard(mutex_event);
   sample_lost_changed = true;
   sample_lost_status.total_count_change += status.total_count_change;
@@ -688,9 +694,10 @@ bool SubscriberInfo::has_callback_unsafe(rmw_event_type_t event_type) const
 }
 
 std::mutex TopicEventListener::mutex_table_;
-std::map<dds_Topic*, TopicEventListener*> TopicEventListener::table_;
+std::map<dds_Topic *, TopicEventListener *> TopicEventListener::table_;
 
-rmw_ret_t TopicEventListener::associate_listener(dds_Topic * topic) {
+rmw_ret_t TopicEventListener::associate_listener(dds_Topic * topic)
+{
   auto event_listener = new(std::nothrow) TopicEventListener{};
   if(nullptr == event_listener) {
     return RMW_RET_ERROR;
@@ -708,7 +715,8 @@ rmw_ret_t TopicEventListener::associate_listener(dds_Topic * topic) {
   return RMW_RET_OK;
 }
 
-rmw_ret_t TopicEventListener::disassociate_Listener(dds_Topic * topic) {
+rmw_ret_t TopicEventListener::disassociate_Listener(dds_Topic * topic)
+{
   std::lock_guard guard{mutex_table_};
   auto it = table_.find(topic);
   if(table_.end() == it) {
@@ -724,10 +732,12 @@ rmw_ret_t TopicEventListener::disassociate_Listener(dds_Topic * topic) {
   return RMW_RET_OK;
 }
 
-void TopicEventListener::on_inconsistent_topic(const dds_Topic* the_topic,
-                                               const dds_InconsistentTopicStatus* status) {
-  auto topic = const_cast<dds_Topic*>(the_topic);
-  auto listener = static_cast<TopicEventListener*>(dds_Topic_get_listener_context(topic));
+void TopicEventListener::on_inconsistent_topic(
+  const dds_Topic * the_topic,
+  const dds_InconsistentTopicStatus * status)
+{
+  auto topic = const_cast<dds_Topic *>(the_topic);
+  auto listener = static_cast<TopicEventListener *>(dds_Topic_get_listener_context(topic));
   if(nullptr == listener) {
     return;
   }
@@ -735,14 +745,16 @@ void TopicEventListener::on_inconsistent_topic(const dds_Topic* the_topic,
   listener->on_inconsistent_topic(*status);
 }
 
-void TopicEventListener::on_inconsistent_topic(const dds_InconsistentTopicStatus& status) {
+void TopicEventListener::on_inconsistent_topic(const dds_InconsistentTopicStatus & status)
+{
   std::lock_guard guard{mutex_};
   for(auto it : event_list_) {
     it->update_inconsistent_topic(status.total_count, status.total_count_change);
   }
 }
 
-void TopicEventListener::add_event(dds_Topic * topic, EventInfo * event_info) {
+void TopicEventListener::add_event(dds_Topic * topic, EventInfo * event_info)
+{
   std::lock_guard guard{mutex_table_};
   auto it = table_.find(topic);
   if(table_.end() == it) {
@@ -760,21 +772,22 @@ void TopicEventListener::add_event(dds_Topic * topic, EventInfo * event_info) {
   listener->event_list_.emplace_back(event_info);
 }
 
-void TopicEventListener::remove_event(dds_Topic * topic, EventInfo * event_info) {
+void TopicEventListener::remove_event(dds_Topic * topic, EventInfo * event_info)
+{
   std::lock_guard guard{mutex_table_};
   auto it = table_.find(topic);
   if(table_.end() == it) {
     return;
   }
 
-    auto listener = it->second;
-    std::unique_lock listener_guard{listener->mutex_};
-    auto list_it = std::find(listener->event_list_.begin(), listener->event_list_.end(),
+  auto listener = it->second;
+  std::unique_lock listener_guard{listener->mutex_};
+  auto list_it = std::find(listener->event_list_.begin(), listener->event_list_.end(),
                              event_info);
-    if(listener->event_list_.end() == list_it) {
-      return;
-    }
+  if(listener->event_list_.end() == list_it) {
+    return;
+  }
 
-    listener->event_list_.erase(list_it);
+  listener->event_list_.erase(list_it);
 }
 }  // namespace rmw_gurumdds_cpp

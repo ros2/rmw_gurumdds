@@ -155,7 +155,7 @@ rmw_count_services(
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   int validation_result = RMW_TOPIC_VALID;
-  
+
   rmw_ret_t ret = rmw_validate_full_topic_name(service_name, &validation_result, nullptr);
   if (RMW_RET_OK != ret) {
     return ret;

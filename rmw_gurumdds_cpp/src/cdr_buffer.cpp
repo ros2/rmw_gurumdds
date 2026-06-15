@@ -18,15 +18,17 @@
 namespace rmw_gurumdds_cpp
 {
 CdrBuffer::CdrBuffer(uint8_t * buf, size_t size)
-  : buf_{buf}
+: buf_{buf}
   , offset_{}
-  , size_{size} {};
+  , size_{size} {}
 
-size_t CdrBuffer::get_offset() const {
+size_t CdrBuffer::get_offset() const
+{
   return offset_;
 }
 
-size_t CdrBuffer::get_remaining_size() const {
+size_t CdrBuffer::get_remaining_size() const
+{
   if (offset_ > size_) {
     return 0;
   }
@@ -34,7 +36,8 @@ size_t CdrBuffer::get_remaining_size() const {
   return size_ - offset_;
 }
 
-void CdrBuffer::roundup(uint32_t align) {
+void CdrBuffer::roundup(uint32_t align)
+{
   assert(align != 0);
   size_t count = -offset_ & (align - 1);
   if (offset_ + count > size_) {
@@ -44,7 +47,8 @@ void CdrBuffer::roundup(uint32_t align) {
   advance(count);
 }
 
-void CdrBuffer::advance(size_t cnt) {
+void CdrBuffer::advance(size_t cnt)
+{
   offset_ += cnt;
 }
 }  // namespace rmw_gurumdds_cpp

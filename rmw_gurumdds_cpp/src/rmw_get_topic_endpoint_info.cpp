@@ -59,7 +59,7 @@ rmw_get_publishers_info_by_topic(
   rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::identity_demangle;
   if (!no_mangle) {
     mangled_topic_name =
-        rmw_gurumdds_cpp::create_topic_name(rmw_gurumdds_cpp::ros_topic_prefix, topic_name, "",
+      rmw_gurumdds_cpp::create_topic_name(rmw_gurumdds_cpp::ros_topic_prefix, topic_name, "",
                                             false);
     demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
   }
@@ -99,7 +99,7 @@ rmw_get_subscriptions_info_by_topic(
   rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::identity_demangle;
   if (!no_mangle) {
     mangled_topic_name =
-        rmw_gurumdds_cpp::create_topic_name(rmw_gurumdds_cpp::ros_topic_prefix, topic_name, "",
+      rmw_gurumdds_cpp::create_topic_name(rmw_gurumdds_cpp::ros_topic_prefix, topic_name, "",
                                             false);
     demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
   }

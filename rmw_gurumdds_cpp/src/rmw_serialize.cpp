@@ -70,7 +70,7 @@ rmw_serialize(
 
   try {
     ser.serialize_encapsulation();
-    
+
     if (!callbacks->cdr_serialize(ros_message, ser)) {
       RMW_SET_ERROR_MSG("failed to serialize ROS message with FastRTPS typesupport");
       return RMW_RET_ERROR;

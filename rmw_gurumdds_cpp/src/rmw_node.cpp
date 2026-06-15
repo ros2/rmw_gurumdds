@@ -205,7 +205,7 @@ rmw_get_node_names(
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node,
-    node->implementation_identifier, 
+    node->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
@@ -232,7 +232,7 @@ rmw_get_node_names_with_enclaves(
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node,
-    node->implementation_identifier, 
+    node->implementation_identifier,
     RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 

@@ -34,12 +34,12 @@ struct WaitSetInfo
   // dds_ConditionSeq * attached_conditions;
   raii::dds_ConditionSeq active_conditions;
   raii::dds_ConditionSeq attached_conditions;
-  std::vector<SubscriberInfo*> cached_subscriptions;
-  std::vector<dds_GuardCondition*> cached_guard_conditions;
-  std::vector<ServiceInfo*> cached_service_conditions;
-  std::vector<ClientInfo*> cached_client_conditions;
-  std::vector<EventInfo*> cached_event_conditions;
-  std::unordered_set<dds_Condition*> cached_status_conditions;
+  std::vector<SubscriberInfo *> cached_subscriptions;
+  std::vector<dds_GuardCondition *> cached_guard_conditions;
+  std::vector<ServiceInfo *> cached_service_conditions;
+  std::vector<ClientInfo *> cached_client_conditions;
+  std::vector<EventInfo *> cached_event_conditions;
+  std::unordered_set<dds_Condition *> cached_status_conditions;
   std::mutex lock;
 };
 

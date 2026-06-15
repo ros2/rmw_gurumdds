@@ -1,4 +1,3 @@
-
 #include "rmw_gurumdds_cpp/backend_buffer.hpp"
 
 #include <algorithm>
@@ -176,9 +175,9 @@ void BufferEndpointRegistry::notify_publisher_discovered(const BufferEndpointInf
     "rmw_gurumdds_cpp",
     "BufferEndpointRegistry: firing %zu subscriber callback(s) for discovered publisher on '%s'",
     callbacks.size(), info.topic_name.c_str());
-    for (const auto & cb : callbacks) {
+  for (const auto & cb : callbacks) {
     cb(info);
   }
 }
 
-} 
+}

@@ -54,7 +54,8 @@ struct ClientInfo
   }
 };
 
-struct ServiceInfo {
+struct ServiceInfo
+{
   const rosidl_service_type_support_t * service_typesupport;
   const char * implementation_identifier;
   rmw_context_impl_t * ctx;

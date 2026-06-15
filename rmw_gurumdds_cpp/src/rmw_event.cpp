@@ -49,7 +49,8 @@ init_rmw_event(
 extern "C"
 {
 bool
-rmw_event_type_is_supported(rmw_event_type_t rmw_event_type) {
+rmw_event_type_is_supported(rmw_event_type_t rmw_event_type)
+{
   return rmw_gurumdds_cpp::is_event_supported(rmw_event_type);
 }
 
@@ -119,7 +120,7 @@ rmw_event_set_callback(
   RCUTILS_UNUSED(rmw_event);
   RCUTILS_UNUSED(callback);
   RCUTILS_UNUSED(user_data);
-  auto event_info = static_cast<rmw_gurumdds_cpp::EventInfo*>(rmw_event->data);
+  auto event_info = static_cast<rmw_gurumdds_cpp::EventInfo *>(rmw_event->data);
   return event_info->set_on_new_event_callback(rmw_event->event_type, user_data, callback);
 }
 }  // extern "C"

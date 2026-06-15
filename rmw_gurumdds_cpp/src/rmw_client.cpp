@@ -53,7 +53,7 @@ rmw_create_client(
   const char * service_name,
   const rmw_qos_profile_t * qos_policies)
 {
-  CHECK_ALL_PTRS_NULL(node,type_supports, service_name, qos_policies);
+  CHECK_ALL_PTRS_NULL(node, type_supports, service_name, qos_policies);
   CHECK_ID_NULL(node);
 
   if (strlen(service_name) == 0) {
@@ -140,7 +140,7 @@ rmw_create_client(
   std::string response_metastring;
   std::string writer_profile_name;
   std::string reader_profile_name;
-  const rosidl_type_hash_t* type_hash;
+  const rosidl_type_hash_t * type_hash;
   const rosidl_type_hash_t * client_type_hash;
   const rosidl_message_type_support_t * req_typesupport;
   const rosidl_message_type_support_t * res_typesupport;
@@ -311,11 +311,12 @@ rmw_create_client(
   req_typesupport = type_support->request_typesupport;
   type_hash = req_typesupport->get_type_hash_func(req_typesupport);
   if (!rmw_gurumdds_cpp::get_datawriter_qos(
-    &adapted_qos_policies, 
-    *type_hash, 
+    &adapted_qos_policies,
+    *type_hash,
     &datawriter_qos,
     *client_type_hash
-    )) {
+  ))
+  {
     // Error message already set
     dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
@@ -349,10 +350,11 @@ rmw_create_client(
   res_typesupport = type_support->response_typesupport;
   type_hash = res_typesupport->get_type_hash_func(res_typesupport);
   if (!rmw_gurumdds_cpp::get_datareader_qos(
-    &adapted_qos_policies, 
+    &adapted_qos_policies,
     *type_hash,
     &datareader_qos,
-    *client_type_hash)) {
+    *client_type_hash))
+  {
     // error message already set
     dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
@@ -373,7 +375,7 @@ rmw_create_client(
   }
 
   read_condition =
-      dds_DataReader_create_readcondition(response_reader, dds_ANY_SAMPLE_STATE,
+    dds_DataReader_create_readcondition(response_reader, dds_ANY_SAMPLE_STATE,
                                           dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
   if (read_condition == nullptr) {
     RMW_SET_ERROR_MSG("failed to create read condition");
@@ -405,15 +407,15 @@ rmw_create_client(
 
   dds_DataReader_set_listener_context(response_reader, client_info);
   response_listener.on_data_available = [](const dds_DataReader * response_reader){
-    auto* reader = const_cast<dds_DataReader*>(response_reader);
-    auto* info =
-        static_cast<rmw_gurumdds_cpp::ClientInfo*>(dds_DataReader_get_listener_context(reader));
-    std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
-    if(info->event_callback_data.callback) {
-      info->event_callback_data.callback(info->event_callback_data.user_data,
+      auto * reader = const_cast<dds_DataReader *>(response_reader);
+      auto * info =
+        static_cast<rmw_gurumdds_cpp::ClientInfo *>(dds_DataReader_get_listener_context(reader));
+      std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
+      if(info->event_callback_data.callback) {
+        info->event_callback_data.callback(info->event_callback_data.user_data,
                                          info->count_unread());
-    }
-  };
+      }
+    };
 
   client_info->request_writer = request_writer;
   client_info->response_reader = response_reader;
@@ -450,7 +452,7 @@ rmw_create_client(
   rmw_client->implementation_identifier = RMW_GURUMDDS_ID;
   rmw_client->data = client_info;
   rmw_client->service_name =
-      reinterpret_cast<const char *>(rmw_allocate(strlen(service_name) + 1));
+    reinterpret_cast<const char *>(rmw_allocate(strlen(service_name) + 1));
   if (rmw_client->service_name == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate memory for client name");
     goto fail;
@@ -584,7 +586,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
       node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
     rmw_free(const_cast<char *>(client->service_name));
   }
-  
+
   rmw_client_free(client);
 
   return RMW_RET_OK;
@@ -718,7 +720,7 @@ rmw_client_request_publisher_get_actual_qos(
   qos->lifespan = rmw_gurumdds_cpp::convert_lifespan(&dds_qos.lifespan);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
@@ -763,7 +765,7 @@ rmw_client_response_subscription_get_actual_qos(
   qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
@@ -846,7 +848,7 @@ rmw_send_request(
       reinterpret_cast<const uint8_t *>(client_info->writer_guid),
       reinterpret_cast<uint8_t *>(&sampleinfo_ex.src_guid));
 
-      TRACETOOLS_TRACEPOINT(
+    TRACETOOLS_TRACEPOINT(
         rmw_send_request,
         static_cast<const void *>(client),
         static_cast<const void *>(ros_request),
@@ -1064,7 +1066,7 @@ rmw_client_set_on_new_response_callback(
 {
   CHECK_ALL_PTRS_CODE(rmw_client);
   CHECK_ID_CODE(rmw_client);
-  
+
   auto client_info = static_cast<rmw_gurumdds_cpp::ClientInfo *>(rmw_client->data);
   if (client_info == nullptr) {
     RMW_SET_ERROR_MSG("invalid client data");

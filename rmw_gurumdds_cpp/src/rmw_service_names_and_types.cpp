@@ -106,9 +106,11 @@ rmw_get_clients_info_by_service(
   }
   auto * common_context = &node->context->impl->common_ctx;
   std::string mangled_rq_topic_name = \
-    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_requester_prefix, service_name, "Request").to_string();
+    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_requester_prefix, service_name,
+      "Request").to_string();
   std::string mangled_rp_topic_name = \
-    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "Reply").to_string();
+    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_response_prefix, service_name,
+      "Reply").to_string();
   rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::_demangle_service_type_only;
 
   rmw_topic_endpoint_info_array_t subscriptions_info =
@@ -206,9 +208,11 @@ rmw_get_servers_info_by_service(
   }
   auto common_context = &node->context->impl->common_ctx;
   std::string mangled_rq_topic_name = \
-    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_requester_prefix, service_name, "Request").to_string();
+    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_requester_prefix, service_name,
+      "Request").to_string();
   std::string mangled_rp_topic_name = \
-    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_response_prefix, service_name, "Reply").to_string();
+    _mangle_topic_name(rmw_gurumdds_cpp::ros_service_response_prefix, service_name,
+      "Reply").to_string();
   rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::_demangle_service_type_only;
 
   rmw_topic_endpoint_info_array_t subscriptions_info =

@@ -22,7 +22,7 @@
 #include "rosidl_runtime_c/service_type_support_struct.h"
 namespace rmw_gurumdds_cpp
 {
-dds_TypeSupport*
+dds_TypeSupport *
 create_type_support_and_register(
   dds_DomainParticipant * participant,
   const rosidl_message_type_support_t * type_support,
@@ -30,15 +30,17 @@ create_type_support_and_register(
   const std::string & metastring);
 
 void set_type_support_ops(
-  dds_TypeSupport* dds_type_support,
-  const rosidl_message_type_support_t* type_support
-  );
+  dds_TypeSupport * dds_type_support,
+  const rosidl_message_type_support_t * type_support
+);
 
-void set_service_typesupport(dds_DataWriter* writer, dds_DataReader* reader,
-                             const rosidl_service_type_support_t* rosidl_typesupport);
+void set_service_typesupport(
+  dds_DataWriter * writer, dds_DataReader * reader,
+  const rosidl_service_type_support_t * rosidl_typesupport);
 
-void set_client_typesupport(dds_DataWriter* writer, dds_DataReader* reader,
-                            const rosidl_service_type_support_t* rosidl_typesupport);
+void set_client_typesupport(
+  dds_DataWriter * writer, dds_DataReader * reader,
+  const rosidl_service_type_support_t * rosidl_typesupport);
 
 }  // namespace rmw_gurumdds_cpp
 

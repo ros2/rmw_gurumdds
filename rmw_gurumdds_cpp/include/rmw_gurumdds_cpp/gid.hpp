@@ -34,7 +34,7 @@ void entity_get_gid(dds_Entity * const entity, rmw_gid_t & gid);
 /**
  * Structure to hold GUID information for DDS instances.
  */
-struct Guid_t: public dds_GUID_t
+struct Guid_t : public dds_GUID_t
 {
   static constexpr uint32_t ENTITYID_PARTICIPANT = 0x000001C1;
 
@@ -42,13 +42,13 @@ struct Guid_t: public dds_GUID_t
 
   explicit Guid_t(const dds_GUID_t & other);
 
-  explicit Guid_t(const dds_ParticipantBuiltinTopicData& builtin_topic_data);
+  explicit Guid_t(const dds_ParticipantBuiltinTopicData & builtin_topic_data);
 
   template<typename TBuiltinTopicData>
-  explicit Guid_t(const TBuiltinTopicData& builtin_topic_data);
+  explicit Guid_t(const TBuiltinTopicData & builtin_topic_data);
 
   template<typename TBuiltinTopicData>
-  static Guid_t for_participant(const TBuiltinTopicData& builtin_topic_data);
+  static Guid_t for_participant(const TBuiltinTopicData & builtin_topic_data);
 
   bool operator==(const dds_GUID_t & other) const;
 

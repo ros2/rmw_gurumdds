@@ -109,7 +109,7 @@ rmw_create_service(
 
   dds_DataReader * request_reader = nullptr;
   dds_DataReaderListener request_listener;
-  
+
   dds_DataWriter * response_writer = nullptr;
   dds_ReadCondition * read_condition = nullptr;
   dds_TypeSupport * request_typesupport = nullptr;
@@ -132,9 +132,9 @@ rmw_create_service(
   std::string writer_profile_name;
   std::string reader_profile_name;
 
-  const rosidl_type_hash_t* type_hash;
+  const rosidl_type_hash_t * type_hash;
   const rosidl_type_hash_t * service_type_hash;
-  const rosidl_message_type_support_t* req_typesupport;
+  const rosidl_message_type_support_t * req_typesupport;
 
   raii::dds_DataSeq data_seq;
   raii::dds_SampleInfoSeq info_seq;
@@ -294,10 +294,11 @@ rmw_create_service(
   req_typesupport = type_support->request_typesupport;
   type_hash = req_typesupport->get_type_hash_func(req_typesupport);
   if (!rmw_gurumdds_cpp::get_datareader_qos(
-    &adapted_qos_policies, 
-    *type_hash, 
+    &adapted_qos_policies,
+    *type_hash,
     &datareader_qos,
-    *service_type_hash)) {
+    *service_type_hash))
+  {
     // Error message already set
     goto fail;
   }
@@ -334,12 +335,13 @@ rmw_create_service(
   }
 
   type_hash =
-      type_support->response_typesupport->get_type_hash_func(type_support->response_typesupport);
+    type_support->response_typesupport->get_type_hash_func(type_support->response_typesupport);
   if (!rmw_gurumdds_cpp::get_datawriter_qos(
-    &adapted_qos_policies, 
-    *type_hash, 
+    &adapted_qos_policies,
+    *type_hash,
     &datawriter_qos,
-    *service_type_hash)) {
+    *service_type_hash))
+  {
     // Error message already set
     goto fail;
   }
@@ -382,15 +384,15 @@ rmw_create_service(
 
   dds_DataReader_set_listener_context(request_reader, service_info);
   request_listener.on_data_available = [](const dds_DataReader * request_reader){
-    auto* reader = const_cast<dds_DataReader*>(request_reader);
-    auto* info =
-        static_cast<rmw_gurumdds_cpp::ServiceInfo*>(dds_DataReader_get_listener_context(reader));
-    std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
-    if(info->event_callback_data.callback) {
-      info->event_callback_data.callback(info->event_callback_data.user_data,
+      auto * reader = const_cast<dds_DataReader *>(request_reader);
+      auto * info =
+        static_cast<rmw_gurumdds_cpp::ServiceInfo *>(dds_DataReader_get_listener_context(reader));
+      std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
+      if(info->event_callback_data.callback) {
+        info->event_callback_data.callback(info->event_callback_data.user_data,
                                          info->count_unread());
-    }
-  };
+      }
+    };
 
   service_info->response_writer = response_writer;
   service_info->request_reader = request_reader;
@@ -474,7 +476,7 @@ fail:
     dds_TypeSupport_delete(response_typesupport);
   }
 
-  if(service_info != nullptr){
+  if(service_info != nullptr) {
     delete service_info;
   }
   if (rmw_service != nullptr) {
@@ -543,7 +545,7 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
       node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
     rmw_free(const_cast<char *>(service->service_name));
   }
-  
+
   rmw_service_free(service);
 
   return RMW_RET_OK;
@@ -582,7 +584,7 @@ rmw_service_response_publisher_get_actual_qos(
   qos->lifespan = rmw_gurumdds_cpp::convert_lifespan(&dds_qos.lifespan);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
@@ -604,7 +606,7 @@ rmw_service_request_subscription_get_actual_qos(
   CHECK_ID_CODE(service);
 
   auto * service_info =
-      static_cast<rmw_gurumdds_cpp::ServiceInfo *>(service->data);
+    static_cast<rmw_gurumdds_cpp::ServiceInfo *>(service->data);
   if (service_info == nullptr) {
     RMW_SET_ERROR_MSG("service info is null");
     return RMW_RET_ERROR;
@@ -628,7 +630,7 @@ rmw_service_request_subscription_get_actual_qos(
   qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
   qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
   qos->depth = static_cast<size_t>(dds_qos.history.depth);
 
