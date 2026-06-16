@@ -21,8 +21,8 @@
 #include "rmw_dds_common/qos.hpp"
 #include "rmw_dds_common/time_utils.hpp"
 
-#include "rmw_gurumdds_cpp/qos.hpp"
 #include "rmw/impl/cpp/key_value.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
 #include <iomanip>
 
 static inline bool is_time_unspecified(const rmw_time_t & time)
@@ -32,8 +32,7 @@ static inline bool is_time_unspecified(const rmw_time_t & time)
 
 namespace rmw_gurumdds_cpp
 {
-dds_Duration_t
-rmw_time_to_dds(const rmw_time_t & time)
+dds_Duration_t rmw_time_to_dds(const rmw_time_t & time)
 {
   if (rmw_time_equal(time, RMW_DURATION_INFINITE)) {
     dds_Duration_t duration;
@@ -48,10 +47,11 @@ rmw_time_to_dds(const rmw_time_t & time)
   return duration;
 }
 
-rmw_time_t
-dds_duration_to_rmw(const dds_Duration_t & duration)
+rmw_time_t dds_duration_to_rmw(const dds_Duration_t & duration)
 {
-  if (duration.sec == dds_DURATION_INFINITE_SEC && duration.nanosec == dds_DURATION_INFINITE_NSEC) {
+  if (duration.sec == dds_DURATION_INFINITE_SEC &&
+    duration.nanosec == dds_DURATION_INFINITE_NSEC)
+  {
     return RMW_DURATION_INFINITE;
   }
   rmw_time_t time;
@@ -60,18 +60,16 @@ dds_duration_to_rmw(const dds_Duration_t & duration)
   return time;
 }
 
-int64_t
-dds_time_to_i64(const dds_Time_t & t)
+int64_t dds_time_to_i64(const dds_Time_t & t)
 {
-  return  (static_cast<int64_t>(t.sec) * static_cast<int64_t>(1000000000ULL)) +
+  return (static_cast<int64_t>(t.sec) * static_cast<int64_t>(1000000000ULL)) +
          static_cast<int64_t>(t.nanosec);
 }
 
 template<typename dds_EntityQos>
-bool
-set_entity_qos_from_profile_generic(
-  const rmw_qos_profile_t * qos_profile,
-  dds_EntityQos * entity_qos)
+bool set_entity_qos_from_profile_generic(
+  const rmw_qos_profile_t *qos_profile,
+  dds_EntityQos *entity_qos)
 {
   switch (qos_profile->history) {
     case RMW_QOS_POLICY_HISTORY_KEEP_LAST:
@@ -120,7 +118,8 @@ set_entity_qos_from_profile_generic(
 
     entity_qos->resource_limits.max_samples = entity_qos->history.depth;
     entity_qos->resource_limits.max_instances = 1;
-    entity_qos->resource_limits.max_samples_per_instance = entity_qos->history.depth;
+    entity_qos->resource_limits.max_samples_per_instance =
+      entity_qos->history.depth;
   } else if (qos_profile->history == RMW_QOS_POLICY_HISTORY_KEEP_ALL) {
     // NOTE: These values might be changed after further insepction
     entity_qos->resource_limits.max_samples = 4096;
@@ -147,25 +146,24 @@ set_entity_qos_from_profile_generic(
   }
 
   if (!is_time_unspecified(qos_profile->liveliness_lease_duration)) {
-    entity_qos->liveliness.lease_duration = rmw_time_to_dds(qos_profile->liveliness_lease_duration);
+    entity_qos->liveliness.lease_duration =
+      rmw_time_to_dds(qos_profile->liveliness_lease_duration);
   }
 
   return true;
 }
 
-bool
-get_topic_qos(
-  const rmw_qos_profile_t * qos_policies,
-  dds_TopicQos * topic_qos)
+bool get_topic_qos(
+  const rmw_qos_profile_t *qos_policies,
+  dds_TopicQos *topic_qos)
 {
   return set_entity_qos_from_profile_generic(qos_policies, topic_qos);
 }
 
-bool
-get_datawriter_qos(
-  const rmw_qos_profile_t * qos_profile,
+bool get_datawriter_qos(
+  const rmw_qos_profile_t *qos_profile,
   const rosidl_type_hash_t & type_hash,
-  dds_DataWriterQos * datawriter_qos)
+  dds_DataWriterQos *datawriter_qos)
 {
 
   if (!is_time_unspecified(qos_profile->lifespan)) {
@@ -175,7 +173,9 @@ get_datawriter_qos(
   set_entity_qos_from_profile_generic(qos_profile, datawriter_qos);
 
   std::string user_data_str;
-  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
+  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(
+                        type_hash, user_data_str))
+  {
     user_data_str.clear();
     // Since we are going to go on without a hash, we clear the error so other
     // code won't overwrite it.
@@ -183,22 +183,22 @@ get_datawriter_qos(
   }
 
   size_t user_data_size = user_data_str.size();
-  if(user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
+  if (user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
     user_data_size = sizeof(dds_UserDataQosPolicy::value);
   }
 
   std::memset(datawriter_qos->user_data.value, 0, user_data_size);
-  std::memcpy(datawriter_qos->user_data.value, user_data_str.data(), user_data_size);
+  std::memcpy(datawriter_qos->user_data.value, user_data_str.data(),
+              user_data_size);
   datawriter_qos->user_data.size = user_data_size;
 
   return true;
 }
 
-bool
-get_datawriter_qos(
-  const rmw_qos_profile_t * qos_profile,
+bool get_datawriter_qos(
+  const rmw_qos_profile_t *qos_profile,
   const rosidl_type_hash_t & type_hash,
-  dds_DataWriterQos * datawriter_qos,
+  dds_DataWriterQos *datawriter_qos,
   const rosidl_type_hash_t & service_type_hash)
 {
 
@@ -209,7 +209,9 @@ get_datawriter_qos(
   set_entity_qos_from_profile_generic(qos_profile, datawriter_qos);
 
   std::string user_data_str;
-  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
+  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(
+                        type_hash, user_data_str))
+  {
     user_data_str.clear();
     // Since we are going to go on without a hash, we clear the error so other
     // code won't overwrite it.
@@ -218,7 +220,7 @@ get_datawriter_qos(
 
   std::string service_type_hash_str;
   if (RMW_RET_OK == rmw_dds_common::encode_sertype_hash_for_user_data_qos(
-      service_type_hash, service_type_hash_str))
+                        service_type_hash, service_type_hash_str))
   {
     user_data_str += service_type_hash_str;
   } else {
@@ -226,26 +228,29 @@ get_datawriter_qos(
   }
 
   size_t user_data_size = user_data_str.size();
-  if(user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
+  if (user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
     user_data_size = sizeof(dds_UserDataQosPolicy::value);
   }
 
   std::memset(datawriter_qos->user_data.value, 0, user_data_size);
-  std::memcpy(datawriter_qos->user_data.value, user_data_str.data(), user_data_size);
+  std::memcpy(datawriter_qos->user_data.value, user_data_str.data(),
+              user_data_size);
   datawriter_qos->user_data.size = user_data_size;
 
   return true;
 }
 
 bool get_datareader_qos(
-  const rmw_qos_profile_t * qos_profile,
+  const rmw_qos_profile_t *qos_profile,
   const rosidl_type_hash_t & type_hash,
-  dds_DataReaderQos * datareader_qos)
+  dds_DataReaderQos *datareader_qos)
 {
   set_entity_qos_from_profile_generic(qos_profile, datareader_qos);
 
   std::string user_data_str;
-  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
+  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(
+                        type_hash, user_data_str))
+  {
     user_data_str.clear();
     // Since we are going to go on without a hash, we clear the error so other
     // code won't overwrite it.
@@ -253,27 +258,30 @@ bool get_datareader_qos(
   }
 
   size_t user_data_size = user_data_str.size();
-  if(user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
+  if (user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
     user_data_size = sizeof(dds_UserDataQosPolicy::value);
   }
 
   std::memset(datareader_qos->user_data.value, 0, user_data_size);
-  std::memcpy(datareader_qos->user_data.value, user_data_str.data(), user_data_size);
+  std::memcpy(datareader_qos->user_data.value, user_data_str.data(),
+              user_data_size);
   datareader_qos->user_data.size = user_data_size;
 
   return true;
 }
 
 bool get_datareader_qos(
-  const rmw_qos_profile_t * qos_profile,
+  const rmw_qos_profile_t *qos_profile,
   const rosidl_type_hash_t & type_hash,
-  dds_DataReaderQos * datareader_qos,
+  dds_DataReaderQos *datareader_qos,
   const rosidl_type_hash_t & service_type_hash)
 {
   set_entity_qos_from_profile_generic(qos_profile, datareader_qos);
 
   std::string user_data_str;
-  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
+  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(
+                        type_hash, user_data_str))
+  {
     user_data_str.clear();
     // Since we are going to go on without a hash, we clear the error so other
     // code won't overwrite it.
@@ -282,7 +290,7 @@ bool get_datareader_qos(
 
   std::string service_type_hash_str;
   if (RMW_RET_OK == rmw_dds_common::encode_sertype_hash_for_user_data_qos(
-      service_type_hash, service_type_hash_str))
+                        service_type_hash, service_type_hash_str))
   {
     user_data_str += service_type_hash_str;
   } else {
@@ -290,21 +298,21 @@ bool get_datareader_qos(
   }
 
   size_t user_data_size = user_data_str.size();
-  if(user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
+  if (user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
     user_data_size = sizeof(dds_UserDataQosPolicy::value);
   }
 
   std::memset(datareader_qos->user_data.value, 0, user_data_size);
-  std::memcpy(datareader_qos->user_data.value, user_data_str.data(), user_data_size);
+  std::memcpy(datareader_qos->user_data.value, user_data_str.data(),
+              user_data_size);
   datareader_qos->user_data.size = user_data_size;
 
   return true;
 }
 
-constexpr const char * BUFFER_BACKEND_KEY = "bufbe";
+constexpr const char *BUFFER_BACKEND_KEY = "bufbe";
 
-std::string
-encode_buffer_backends_for_user_data(
+std::string encode_buffer_backends_for_user_data(
   const std::unordered_map<std::string, std::string> & backends)
 {
   if (backends.empty()) {
@@ -313,7 +321,7 @@ encode_buffer_backends_for_user_data(
   std::ostringstream ss;
   ss << BUFFER_BACKEND_KEY << '=';
   bool first = true;
-  for (const auto & [name, aux] : backends) {
+  for (const auto &[name, aux] : backends) {
     if (!first) {
       ss << ',';
     }
@@ -324,12 +332,10 @@ encode_buffer_backends_for_user_data(
   return ss.str();
 }
 
-//backend_buffer 전용
-bool
-get_datawriter_qos(
-  const rmw_qos_profile_t * qos_profile,
-  const rosidl_type_hash_t & type_hash,
-  dds_DataWriterQos * datawriter_qos,
+// backend_buffer 전용
+bool get_datawriter_qos(
+  const rmw_qos_profile_t *qos_profile, const rosidl_type_hash_t & type_hash,
+  dds_DataWriterQos *datawriter_qos,
   std::unordered_map<std::string, std::string> & backend_metadata)
 {
 
@@ -340,7 +346,9 @@ get_datawriter_qos(
   set_entity_qos_from_profile_generic(qos_profile, datawriter_qos);
 
   std::string user_data_str;
-  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
+  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(
+                        type_hash, user_data_str))
+  {
     user_data_str.clear();
     // Since we are going to go on without a hash, we clear the error so other
     // code won't overwrite it.
@@ -352,19 +360,20 @@ get_datawriter_qos(
   }
 
   size_t user_data_size = user_data_str.size();
-  if(user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
+  if (user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
     user_data_size = sizeof(dds_UserDataQosPolicy::value);
   }
 
   std::memset(datawriter_qos->user_data.value, 0, user_data_size);
-  std::memcpy(datawriter_qos->user_data.value, user_data_str.data(), user_data_size);
+  std::memcpy(datawriter_qos->user_data.value, user_data_str.data(),
+              user_data_size);
   datawriter_qos->user_data.size = user_data_size;
 
   return true;
 }
 
 std::unordered_map<std::string, std::string>
-parse_buffer_backends_from_user_data(const uint8_t * data, size_t size)
+parse_buffer_backends_from_user_data(const uint8_t *data, size_t size)
 {
   std::unordered_map<std::string, std::string> result;
   if (!data || size == 0) {
@@ -385,7 +394,8 @@ parse_buffer_backends_from_user_data(const uint8_t * data, size_t size)
     }
     size_t colon = entry.find(':');
     std::string name = entry.substr(0, colon);
-    std::string aux = (colon == std::string::npos) ? "" : entry.substr(colon + 1);
+    std::string aux =
+      (colon == std::string::npos) ? "" : entry.substr(colon + 1);
     if (!name.empty()) {
       result[name] = aux;
     }
@@ -393,9 +403,9 @@ parse_buffer_backends_from_user_data(const uint8_t * data, size_t size)
   return result;
 }
 
-inline bool
-parse_endpoint_gid_from_user_data(
-  const uint8_t * data, size_t size, const char * tag, rmw_gid_t & gid)
+inline bool parse_endpoint_gid_from_user_data(
+  const uint8_t *data, size_t size,
+  const char *tag, rmw_gid_t & gid)
 {
   size_t tag_len = strlen(tag);
   if (!data || size < tag_len) {
@@ -419,18 +429,18 @@ parse_endpoint_gid_from_user_data(
   return true;
 }
 
-//backend_buffer 전용
-bool
-get_datareader_qos(
-  const rmw_qos_profile_t * qos_profile,
-  const rosidl_type_hash_t & type_hash,
-  dds_DataReaderQos * datareader_qos,
+// backend_buffer 전용
+bool get_datareader_qos(
+  const rmw_qos_profile_t *qos_profile, const rosidl_type_hash_t & type_hash,
+  dds_DataReaderQos *datareader_qos,
   std::unordered_map<std::string, std::string> & backend_metadata)
 {
   set_entity_qos_from_profile_generic(qos_profile, datareader_qos);
 
   std::string user_data_str;
-  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(type_hash, user_data_str)) {
+  if (RMW_RET_OK != rmw_dds_common::encode_type_hash_for_user_data_qos(
+                        type_hash, user_data_str))
+  {
     user_data_str.clear();
     // Since we are going to go on without a hash, we clear the error so other
     // code won't overwrite it.
@@ -442,19 +452,20 @@ get_datareader_qos(
   }
 
   size_t user_data_size = user_data_str.size();
-  if(user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
+  if (user_data_size > sizeof(dds_UserDataQosPolicy::value)) {
     user_data_size = sizeof(dds_UserDataQosPolicy::value);
   }
 
   std::memset(datareader_qos->user_data.value, 0, user_data_size);
-  std::memcpy(datareader_qos->user_data.value, user_data_str.data(), user_data_size);
+  std::memcpy(datareader_qos->user_data.value, user_data_str.data(),
+              user_data_size);
   datareader_qos->user_data.size = user_data_size;
 
   return true;
 }
 
 rmw_qos_history_policy_t
-convert_history(const dds_HistoryQosPolicy * const policy)
+convert_history(const dds_HistoryQosPolicy *const policy)
 {
   switch (policy->kind) {
     case dds_KEEP_LAST_HISTORY_QOS:
@@ -467,7 +478,7 @@ convert_history(const dds_HistoryQosPolicy * const policy)
 }
 
 rmw_qos_reliability_policy_t
-convert_reliability(const dds_ReliabilityQosPolicy * const policy)
+convert_reliability(const dds_ReliabilityQosPolicy *const policy)
 {
   switch (policy->kind) {
     case dds_BEST_EFFORT_RELIABILITY_QOS:
@@ -480,7 +491,7 @@ convert_reliability(const dds_ReliabilityQosPolicy * const policy)
 }
 
 rmw_qos_durability_policy_t
-convert_durability(const dds_DurabilityQosPolicy * const policy)
+convert_durability(const dds_DurabilityQosPolicy *const policy)
 {
   switch (policy->kind) {
     case dds_VOLATILE_DURABILITY_QOS:
@@ -492,21 +503,19 @@ convert_durability(const dds_DurabilityQosPolicy * const policy)
   }
 }
 
-rmw_time_t
-convert_deadline(const dds_DeadlineQosPolicy * const policy)
+rmw_time_t convert_deadline(const dds_DeadlineQosPolicy *const policy)
 {
   return dds_duration_to_rmw(policy->period);
 }
 
-rmw_time_t
-convert_lifespan(const dds_LifespanQosPolicy * const policy)
+rmw_time_t convert_lifespan(const dds_LifespanQosPolicy *const policy)
 {
   rmw_time_t time = RMW_DURATION_INFINITE;
   return policy == nullptr ? time : dds_duration_to_rmw(policy->duration);
 }
 
 rmw_qos_liveliness_policy_t
-convert_liveliness(const dds_LivelinessQosPolicy * const policy)
+convert_liveliness(const dds_LivelinessQosPolicy *const policy)
 {
   switch (policy->kind) {
     case dds_AUTOMATIC_LIVELINESS_QOS:
@@ -519,15 +528,14 @@ convert_liveliness(const dds_LivelinessQosPolicy * const policy)
 }
 
 rmw_time_t
-convert_liveliness_lease_duration(const dds_LivelinessQosPolicy * const policy)
+convert_liveliness_lease_duration(const dds_LivelinessQosPolicy *const policy)
 {
   return dds_duration_to_rmw(policy->lease_duration);
 }
 
-rmw_qos_policy_kind_t
-convert_qos_policy(const dds_QosPolicyId_t policy_id)
+rmw_qos_policy_kind_t convert_qos_policy(const dds_QosPolicyId_t policy_id)
 {
-  switch(policy_id) {
+  switch (policy_id) {
     case dds_HISTORY_QOS_POLICY_ID:
       return RMW_QOS_POLICY_HISTORY;
     case dds_RELIABILITY_QOS_POLICY_ID:
@@ -545,9 +553,10 @@ convert_qos_policy(const dds_QosPolicyId_t policy_id)
   }
 }
 
-//backend_buffer
-std::string
-encode_endpoint_gid_for_user_data(const rmw_gid_t & gid, const char * tag)
+// backend_buffer
+std::string encode_endpoint_gid_for_user_data(
+  const rmw_gid_t & gid,
+  const char *tag)
 {
   std::ostringstream ss;
   ss << tag;
@@ -558,8 +567,7 @@ encode_endpoint_gid_for_user_data(const rmw_gid_t & gid, const char * tag)
   return ss.str();
 }
 
-bool
-is_valid_qos(const rmw_qos_profile_t * qos)
+bool is_valid_qos(const rmw_qos_profile_t *qos)
 {
   if (qos == nullptr) {
     RMW_SET_ERROR_MSG("qos_policies argument is null");
@@ -586,14 +594,11 @@ is_valid_qos(const rmw_qos_profile_t * qos)
     return false;
   }
 
-  if (
-    qos->history == RMW_QOS_POLICY_HISTORY_KEEP_LAST &&
-    qos->depth == 0)
-  {
+  if (qos->history == RMW_QOS_POLICY_HISTORY_KEEP_LAST && qos->depth == 0) {
     RMW_SET_ERROR_MSG("publisher qos depth is zero for KEEP_LAST history");
     return false;
   }
 
   return true;
 }
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp

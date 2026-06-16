@@ -16,8 +16,9 @@
 
 namespace rmw_gurumdds_cpp
 {
-std::pair<std::string, std::string>
-create_service_type_name(const void * untyped_members, const char * identifier)
+std::pair<std::string, std::string> create_service_type_name(
+  const void * untyped_members,
+  const char * identifier)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return create_service_type_name<rosidl_typesupport_introspection_c__ServiceMembers>(
@@ -31,8 +32,9 @@ create_service_type_name(const void * untyped_members, const char * identifier)
   return {"", ""};
 }
 
-std::pair<std::string, std::string>
-create_service_metastring(const void * untyped_members, const char * identifier)
+std::pair<std::string, std::string> create_service_metastring(
+  const void * untyped_members,
+  const char * identifier)
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return create_service_metastring<rosidl_typesupport_introspection_c__ServiceMembers>(
@@ -46,8 +48,7 @@ create_service_metastring(const void * untyped_members, const char * identifier)
   return {"", ""};
 }
 
-void *
-allocate_request_basic(
+void * allocate_request_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_request,
@@ -57,22 +58,19 @@ allocate_request_basic(
     return allocate_request_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return allocate_request_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return nullptr;
 }
 
-void *
-allocate_response_basic(
+void * allocate_response_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_response,
@@ -82,22 +80,19 @@ allocate_response_basic(
     return allocate_response_basic<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return allocate_response_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return nullptr;
 }
 
-void *
-allocate_request_enhanced(
+void * allocate_request_enhanced(
   const void * untyped_members,
   const char * identifier,
   const void * ros_request,
@@ -107,22 +102,19 @@ allocate_request_enhanced(
     return allocate_request_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return allocate_request_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return nullptr;
 }
 
-void *
-allocate_response_enhanced(
+void * allocate_response_enhanced(
   const void * untyped_members,
   const char * identifier,
   const void * ros_response,
@@ -132,22 +124,19 @@ allocate_response_enhanced(
     return allocate_response_enhanced<rosidl_typesupport_introspection_c__ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return allocate_response_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return nullptr;
 }
 
-bool
-serialize_service_basic(
+bool serialize_service_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_service,
@@ -159,22 +148,29 @@ serialize_service_basic(
 {
   if (identifier == rosidl_typesupport_introspection_c__identifier) {
     return serialize_service_basic<rosidl_typesupport_introspection_c__MessageMembers>(
-      untyped_members, reinterpret_cast<const uint8_t *>(ros_service),
-      reinterpret_cast<uint8_t *>(dds_service), size,
-      sequence_number, client_guid, is_request);
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service),
+      size,
+      sequence_number,
+      client_guid,
+      is_request);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_service_basic<rosidl_typesupport_introspection_cpp::MessageMembers>(
-      untyped_members, reinterpret_cast<const uint8_t *>(ros_service),
-      reinterpret_cast<uint8_t *>(dds_service), size,
-      sequence_number, client_guid, is_request);
+      untyped_members,
+      reinterpret_cast<const uint8_t *>(ros_service),
+      reinterpret_cast<uint8_t *>(dds_service),
+      size,
+      sequence_number,
+      client_guid,
+      is_request);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-serialize_request_basic(
+bool serialize_request_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_request,
@@ -190,8 +186,7 @@ serialize_request_basic(
       reinterpret_cast<uint8_t *>(dds_request),
       size,
       sequence_number,
-      client_guid
-    );
+      client_guid);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_request_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
@@ -199,16 +194,14 @@ serialize_request_basic(
       reinterpret_cast<uint8_t *>(dds_request),
       size,
       sequence_number,
-      client_guid
-    );
+      client_guid);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-serialize_response_basic(
+bool serialize_response_basic(
   const void * untyped_members,
   const char * identifier,
   const void * ros_response,
@@ -224,8 +217,7 @@ serialize_response_basic(
       reinterpret_cast<uint8_t *>(dds_response),
       size,
       sequence_number,
-      client_guid
-    );
+      client_guid);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_response_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
@@ -233,16 +225,14 @@ serialize_response_basic(
       reinterpret_cast<uint8_t *>(dds_response),
       size,
       sequence_number,
-      client_guid
-    );
+      client_guid);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-serialize_service_enhanced(
+bool serialize_service_enhanced(
   const void * untyped_members,
   const char * identifier,
   const void * ros_service,
@@ -254,23 +244,20 @@ serialize_service_enhanced(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_service_enhanced<rosidl_typesupport_introspection_cpp::MessageMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-serialize_request_enhanced(
+bool serialize_request_enhanced(
   const void * untyped_members,
   const char * identifier,
   const void * ros_request,
@@ -282,23 +269,20 @@ serialize_request_enhanced(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_request_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-serialize_response_enhanced(
+bool serialize_response_enhanced(
   const void * untyped_members,
   const char * identifier,
   const void * ros_response,
@@ -310,23 +294,20 @@ serialize_response_enhanced(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
       reinterpret_cast<uint8_t *>(dds_response),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return serialize_response_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<const uint8_t *>(ros_response),
       reinterpret_cast<uint8_t *>(dds_response),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-deserialize_service_basic(
+bool deserialize_service_basic(
   const void * untyped_members,
   const char * identifier,
   void * ros_service,
@@ -346,8 +327,7 @@ deserialize_service_basic(
       sn_high,
       sn_low,
       client_guid,
-      is_request
-    );
+      is_request);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return deserialize_service_basic<rosidl_typesupport_introspection_cpp::MessageMembers>(
       untyped_members,
@@ -357,16 +337,14 @@ deserialize_service_basic(
       sn_high,
       sn_low,
       client_guid,
-      is_request
-    );
+      is_request);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-deserialize_request_basic(
+bool deserialize_request_basic(
   const void * untyped_members,
   const char * identifier,
   void * ros_request,
@@ -384,8 +362,7 @@ deserialize_request_basic(
       size,
       sn_high,
       sn_low,
-      client_guid
-    );
+      client_guid);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return deserialize_request_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
@@ -394,16 +371,14 @@ deserialize_request_basic(
       size,
       sn_high,
       sn_low,
-      client_guid
-    );
+      client_guid);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-deserialize_response_basic(
+bool deserialize_response_basic(
   const void * untyped_members,
   const char * identifier,
   void * ros_response,
@@ -421,8 +396,7 @@ deserialize_response_basic(
       size,
       sn_high,
       sn_low,
-      client_guid
-    );
+      client_guid);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return deserialize_response_basic<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
@@ -431,16 +405,14 @@ deserialize_response_basic(
       size,
       sn_high,
       sn_low,
-      client_guid
-    );
+      client_guid);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-deserialize_service_enhanced(
+bool deserialize_service_enhanced(
   const void * untyped_members,
   const char * identifier,
   void * ros_service,
@@ -452,23 +424,20 @@ deserialize_service_enhanced(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return deserialize_service_enhanced<rosidl_typesupport_introspection_cpp::MessageMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_service),
       reinterpret_cast<uint8_t *>(dds_service),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-deserialize_request_enhanced(
+bool deserialize_request_enhanced(
   const void * untyped_members,
   const char * identifier,
   void * ros_request,
@@ -480,23 +449,20 @@ deserialize_request_enhanced(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return deserialize_request_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_request),
       reinterpret_cast<uint8_t *>(dds_request),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;
 }
 
-bool
-deserialize_response_enhanced(
+bool deserialize_response_enhanced(
   const void * untyped_members,
   const char * identifier,
   void * ros_response,
@@ -508,15 +474,13 @@ deserialize_response_enhanced(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_response),
       reinterpret_cast<uint8_t *>(dds_response),
-      size
-    );
+      size);
   } else if (identifier == rosidl_typesupport_introspection_cpp::typesupport_identifier) {
     return deserialize_response_enhanced<rosidl_typesupport_introspection_cpp::ServiceMembers>(
       untyped_members,
       reinterpret_cast<uint8_t *>(ros_response),
       reinterpret_cast<uint8_t *>(dds_response),
-      size
-    );
+      size);
   }
 
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");

@@ -22,12 +22,12 @@
 #include "rmw_dds_common/gid_utils.hpp"
 
 #include "rmw_gurumdds_cpp/identifier.hpp"
-#include "rmw_gurumdds_cpp/etc.hpp"
+#include "rmw_gurumdds_cpp/utils.hpp"
 
-extern "C"
-{
-rmw_ret_t
-rmw_compare_gids_equal(const rmw_gid_t * gid1, const rmw_gid_t * gid2, bool * result)
+extern "C" {
+rmw_ret_t rmw_compare_gids_equal(
+  const rmw_gid_t *gid1, const rmw_gid_t *gid2,
+  bool *result)
 {
   CHECK_ALL_PTRS_CODE(gid1, gid2, result);
   CHECK_ID_CODE(gid1);
@@ -38,4 +38,4 @@ rmw_compare_gids_equal(const rmw_gid_t * gid1, const rmw_gid_t * gid2, bool * re
   *result = std::memcmp(gid1->data, gid2->data, RMW_GID_STORAGE_SIZE) == 0;
   return RMW_RET_OK;
 }
-}  // extern "C"
+} // extern "C"

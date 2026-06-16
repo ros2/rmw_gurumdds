@@ -12,20 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <cassert>
 #include "rmw_gurumdds_cpp/cdr_buffer.hpp"
+#include <cassert>
 
 namespace rmw_gurumdds_cpp
 {
-CdrBuffer::CdrBuffer(uint8_t * buf, size_t size)
-: buf_{buf}
-  , offset_{}
-  , size_{size} {}
+CdrBuffer::CdrBuffer(uint8_t *buf, size_t size)
+: buf_{buf}, offset_{}, size_{size} {}
 
-size_t CdrBuffer::get_offset() const
-{
-  return offset_;
-}
+size_t CdrBuffer::get_offset() const {return offset_;}
 
 size_t CdrBuffer::get_remaining_size() const
 {
@@ -47,8 +42,5 @@ void CdrBuffer::roundup(uint32_t align)
   advance(count);
 }
 
-void CdrBuffer::advance(size_t cnt)
-{
-  offset_ += cnt;
-}
-}  // namespace rmw_gurumdds_cpp
+void CdrBuffer::advance(size_t cnt) {offset_ += cnt;}
+} // namespace rmw_gurumdds_cpp

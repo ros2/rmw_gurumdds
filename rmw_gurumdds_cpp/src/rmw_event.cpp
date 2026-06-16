@@ -17,26 +17,23 @@
 #include "rmw/rmw.h"
 
 #include "rmw_gurumdds_cpp/event_converter.hpp"
-#include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
+#include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/utils.hpp"
 
-static rmw_ret_t
-init_rmw_event(
-  const char * identifier,
-  rmw_event_t * rmw_event,
-  const char * topic_endpoint_impl_identifier,
-  void * data,
+namespace
+{
+rmw_ret_t init_rmw_event(
+  rmw_event_t *rmw_event,
+  const char *topic_endpoint_impl_identifier,
+  void *data,
   rmw_event_type_t event_type)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(identifier, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(rmw_event, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(topic_endpoint_impl_identifier, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(data, RMW_RET_INVALID_ARGUMENT);
-
+  CHECK_ALL_PTRS_CODE(rmw_event, topic_endpoint_impl_identifier, data);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     topic endpoint,
     topic_endpoint_impl_identifier,
-    identifier,
+    RMW_GURUMDDS_ID,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   rmw_event->implementation_identifier = topic_endpoint_impl_identifier;
@@ -45,37 +42,32 @@ init_rmw_event(
 
   return RMW_RET_OK;
 }
+} // namespace
 
-extern "C"
-{
-bool
-rmw_event_type_is_supported(rmw_event_type_t rmw_event_type)
+extern "C" {
+bool rmw_event_type_is_supported(rmw_event_type_t rmw_event_type)
 {
   return rmw_gurumdds_cpp::is_event_supported(rmw_event_type);
 }
 
-rmw_ret_t
-rmw_publisher_event_init(
-  rmw_event_t * rmw_event,
-  const rmw_publisher_t * publisher,
+rmw_ret_t rmw_publisher_event_init(
+  rmw_event_t *rmw_event,
+  const rmw_publisher_t *publisher,
   rmw_event_type_t event_type)
 {
   return init_rmw_event(
-    RMW_GURUMDDS_ID,
     rmw_event,
     publisher->implementation_identifier,
     publisher->data,
     event_type);
 }
 
-rmw_ret_t
-rmw_subscription_event_init(
-  rmw_event_t * rmw_event,
-  const rmw_subscription_t * subscription,
+rmw_ret_t rmw_subscription_event_init(
+  rmw_event_t *rmw_event,
+  const rmw_subscription_t *subscription,
   rmw_event_type_t event_type)
 {
   return init_rmw_event(
-    RMW_GURUMDDS_ID,
     rmw_event,
     subscription->implementation_identifier,
     subscription->data,
@@ -83,44 +75,37 @@ rmw_subscription_event_init(
 }
 
 rmw_ret_t
-rmw_take_event(
-  const rmw_event_t * event_handle,
-  void * event_info,
-  bool * taken)
+rmw_take_event(const rmw_event_t *event_handle, void *event_info, bool *taken)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(event_handle, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(event_info, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    event handle,
-    event_handle->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  CHECK_ALL_PTRS_CODE(event_handle, event_info, taken);
+  CHECK_ID_CODE(event_handle);
 
   rmw_ret_t ret_code = RMW_RET_UNSUPPORTED;
 
   if (rmw_gurumdds_cpp::is_event_supported(event_handle->event_type)) {
-    auto custom_event_info = static_cast<rmw_gurumdds_cpp::EventInfo *>(event_handle->data);
-    ret_code = custom_event_info->get_status(event_handle->event_type, event_info);
+    auto custom_event_info =
+      static_cast<rmw_gurumdds_cpp::EventInfo *>(event_handle->data);
+    ret_code =
+      custom_event_info->get_status(event_handle->event_type, event_info);
   } else {
-    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("event %d not supported", event_handle->event_type);
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "event %d not supported", event_handle->event_type);
   }
 
   *taken = ret_code == RMW_RET_OK;
   return ret_code;
 }
 
-rmw_ret_t
-rmw_event_set_callback(
-  rmw_event_t * rmw_event,
+rmw_ret_t rmw_event_set_callback(
+  rmw_event_t *rmw_event,
   rmw_event_callback_t callback,
-  const void * user_data)
+  const void *user_data)
 {
   RCUTILS_UNUSED(rmw_event);
   RCUTILS_UNUSED(callback);
   RCUTILS_UNUSED(user_data);
   auto event_info = static_cast<rmw_gurumdds_cpp::EventInfo *>(rmw_event->data);
-  return event_info->set_on_new_event_callback(rmw_event->event_type, user_data, callback);
+  return event_info->set_on_new_event_callback(
+    rmw_event->event_type, user_data, callback);
 }
-}  // extern "C"
+} // extern "C"

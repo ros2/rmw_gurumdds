@@ -61,10 +61,10 @@ find_package(rcpputils REQUIRED)
 find_package(rosidl_buffer_backend_registry REQUIRED)
 
 #fastrtps dependencies
-find_package(rmw_fastrtps_cpp REQUIRED)
 find_package(fastcdr REQUIRED)
 find_package(rosidl_typesupport_fastrtps_c REQUIRED)
 find_package(rosidl_typesupport_fastrtps_cpp REQUIRED)
+#fastdds.so가 필요하므로 유지해야함.
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(rosidl_dynamic_typesupport_fastrtps REQUIRED)
 
@@ -142,7 +142,6 @@ target_link_libraries(rmw_gurumdds_cpp PUBLIC
   rosidl_buffer_backend_registry::rosidl_buffer_backend_registry
 
   #fastrtps dependencies
-  rmw_fastrtps_cpp::rmw_fastrtps_cpp
   fastcdr
   rosidl_typesupport_fastrtps_c::rosidl_typesupport_fastrtps_c
   rosidl_typesupport_fastrtps_cpp::rosidl_typesupport_fastrtps_cpp
@@ -166,7 +165,6 @@ ament_export_dependencies(
   tracetools
 
   #fastrtps dependencies
-  rmw_fastrtps_cpp
   rmw_fastrtps_shared_cpp
   fastcdr
   #필요해지면 추가할 것.

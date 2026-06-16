@@ -16,11 +16,9 @@
 
 #include "rmw_gurumdds_cpp/serialization_format.hpp"
 
-extern "C"
-{
-const char *
-rmw_get_serialization_format()
+extern "C" {
+const char * rmw_get_serialization_format()
 {
   return gurumdds_serialization_format;
 }
-}  // extern "C"
+} // extern "C"

@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rmw_gurumdds_cpp/wait.hpp"
+
 #include <chrono>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "rcpputils/scope_exit.hpp"
-
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/impl/cpp/macros.hpp"
-
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/event_converter.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 #include "rmw_gurumdds_cpp/event_info_service.hpp"
-#include "rmw_gurumdds_cpp/rmw_subscription.hpp"
 #include "rmw_gurumdds_cpp/rmw_publisher.hpp"
-#include "rmw_gurumdds_cpp/wait.hpp"
+#include "rmw_gurumdds_cpp/rmw_subscription.hpp"
 
 namespace
 {
@@ -39,7 +38,7 @@ void clear_vector(std::vector<T> & vec)
   std::vector<T>{}.swap(vec);
 }
 
-}
+}  // namespace
 
 #define CHECK_ATTACH(ret) \
   if (ret == dds_RETCODE_OK) { \
@@ -48,7 +47,9 @@ void clear_vector(std::vector<T> & vec)
     RMW_SET_ERROR_MSG("failed to attach condition to wait set: out of resources"); \
     return RMW_RET_ERROR; \
   } else if (ret == dds_RETCODE_BAD_PARAMETER) { \
-    RMW_SET_ERROR_MSG("failed to attach condition to wait set: condition pointer was invalid"); \
+    RMW_SET_ERROR_MSG( \
+      "failed to attach condition to wait set: condition " \
+      "pointer was invalid"); \
     return RMW_RET_ERROR; \
   } else { \
     RMW_SET_ERROR_MSG("failed to attach condition to wait set"); \
@@ -61,11 +62,11 @@ namespace rmw_gurumdds_cpp
 template<typename T>
 bool check_reattached(const std::vector<T *> & cached_subscription, void ** array, size_t count)
 {
-  if(array == nullptr || count == 0) {
+  if (array == nullptr || count == 0) {
     return !cached_subscription.empty();
   }
 
-  if(cached_subscription.size() != count) {
+  if (cached_subscription.size() != count) {
     return true;
   }
 
@@ -100,13 +101,12 @@ bool check_events_reattached(
 template<typename T>
 void detach_conditions(dds_WaitSet * wait_set, const T & cached_conditions)
 {
-  for(auto condition : cached_conditions) {
+  for (auto condition : cached_conditions) {
     dds_WaitSet_detach_condition(wait_set, reinterpret_cast<dds_Condition *>(condition));
   }
 }
 
-static rmw_ret_t
-gather_event_conditions(
+static rmw_ret_t gather_event_conditions(
   rmw_events_t * events,
   std::unordered_set<dds_Condition *> & status_conditions)
 {
@@ -124,24 +124,25 @@ gather_event_conditions(
     }
 
     const auto event_type = now->event_type;
-    if(!is_event_supported(event_type)) {
+    if (!is_event_supported(event_type)) {
       RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("unsupported event: %d", now->event_type);
       continue;
     }
 
-    // if(event_info->has_callback(event_type)) {
-    //   dds_GuardCondition * condition = event_info->get_guard_condition(event_type);
-    //   if (nullptr == condition) {
-    //     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("unsupported event: %d", event_type);
-    //     continue;
-    //   }
+    // 문제 발생 시 롤백할 것.
+    //  if(event_info->has_callback(event_type)) {
+    //    dds_GuardCondition * condition =
+    //    event_info->get_guard_condition(event_type); if (nullptr == condition)
+    //    {
+    //      RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("unsupported event: %d",
+    //      event_type); continue;
+    //    }
 
     //   status_conditions.insert(reinterpret_cast<dds_Condition *>(condition));
     // }
 
     // auto& mask = status_map[event_info->get_status_condition()];
     // mask |= get_status_kind_from_rmw(event_type);
-
     dds_GuardCondition * condition = event_info->get_guard_condition(event_type);
     if (nullptr == condition) {
       RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("unsupported event: %d", event_type);
@@ -154,8 +155,8 @@ gather_event_conditions(
     mask |= get_status_kind_from_rmw(event_type);
   }
 
-  for(auto & pair : status_map) {
-    if(pair.second == 0) {
+  for (auto & pair : status_map) {
+    if (pair.second == 0) {
       continue;
     }
 
@@ -190,12 +191,10 @@ static rmw_ret_t handle_active_event_conditions(rmw_events_t * events)
   return RMW_RET_OK;
 }
 
-static rmw_ret_t
-wait_w_polling(
+static rmw_ret_t wait_w_polling(
   dds_WaitSet * dds_wait_set,
   dds_ConditionSeq * active_conditions,
-  const rmw_time_t * wait_timeout
-)
+  const rmw_time_t * wait_timeout)
 {
   uint64_t sec, nsec;
   bool inf = false;
@@ -208,8 +207,7 @@ wait_w_polling(
     nsec = 0;
     inf = true;
   }
-  auto t = std::chrono::steady_clock::now() +
-    std::chrono::nanoseconds(sec * 1000000000ULL + nsec);
+  auto t = std::chrono::steady_clock::now() + std::chrono::nanoseconds(sec * 1000000000ULL + nsec);
   bool triggered = false;
 
   while (dds_ConditionSeq_length(active_conditions) > 0) {
@@ -217,7 +215,7 @@ wait_w_polling(
   }
 
   raii::dds_ConditionSeq conds = raii::dds_ConditionSeq_create(8);
-  if(conds == nullptr) {
+  if (conds == nullptr) {
     return RMW_RET_ERROR;
   }
   dds_WaitSet_get_conditions(dds_wait_set, conds);
@@ -250,12 +248,11 @@ wait_w_polling(
     }
   }
 
-  //dds_ConditionSeq_delete(conds);
+  // dds_ConditionSeq_delete(conds);
   return triggered ? RMW_RET_OK : RMW_RET_TIMEOUT;
 }
 
-rmw_ret_t
-wait(
+rmw_ret_t wait(
   const char * implementation_identifier,
   rmw_subscriptions_t * subscriptions,
   rmw_guard_conditions_t * guard_conditions,
@@ -274,8 +271,10 @@ wait(
         }
 
         RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-      wait set handle, wait_set->implementation_identifier,
-      implementation_identifier, return );
+      wait set handle,
+      wait_set->implementation_identifier,
+      implementation_identifier,
+          return);
 
         WaitSetInfo * wait_set_info = static_cast<WaitSetInfo *>(wait_set->data);
         if (wait_set_info == nullptr) {
@@ -305,8 +304,8 @@ wait(
 
         const uint32_t condition_seq_length = dds_ConditionSeq_length(attached_conditions);
         for (uint32_t i = 0; i < condition_seq_length; ++i) {
-          ret = dds_WaitSet_detach_condition(
-        dds_wait_set, dds_ConditionSeq_get(attached_conditions, i));
+          ret =
+          dds_WaitSet_detach_condition(dds_wait_set, dds_ConditionSeq_get(attached_conditions, i));
           if (ret != dds_RETCODE_OK) {
             RMW_SET_ERROR_MSG("failed to detach condition from wait set");
           }
@@ -326,8 +325,10 @@ wait(
 
   RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    wait set handle, wait_set->implementation_identifier,
-    implementation_identifier, return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+    wait set handle,
+    wait_set->implementation_identifier,
+    implementation_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   WaitSetInfo * wait_set_info = static_cast<WaitSetInfo *>(wait_set->data);
   if (wait_set_info == nullptr) {
@@ -349,60 +350,60 @@ wait(
   }
 
   bool reattached = false;
-  reattached = check_reattached(wait_set_info->cached_subscriptions,
-                                subscriptions != nullptr ?
-                                subscriptions->subscribers : nullptr,
-                                subscriptions != nullptr ?
-                                subscriptions->subscriber_count : 0);
+  reattached = check_reattached(
+    wait_set_info->cached_subscriptions,
+    subscriptions != nullptr ? subscriptions->subscribers : nullptr,
+    subscriptions != nullptr ? subscriptions->subscriber_count : 0);
 
-  if(!reattached) {
-    reattached =
-      check_reattached(wait_set_info->cached_guard_conditions,
-                         guard_conditions != nullptr ?
-                         guard_conditions->guard_conditions : nullptr,
-                         guard_conditions != nullptr ?
-                         guard_conditions->guard_condition_count : 0);
+  if (!reattached) {
+    reattached = check_reattached(
+      wait_set_info->cached_guard_conditions,
+      guard_conditions != nullptr ? guard_conditions->guard_conditions : nullptr,
+      guard_conditions != nullptr ? guard_conditions->guard_condition_count : 0);
   }
 
-  if(!reattached) {
-    reattached = check_reattached(wait_set_info->cached_service_conditions,
-                                       services != nullptr ? services->services : nullptr,
-                                       services != nullptr ? services->service_count : 0);
+  if (!reattached) {
+    reattached = check_reattached(
+      wait_set_info->cached_service_conditions,
+      services != nullptr ? services->services : nullptr,
+      services != nullptr ? services->service_count : 0);
   }
 
-  if(!reattached) {
-    reattached = check_reattached(wait_set_info->cached_client_conditions,
-                                       clients != nullptr ? clients->clients : nullptr,
-                                       clients != nullptr ? clients->client_count : 0);
+  if (!reattached) {
+    reattached = check_reattached(
+      wait_set_info->cached_client_conditions,
+      clients != nullptr ? clients->clients : nullptr,
+      clients != nullptr ? clients->client_count : 0);
   }
 
-  if(!reattached) {
-    reattached = check_events_reattached(wait_set_info->cached_event_conditions,
-                                      events != nullptr ? events->events : nullptr,
-                                      events != nullptr ? events->event_count : 0);
+  if (!reattached) {
+    reattached = check_events_reattached(
+      wait_set_info->cached_event_conditions,
+      events != nullptr ? events->events : nullptr,
+      events != nullptr ? events->event_count : 0);
   }
-    // reattached = check_reattached(wait_set_info->cached_event_conditions,
-    //                                    events != nullptr ? events->events : nullptr,
-    //                                    events != nullptr ? events->event_count : 0);
+  // reattached = check_reattached(wait_set_info->cached_event_conditions,
+  //                                    events != nullptr ? events->events :
+  //                                    nullptr, events != nullptr ?
+  //                                    events->event_count : 0);
 
-
-  if(reattached) {
+  if (reattached) {
     raii::dds_ConditionSeq & attached_conditions = wait_set_info->attached_conditions;
     dds_ReturnCode_t ret = dds_WaitSet_get_conditions(dds_wait_set, attached_conditions);
     uint32_t length = dds_ConditionSeq_length(attached_conditions);
     for (uint32_t i = 0; i < length; ++i) {
-      ret = dds_WaitSet_detach_condition(
-          dds_wait_set, dds_ConditionSeq_get(attached_conditions, i));
+      ret =
+        dds_WaitSet_detach_condition(dds_wait_set, dds_ConditionSeq_get(attached_conditions, i));
       if (ret != dds_RETCODE_OK) {
         RMW_SET_ERROR_MSG("failed to detach condition from wait set");
       }
     }
 
-    if(length != 0) {
+    if (length != 0) {
       do {
         length -= 1;
         dds_ConditionSeq_remove(attached_conditions, length);
-      } while(length != 0);
+      } while (length != 0);
     }
 
     wait_set_info->cached_event_conditions.clear();
@@ -412,12 +413,13 @@ wait(
     wait_set_info->cached_guard_conditions.clear();
     wait_set_info->cached_subscriptions.clear();
 
-    if(subscriptions != nullptr) {
-      for(uint32_t i = 0; i < subscriptions->subscriber_count; ++i) {
+    if (subscriptions != nullptr) {
+      for (uint32_t i = 0; i < subscriptions->subscriber_count; ++i) {
         auto it = static_cast<SubscriberInfo *>(subscriptions->subscribers[i]);
-        if(it != nullptr) {
-          dds_WaitSet_attach_condition(wait_set_info->wait_set,
-                                       reinterpret_cast<dds_Condition *>(it->read_condition));
+        if (it != nullptr) {
+          dds_WaitSet_attach_condition(
+            wait_set_info->wait_set,
+            reinterpret_cast<dds_Condition *>(it->read_condition));
           if (it->buffer_data_guard != nullptr) {
             dds_WaitSet_attach_condition(
               wait_set_info->wait_set,
@@ -428,49 +430,52 @@ wait(
       }
     }
 
-    if(guard_conditions != nullptr) {
-      for(uint32_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
+    if (guard_conditions != nullptr) {
+      for (uint32_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
         auto it = static_cast<dds_GuardCondition *>(guard_conditions->guard_conditions[i]);
-        if(it != nullptr) {
-          dds_WaitSet_attach_condition(wait_set_info->wait_set,
-                                       reinterpret_cast<dds_Condition *>(it));
+        if (it != nullptr) {
+          dds_WaitSet_attach_condition(
+            wait_set_info->wait_set,
+            reinterpret_cast<dds_Condition *>(it));
         }
 
         wait_set_info->cached_guard_conditions.push_back(it);
       }
     }
 
-    if(services != nullptr) {
-      for(uint32_t i = 0; i < services->service_count; ++i) {
+    if (services != nullptr) {
+      for (uint32_t i = 0; i < services->service_count; ++i) {
         auto it = static_cast<ServiceInfo *>(services->services[i]);
-        if(it != nullptr) {
-          dds_WaitSet_attach_condition(wait_set_info->wait_set,
-                                       reinterpret_cast<dds_Condition *>(it->read_condition));
+        if (it != nullptr) {
+          dds_WaitSet_attach_condition(
+            wait_set_info->wait_set,
+            reinterpret_cast<dds_Condition *>(it->read_condition));
         }
 
         wait_set_info->cached_service_conditions.push_back(it);
       }
     }
 
-    if(clients != nullptr) {
-      for(uint32_t i = 0; i < clients->client_count; ++i) {
+    if (clients != nullptr) {
+      for (uint32_t i = 0; i < clients->client_count; ++i) {
         auto it = static_cast<ClientInfo *>(clients->clients[i]);
-        if(it != nullptr) {
-          dds_WaitSet_attach_condition(wait_set_info->wait_set,
-                                       reinterpret_cast<dds_Condition *>(it->read_condition));
+        if (it != nullptr) {
+          dds_WaitSet_attach_condition(
+            wait_set_info->wait_set,
+            reinterpret_cast<dds_Condition *>(it->read_condition));
         }
 
         wait_set_info->cached_client_conditions.push_back(it);
       }
     }
 
-    if(events != nullptr) {
-      for(uint32_t i = 0; i < events->event_count; ++i) {
+    if (events != nullptr) {
+      for (uint32_t i = 0; i < events->event_count; ++i) {
         auto now = static_cast<rmw_event_t *>(events->events[i]);
         RMW_CHECK_ARGUMENT_FOR_NULL(events, RMW_RET_INVALID_ARGUMENT);
 
         auto it = static_cast<EventInfo *>(now->data);
-        if(it != nullptr) {
+        if (it != nullptr) {
           wait_set_info->cached_event_conditions.push_back(it);
         }
       }
@@ -478,8 +483,8 @@ wait(
       gather_event_conditions(events, wait_set_info->cached_status_conditions);
       for (auto status_condition : wait_set_info->cached_status_conditions) {
         dds_WaitSet_attach_condition(
-            dds_wait_set,
-            reinterpret_cast<dds_Condition *>(status_condition));
+          dds_wait_set,
+          reinterpret_cast<dds_Condition *>(status_condition));
       }
     }
 
@@ -490,8 +495,9 @@ wait(
     //       wait_set_info->cached_event_conditions.push_back(it);
     //   }
 
-    //   gather_event_conditions(events, wait_set_info->cached_status_conditions);
-    //   for (auto status_condition : wait_set_info->cached_status_conditions) {
+    //   gather_event_conditions(events,
+    //   wait_set_info->cached_status_conditions); for (auto status_condition :
+    //   wait_set_info->cached_status_conditions) {
     //     dds_WaitSet_attach_condition(
     //         dds_wait_set,
     //         reinterpret_cast<dds_Condition *>(status_condition));
@@ -509,7 +515,7 @@ wait(
   static constexpr const char * env_name = "RMW_GURUMDDS_WAIT_USE_POLLING";
   static bool initialized_polling = false;
   static bool polling = false;
-  if(!initialized_polling) {
+  if (!initialized_polling) {
     initialized_polling = true;
     char * env_value = nullptr;
     env_value = getenv(env_name);
@@ -541,8 +547,10 @@ wait(
       }
 
       if (guard_conditions != nullptr) {
-        memset(guard_conditions->guard_conditions, 0,
-               sizeof(void *) * guard_conditions->guard_condition_count);
+        memset(
+          guard_conditions->guard_conditions,
+          0,
+          sizeof(void *) * guard_conditions->guard_condition_count);
       }
 
       if (services != nullptr) {
@@ -588,13 +596,12 @@ wait(
         }
 
         auto * buffer_guard = subscriber_info->buffer_data_guard;
-        if(buffer_guard != nullptr &&
+        if (
+          buffer_guard != nullptr &&
           active_condition == reinterpret_cast<dds_Condition *>(buffer_guard))
         {
-
-          dds_ReturnCode_t ret = dds_GuardCondition_set_trigger_value(
-            subscriber_info->buffer_data_guard,
-            false);
+          dds_ReturnCode_t ret =
+            dds_GuardCondition_set_trigger_value(subscriber_info->buffer_data_guard, false);
           if (ret != dds_RETCODE_OK) {
             RMW_SET_ERROR_MSG("failed to reset buffer data guard condition");
             return RMW_RET_ERROR;
@@ -613,8 +620,7 @@ wait(
 
   if (guard_conditions != nullptr) {
     for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
-      auto * condition =
-        static_cast<dds_Condition *>(guard_conditions->guard_conditions[i]);
+      auto * condition = static_cast<dds_Condition *>(guard_conditions->guard_conditions[i]);
       if (condition == nullptr) {
         RMW_SET_ERROR_MSG("condition handle is null");
         return RMW_RET_ERROR;

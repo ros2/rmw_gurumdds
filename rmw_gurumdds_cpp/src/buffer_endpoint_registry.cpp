@@ -10,8 +10,7 @@ namespace rmw_gurumdds_cpp
 {
 
 void BufferEndpointRegistry::register_subscriber_discovery_callback(
-  const std::string & topic_name,
-  const rmw_gid_t & publisher_gid,
+  const std::string & topic_name, const rmw_gid_t & publisher_gid,
   BufferEndpointDiscoveryCallback callback)
 {
   // Collect matching known endpoints while holding the lock, then fire outside.
@@ -35,8 +34,7 @@ void BufferEndpointRegistry::register_subscriber_discovery_callback(
 }
 
 void BufferEndpointRegistry::register_publisher_discovery_callback(
-  const std::string & topic_name,
-  const rmw_gid_t & subscriber_gid,
+  const std::string & topic_name, const rmw_gid_t & subscriber_gid,
   BufferEndpointDiscoveryCallback callback)
 {
   std::vector<BufferEndpointInfo> to_fire;
@@ -63,21 +61,23 @@ void BufferEndpointRegistry::unregister_callbacks(const rmw_gid_t & gid)
   std::lock_guard<std::mutex> lock(mutex_);
 
   auto remove_from = [&gid](auto & map) {
-      for (auto & [topic, entries] : map) {
+      for (auto &[topic, entries] : map) {
         entries.erase(
           std::remove_if(
-            entries.begin(), entries.end(),
+              entries.begin(), entries.end(),
             [&gid](const CallbackEntry & e) {
               bool equal = false;
-              rmw_ret_t ret = rmw_compare_gids_equal(&e.registrant_gid, &gid, &equal);
+              rmw_ret_t ret =
+              rmw_compare_gids_equal(&e.registrant_gid, &gid, &equal);
               if (RMW_RET_OK != ret) {
                 RCUTILS_LOG_ERROR_NAMED(
-                  "rmw_gurumdds_cpp",
-                  "BufferEndpointRegistry: rmw_compare_gids_equal failed in unregister_callbacks");
+                      "rmw_gurumdds_cpp",
+                      "BufferEndpointRegistry: rmw_compare_gids_equal failed "
+                      "in unregister_callbacks");
                 return false;
               }
               return equal;
-            }),
+              }),
           entries.end());
       }
     };
@@ -86,7 +86,8 @@ void BufferEndpointRegistry::unregister_callbacks(const rmw_gid_t & gid)
   remove_from(publisher_callbacks_);
 }
 
-void BufferEndpointRegistry::notify_subscriber_discovered(const BufferEndpointInfo & info)
+void BufferEndpointRegistry::notify_subscriber_discovered(
+  const BufferEndpointInfo & info)
 {
   std::vector<BufferEndpointDiscoveryCallback> callbacks;
   {
@@ -97,15 +98,16 @@ void BufferEndpointRegistry::notify_subscriber_discovered(const BufferEndpointIn
       rmw_ret_t ret = rmw_compare_gids_equal(&existing.gid, &info.gid, &equal);
       if (RMW_RET_OK != ret) {
         RCUTILS_LOG_ERROR_NAMED(
-          "rmw_gurumdds_cpp",
-          "BufferEndpointRegistry: rmw_compare_gids_equal failed in notify_subscriber_discovered");
+            "rmw_gurumdds_cpp",
+            "BufferEndpointRegistry: rmw_compare_gids_equal failed in "
+            "notify_subscriber_discovered");
         continue;
       }
       if (equal) {
-        RCUTILS_LOG_DEBUG_NAMED(
-          "rmw_gurumdds_cpp",
-          "BufferEndpointRegistry: subscriber on '%s' already known, skipping",
-          info.topic_name.c_str());
+        RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+                                "BufferEndpointRegistry: subscriber on '%s' "
+                                "already known, skipping",
+                                info.topic_name.c_str());
         return;
       }
     }
@@ -113,10 +115,10 @@ void BufferEndpointRegistry::notify_subscriber_discovered(const BufferEndpointIn
 
     auto it = subscriber_callbacks_.find(info.topic_name);
     if (it == subscriber_callbacks_.end()) {
-      RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_cpp",
-        "BufferEndpointRegistry: no publisher callbacks registered for topic '%s'",
-        info.topic_name.c_str());
+      RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+                              "BufferEndpointRegistry: no publisher callbacks "
+                              "registered for topic '%s'",
+                              info.topic_name.c_str());
       return;
     }
     for (const auto & entry : it->second) {
@@ -124,16 +126,17 @@ void BufferEndpointRegistry::notify_subscriber_discovered(const BufferEndpointIn
     }
   }
 
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp",
-    "BufferEndpointRegistry: firing %zu publisher callback(s) for discovered subscriber on '%s'",
-    callbacks.size(), info.topic_name.c_str());
+  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+                          "BufferEndpointRegistry: firing %zu publisher "
+                          "callback(s) for discovered subscriber on '%s'",
+                          callbacks.size(), info.topic_name.c_str());
   for (const auto & cb : callbacks) {
     cb(info);
   }
 }
 
-void BufferEndpointRegistry::notify_publisher_discovered(const BufferEndpointInfo & info)
+void BufferEndpointRegistry::notify_publisher_discovered(
+  const BufferEndpointInfo & info)
 {
   std::vector<BufferEndpointDiscoveryCallback> callbacks;
   {
@@ -144,15 +147,16 @@ void BufferEndpointRegistry::notify_publisher_discovered(const BufferEndpointInf
       rmw_ret_t ret = rmw_compare_gids_equal(&existing.gid, &info.gid, &equal);
       if (RMW_RET_OK != ret) {
         RCUTILS_LOG_ERROR_NAMED(
-          "rmw_gurumdds_cpp",
-          "BufferEndpointRegistry: rmw_compare_gids_equal failed in notify_publisher_discovered");
+            "rmw_gurumdds_cpp",
+            "BufferEndpointRegistry: rmw_compare_gids_equal failed in "
+            "notify_publisher_discovered");
         continue;
       }
       if (equal) {
         RCUTILS_LOG_DEBUG_NAMED(
-          "rmw_gurumdds_cpp",
-          "BufferEndpointRegistry: publisher on '%s' already known, skipping",
-          info.topic_name.c_str());
+            "rmw_gurumdds_cpp",
+            "BufferEndpointRegistry: publisher on '%s' already known, skipping",
+            info.topic_name.c_str());
         return;
       }
     }
@@ -160,10 +164,10 @@ void BufferEndpointRegistry::notify_publisher_discovered(const BufferEndpointInf
 
     auto it = publisher_callbacks_.find(info.topic_name);
     if (it == publisher_callbacks_.end()) {
-      RCUTILS_LOG_DEBUG_NAMED(
-        "rmw_gurumdds_cpp",
-        "BufferEndpointRegistry: no subscriber callbacks registered for topic '%s'",
-        info.topic_name.c_str());
+      RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+                              "BufferEndpointRegistry: no subscriber callbacks "
+                              "registered for topic '%s'",
+                              info.topic_name.c_str());
       return;
     }
     for (const auto & entry : it->second) {
@@ -171,13 +175,13 @@ void BufferEndpointRegistry::notify_publisher_discovered(const BufferEndpointInf
     }
   }
 
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_gurumdds_cpp",
-    "BufferEndpointRegistry: firing %zu subscriber callback(s) for discovered publisher on '%s'",
-    callbacks.size(), info.topic_name.c_str());
+  RCUTILS_LOG_DEBUG_NAMED("rmw_gurumdds_cpp",
+                          "BufferEndpointRegistry: firing %zu subscriber "
+                          "callback(s) for discovered publisher on '%s'",
+                          callbacks.size(), info.topic_name.c_str());
   for (const auto & cb : callbacks) {
     cb(info);
   }
 }
 
-}
+} // namespace rmw_gurumdds_cpp

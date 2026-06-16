@@ -16,11 +16,6 @@
 
 #include "rmw_gurumdds_cpp/identifier.hpp"
 
-extern "C"
-{
-const char *
-rmw_get_implementation_identifier()
-{
-  return RMW_GURUMDDS_ID;
-}
-}  // extern "C"
+extern "C" {
+const char * rmw_get_implementation_identifier() {return RMW_GURUMDDS_ID;}
+} // extern "C"

@@ -16,13 +16,10 @@
 #include "rmw/get_network_flow_endpoints.h"
 #include "rmw/types.h"
 
-extern "C"
-{
-rmw_ret_t
-rmw_publisher_get_network_flow_endpoints(
-  const rmw_publisher_t * publisher,
-  rcutils_allocator_t * allocator,
-  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array)
+extern "C" {
+rmw_ret_t rmw_publisher_get_network_flow_endpoints(
+  const rmw_publisher_t *publisher, rcutils_allocator_t *allocator,
+  rmw_network_flow_endpoint_array_t *network_flow_endpoint_array)
 {
   RCUTILS_UNUSED(publisher);
   RCUTILS_UNUSED(allocator);
@@ -31,16 +28,15 @@ rmw_publisher_get_network_flow_endpoints(
   return RMW_RET_UNSUPPORTED;
 }
 
-rmw_ret_t
-rmw_subscription_get_network_flow_endpoints(
-  const rmw_subscription_t * subscription,
-  rcutils_allocator_t * allocator,
-  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array)
+rmw_ret_t rmw_subscription_get_network_flow_endpoints(
+  const rmw_subscription_t *subscription, rcutils_allocator_t *allocator,
+  rmw_network_flow_endpoint_array_t *network_flow_endpoint_array)
 {
   RCUTILS_UNUSED(subscription);
   RCUTILS_UNUSED(allocator);
   RCUTILS_UNUSED(network_flow_endpoint_array);
-  RMW_SET_ERROR_MSG("rmw_subscription_get_network_flow_endpoint not implemented");
+  RMW_SET_ERROR_MSG(
+      "rmw_subscription_get_network_flow_endpoint not implemented");
   return RMW_RET_UNSUPPORTED;
 }
-}   // extern "C"
+} // extern "C"

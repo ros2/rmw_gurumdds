@@ -15,12 +15,20 @@
 #ifndef RMW_GURUMDDS_CPP__RMW_SUBSCRIPTION_HPP_
 #define RMW_GURUMDDS_CPP__RMW_SUBSCRIPTION_HPP_
 
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include <atomic>
+
+#include "rmw/topic_endpoint_info.h"
+#include "rmw/types.h"
 #include "rmw_gurumdds_cpp/raii.hpp"
+#include "rmw_gurumdds_cpp/event_info_common.hpp"
 
 namespace rmw_gurumdds_cpp
 {
 
-//backend_buffer / subscription side
+// backend_buffer / subscription side
 struct PublisherBufferMetadata
 {
   rmw_gid_t publisher_gid{};
@@ -53,13 +61,13 @@ struct SubscriberInfo : EventInfo
 
   const message_type_support_callbacks_t * get_fastrtps_type_support_callbacks() const
   {
-    if(fastrtps_message_typesupport == nullptr) {
+    if (fastrtps_message_typesupport == nullptr) {
       return nullptr;
     }
     return static_cast<const message_type_support_callbacks_t *>(fastrtps_message_typesupport->data);
   }
 
-  //backend_buffer
+  // backend_buffer
   bool is_buffer_aware{false};
   bool is_cpu_only{false};
   std::vector<std::string> my_backend_types;
@@ -71,16 +79,16 @@ struct SubscriberInfo : EventInfo
   /// Used by rmw_wait to detect data on buffer-aware subscriptions.
   dds_GuardCondition * buffer_data_guard;
 
-  //cpu channel
+  // cpu channel
   dds_GuardCondition * cpu_guard;
   dds_DataReader * cpu_channel_reader = nullptr;
   dds_DataReaderListener cpu_channel_listener = {};
   dds_Topic * cpu_topic = nullptr;
-  //락 넣기 부담스러워 자료구조를 중복 배치함.
+  // 락 넣기 부담스러워 자료구조를 중복 배치함.
   SeqStruct cpu_seq;
 
   // 이상 없으면 지울 것.
-  //dds_GuardCondition * buffer_listener_guard = nullptr;
+  // dds_GuardCondition * buffer_listener_guard = nullptr;
 
   // Accelerated shared channel reader (all buffer-aware publishers write here)
   dds_DataReader * accel_data_reader{nullptr};
@@ -88,14 +96,14 @@ struct SubscriberInfo : EventInfo
   dds_DataReaderListener accel_data_reader_listener{};
   SeqStruct accel_seq;
 
-  //cpu channel member function
+  // cpu channel member function
   void on_cpu_channel_data_available();
-  //accel channel member function
+  // accel channel member function
   void on_accel_data_available();
 
   event_callback_data_t buffer_event_callback_data;
 
-  //fastrtps에서 토픽 이름을 캐싱해두는 것을 모방함.
+  // fastrtps에서 토픽 이름을 캐싱해두는 것을 모방함.
   std::string fastrtps_topic_name_mangled;
 
   bool ignore_local_publications = false;
@@ -150,9 +158,7 @@ struct SubscriberInfo : EventInfo
     const void * user_data,
     rmw_event_callback_t callback) override;
 
-  void update_inconsistent_topic(
-    int32_t total_count,
-    int32_t total_count_change) override;
+  void update_inconsistent_topic(int32_t total_count, int32_t total_count_change) override;
 
   void on_requested_deadline_missed(const dds_RequestedDeadlineMissedStatus & status);
 
@@ -169,19 +175,18 @@ struct SubscriberInfo : EventInfo
   size_t count_unread();
 };
 
-rmw_subscription_t *
-create_subscription(
+rmw_subscription_t * create_subscription(
   rmw_context_impl_t * const ctx,
   const rmw_node_t * node,
   dds_DomainParticipant * const participant,
   dds_Subscriber * const sub,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies,
+  const char * topic_name,
+  const rmw_qos_profile_t * qos_policies,
   const rmw_subscription_options_t * subscription_options,
   const bool internal);
 
-rmw_ret_t
-destroy_subscription(
+rmw_ret_t destroy_subscription(
   rmw_context_impl_t * const ctx,
   rmw_subscription_t * const subscription);
 }  // namespace rmw_gurumdds_cpp

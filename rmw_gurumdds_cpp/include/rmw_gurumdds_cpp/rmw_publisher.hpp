@@ -17,12 +17,12 @@
 
 namespace rmw_gurumdds_cpp
 {
-//backend_buffer / publisher side
+// backend_buffer / publisher side
 struct BufferPublisherEndpoint
 {
   std::string key;
-  dds_DataWriter * data_writer{nullptr};
-  dds_Topic * topic{nullptr};
+  dds_DataWriter *data_writer{nullptr};
+  dds_Topic *topic{nullptr};
   bool owns_topic{true};
   rmw_gid_t target_subscriber_gid{};
   rmw_topic_endpoint_info_t subscriber_endpoint_info{};
@@ -54,48 +54,50 @@ struct BufferPublisherState
 
 struct PublisherInfo : EventInfo
 {
-  const rosidl_message_type_support_t * rosidl_message_typesupport;
-  const rosidl_message_type_support_t * fastrtps_message_typesupport;
+  const rosidl_message_type_support_t *rosidl_message_typesupport;
+  const rosidl_message_type_support_t *fastrtps_message_typesupport;
 
-  //코드 정리할 때 내릴 것.
-  const message_type_support_callbacks_t * get_fastrtps_type_support_callbacks() const
+  // 코드 정리할 때 내릴 것.
+  const message_type_support_callbacks_t *
+  get_fastrtps_type_support_callbacks() const
   {
-    if(fastrtps_message_typesupport == nullptr) {
+    if (fastrtps_message_typesupport == nullptr) {
       return nullptr;
     }
-    return static_cast<const message_type_support_callbacks_t *>(fastrtps_message_typesupport->data);
+    return static_cast<const message_type_support_callbacks_t *>(
+      fastrtps_message_typesupport->data);
   }
 
-  //fastrtps에서 토픽 이름을 캐싱해두는 것을 모방함.
-  //fastrtps_typesupport로 만든 topic_name이므로 gurumdds단에서 사용하면 안됨.
+  // fastrtps에서 토픽 이름을 캐싱해두는 것을 모방함.
+  // fastrtps_typesupport로 만든 topic_name이므로 gurumdds단에서 사용하면 안됨.
   std::string fastrtps_topic_name_mangled;
 
-  //backend_buffer
+  // backend_buffer
   bool is_buffer_aware{false};
   std::unordered_map<std::string, std::string> backend_metadata;
   rmw_topic_endpoint_info_t local_endpoint_info{};
-  const void * serialization_context{nullptr};
+  const void *serialization_context{nullptr};
   std::shared_ptr<BufferPublisherState> buffer_state{
     std::make_shared<BufferPublisherState>()};
 
-  //backend_buffer cpu-only shared channel
-  dds_DataWriter * cpu_data_writer{nullptr};
-  dds_Topic * cpu_topic{nullptr};
-  dds_StatusCondition * cpu_status_condition{nullptr};
+  // backend_buffer cpu-only shared channel
+  dds_DataWriter *cpu_data_writer{nullptr};
+  dds_Topic *cpu_topic{nullptr};
+  dds_StatusCondition *cpu_status_condition{nullptr};
 
-  dds_DomainParticipant * participant;
-  dds_Publisher * publisher;
+  dds_DomainParticipant *participant;
+  dds_Publisher *publisher;
 
-  const char * implementation_identifier;
-  rmw_context_impl_t * ctx;
+  const char *implementation_identifier;
+  rmw_context_impl_t *ctx;
   int64_t sequence_number;
 
   rmw_gid_t publisher_gid;
-  dds_DataWriter * topic_writer;
+  dds_DataWriter *topic_writer;
   std::mutex mutex_event;
   rmw_event_callback_t on_new_event_cb[RMW_EVENT_TYPE_MAX] = {};
-  const void * user_data_cb[RMW_EVENT_TYPE_MAX] = {};
-  dds_GuardCondition * event_guard_cond[RMW_EVENT_TYPE_MAX] = {};
+  const void *user_data_cb[RMW_EVENT_TYPE_MAX] = {};
+  dds_GuardCondition *event_guard_cond[RMW_EVENT_TYPE_MAX] = {};
   dds_StatusMask mask = 0;
   bool inconsistent_topic_changed = false;
   dds_InconsistentTopicStatus inconsistent_topic_status = {};
@@ -109,7 +111,7 @@ struct PublisherInfo : EventInfo
   dds_PublicationMatchedStatus publication_matched_status = {};
   dds_DataWriterListener topic_listener = {};
 
-  rmw_ret_t get_status(rmw_event_type_t event_type, void * event) override;
+  rmw_ret_t get_status(rmw_event_type_t event_type, void *event) override;
 
   dds_StatusCondition * get_status_condition() override;
 
@@ -123,50 +125,46 @@ struct PublisherInfo : EventInfo
 
   rmw_ret_t set_on_new_event_callback(
     rmw_event_type_t event_type,
-    const void * user_data,
+    const void *user_data,
     rmw_event_callback_t callback) override;
 
   void update_inconsistent_topic(
     int32_t total_count,
     int32_t total_count_change) override;
 
-  void on_offered_deadline_missed(const dds_OfferedDeadlineMissedStatus & status);
+  void
+  on_offered_deadline_missed(const dds_OfferedDeadlineMissedStatus & status);
 
-  void on_offered_incompatible_qos(const dds_OfferedIncompatibleQosStatus & status);
+  void
+  on_offered_incompatible_qos(const dds_OfferedIncompatibleQosStatus & status);
 
   void on_liveliness_lost(const dds_LivelinessLostStatus & status);
 
-  //void on_publication_matched(const dds_DataWriter * writer, const dds_PublicationMatchedStatus & status);
+  // void on_publication_matched(const dds_DataWriter * writer, const
+  // dds_PublicationMatchedStatus & status);
 
   void on_publication_matched(const dds_PublicationMatchedStatus & status);
 };
 
-rmw_publisher_t *
-create_publisher(
-  rmw_context_impl_t * const ctx,
-  const rmw_node_t * node,
-  dds_DomainParticipant * const participant,
-  dds_Publisher * const pub,
-  const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies,
-  const rmw_publisher_options_t * publisher_options,
-  const bool internal);
+rmw_publisher_t * create_publisher(
+  rmw_context_impl_t *const ctx, const rmw_node_t *node,
+  dds_DomainParticipant *const participant, dds_Publisher *const pub,
+  const rosidl_message_type_support_t *type_supports, const char *topic_name,
+  const rmw_qos_profile_t *qos_policies,
+  const rmw_publisher_options_t *publisher_options, const bool internal);
 
-rmw_ret_t
-destroy_publisher(
-  rmw_context_impl_t * const ctx,
-  rmw_publisher_t * const publisher);
+rmw_ret_t destroy_publisher(
+  rmw_context_impl_t *const ctx,
+  rmw_publisher_t *const publisher);
 
-rmw_ret_t
-publish(
-  const rmw_publisher_t * publisher,
-  const void * ros_message,
-  rmw_publisher_allocation_t * allocation);
-}  // namespace rmw_gurumdds_cpp
+rmw_ret_t publish(
+  const rmw_publisher_t *publisher, const void *ros_message,
+  rmw_publisher_allocation_t *allocation);
+} // namespace rmw_gurumdds_cpp
 
 rmw_ret_t publish_to_buffer_endpoint(
-  const rmw_publisher_t * publisher,
-  const void * ros_message,
-  rmw_publisher_allocation_t * allocation);
+  const rmw_publisher_t *publisher,
+  const void *ros_message,
+  rmw_publisher_allocation_t *allocation);
 
-#endif  // RMW_GURUMDDS_CPP__RMW_PUBLISHER_HPP_
+#endif // RMW_GURUMDDS_CPP__RMW_PUBLISHER_HPP_

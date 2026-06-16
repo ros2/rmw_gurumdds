@@ -17,11 +17,9 @@
 
 namespace rmw_gurumdds_cpp
 {
-rmw_ret_t
-run_listener_thread(rmw_context_t * ctx);
+rmw_ret_t run_listener_thread(rmw_context_t *ctx);
 
-rmw_ret_t
-stop_listener_thread(rmw_context_t * ctx);
-}  // namespace rmw_gurumdds_cpp
+rmw_ret_t stop_listener_thread(rmw_context_t *ctx);
+} // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS_CPP__CONTEXT_LISTENER_THREAD_HPP_
+#endif // RMW_GURUMDDS_CPP__CONTEXT_LISTENER_THREAD_HPP_

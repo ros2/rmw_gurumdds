@@ -16,9 +16,9 @@
 #define RMW_GURUMDDS_CPP__CDR_BUFFER_HPP_
 
 #include <cstring>
-#include <string>
-#include <stdexcept>
 #include <limits>
+#include <stdexcept>
+#include <string>
 
 #include "rosidl_runtime_c/string.h"
 #include "rosidl_runtime_c/string_functions.h"
@@ -41,7 +41,7 @@ namespace rmw_gurumdds_cpp
 {
 class CdrBuffer {
 public:
-  CdrBuffer(uint8_t * buf, size_t size);
+  CdrBuffer(uint8_t *buf, size_t size);
 
   size_t get_offset() const;
 
@@ -52,7 +52,7 @@ public:
 protected:
   void advance(size_t cnt);
 
-  uint8_t * buf_;
+  uint8_t *buf_;
   size_t offset_;
   size_t size_;
 };
@@ -60,7 +60,7 @@ protected:
 template<bool SERIALIZE>
 class CdrSerializationBuffer : public CdrBuffer {
 public:
-  CdrSerializationBuffer(uint8_t * buf, size_t size);
+  CdrSerializationBuffer(uint8_t *buf, size_t size);
 
   void operator<<(uint8_t src);
 
@@ -78,18 +78,18 @@ public:
 
   void operator<<(const rosidl_runtime_c__U16String & src);
 
-  void copy_arr(const uint8_t * arr, size_t cnt);
+  void copy_arr(const uint8_t *arr, size_t cnt);
 
-  void copy_arr(const uint16_t * arr, size_t cnt);
+  void copy_arr(const uint16_t *arr, size_t cnt);
 
-  void copy_arr(const uint32_t * arr, size_t cnt);
+  void copy_arr(const uint32_t *arr, size_t cnt);
 
-  void copy_arr(const uint64_t * arr, size_t cnt);
+  void copy_arr(const uint64_t *arr, size_t cnt);
 };
 
 class CdrDeserializationBuffer : public CdrBuffer {
 public:
-  CdrDeserializationBuffer(uint8_t * buf, size_t size);
+  CdrDeserializationBuffer(uint8_t *buf, size_t size);
 
   void operator>>(uint8_t & dst);
 
@@ -107,19 +107,19 @@ public:
 
   void operator>>(rosidl_runtime_c__U16String & dst);
 
-  void copy_arr(uint8_t * arr, size_t cnt);
+  void copy_arr(uint8_t *arr, size_t cnt);
 
-  void copy_arr(uint16_t * arr, size_t cnt);
+  void copy_arr(uint16_t *arr, size_t cnt);
 
-  void copy_arr(uint32_t * arr, size_t cnt);
+  void copy_arr(uint32_t *arr, size_t cnt);
 
-  void copy_arr(uint64_t * arr, size_t cnt);
+  void copy_arr(uint64_t *arr, size_t cnt);
 
 private:
   bool swap_;
 };
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp
 
 #include "rmw_gurumdds_cpp/cdr_serialization_buffer.inl"
 
-#endif  // RMW_GURUMDDS_CPP__CDR_BUFFER_HPP_
+#endif // RMW_GURUMDDS_CPP__CDR_BUFFER_HPP_

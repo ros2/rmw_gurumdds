@@ -15,19 +15,19 @@
 #include "rmw_gurumdds_cpp/event_converter.hpp"
 
 /// mapping of RMW_EVENT to the corresponding dds_StatusKind.
-static const dds_StatusKind g_mask_map[] {
+static const dds_StatusKind g_mask_map[]{
   0,
-  dds_LIVELINESS_CHANGED_STATUS,  // RMW_EVENT_LIVELINESS_CHANGED
-  dds_REQUESTED_DEADLINE_MISSED_STATUS,  // RMW_EVENT_REQUESTED_DEADLINE_MISSED
-  dds_REQUESTED_INCOMPATIBLE_QOS_STATUS,  // RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE
-  dds_SAMPLE_LOST_STATUS,  // RMW_EVENT_MESSAGE_LOST
-  dds_INCONSISTENT_TOPIC_STATUS,  // RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE
-  dds_SUBSCRIPTION_MATCHED_STATUS,  // RMW_EVENT_SUBSCRIPTION_MATCHED
-  dds_LIVELINESS_LOST_STATUS,  // RMW_EVENT_LIVELINESS_LOST
-  dds_OFFERED_DEADLINE_MISSED_STATUS,  // RMW_EVENT_OFFERED_DEADLINE_MISSED
-  dds_OFFERED_INCOMPATIBLE_QOS_STATUS,  // RMW_EVENT_OFFERED_QOS_INCOMPATIBLE
-  dds_INCONSISTENT_TOPIC_STATUS,  // RMW_EVENT_PUBLISHER_INCOMPATIBLE_TYPE
-  dds_PUBLICATION_MATCHED_STATUS  // RMW_EVENT_PUBLICATION_MATCHED
+  dds_LIVELINESS_CHANGED_STATUS,          // RMW_EVENT_LIVELINESS_CHANGED
+  dds_REQUESTED_DEADLINE_MISSED_STATUS,   // RMW_EVENT_REQUESTED_DEADLINE_MISSED
+  dds_REQUESTED_INCOMPATIBLE_QOS_STATUS,   // RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE
+  dds_SAMPLE_LOST_STATUS,                  // RMW_EVENT_MESSAGE_LOST
+  dds_INCONSISTENT_TOPIC_STATUS,     // RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE
+  dds_SUBSCRIPTION_MATCHED_STATUS,   // RMW_EVENT_SUBSCRIPTION_MATCHED
+  dds_LIVELINESS_LOST_STATUS,        // RMW_EVENT_LIVELINESS_LOST
+  dds_OFFERED_DEADLINE_MISSED_STATUS,    // RMW_EVENT_OFFERED_DEADLINE_MISSED
+  dds_OFFERED_INCOMPATIBLE_QOS_STATUS,   // RMW_EVENT_OFFERED_QOS_INCOMPATIBLE
+  dds_INCONSISTENT_TOPIC_STATUS,   // RMW_EVENT_PUBLISHER_INCOMPATIBLE_TYPE
+  dds_PUBLICATION_MATCHED_STATUS   // RMW_EVENT_PUBLICATION_MATCHED
 };
 
 namespace rmw_gurumdds_cpp
@@ -43,13 +43,14 @@ dds_StatusKind get_status_kind_from_rmw(const rmw_event_type_t event_t)
 
 bool is_event_supported(const rmw_event_type_t event_t)
 {
-  static_assert(sizeof(g_mask_map) / sizeof(g_mask_map[0]) == RMW_EVENT_TYPE_MAX);
+  static_assert(sizeof(g_mask_map) / sizeof(g_mask_map[0]) ==
+                RMW_EVENT_TYPE_MAX);
   return RMW_EVENT_INVALID < event_t && event_t < RMW_EVENT_TYPE_MAX;
 }
 
 rmw_ret_t check_dds_ret_code(const dds_ReturnCode_t dds_return_code)
 {
-  switch(dds_return_code) {
+  switch (dds_return_code) {
     case dds_RETCODE_OK:
       return RMW_RET_OK;
     case dds_RETCODE_ERROR:
@@ -60,4 +61,4 @@ rmw_ret_t check_dds_ret_code(const dds_ReturnCode_t dds_return_code)
       return RMW_RET_ERROR;
   }
 }
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp
