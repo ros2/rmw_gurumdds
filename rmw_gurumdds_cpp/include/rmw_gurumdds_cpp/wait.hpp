@@ -30,8 +30,6 @@ namespace rmw_gurumdds_cpp
 struct WaitSetInfo
 {
   dds_WaitSet *wait_set;
-  // dds_ConditionSeq * active_conditions;
-  // dds_ConditionSeq * attached_conditions;
   raii::dds_ConditionSeq active_conditions;
   raii::dds_ConditionSeq attached_conditions;
   std::vector<SubscriberInfo *> cached_subscriptions;

@@ -229,11 +229,6 @@ rmw_client_t * rmw_create_client(
       goto fail;
     }
 
-    // ret = dds_TopicQos_finalize(&topic_qos);
-    //  if (ret != dds_RETCODE_OK) {
-    //    RMW_SET_ERROR_MSG("failed to finalize topic qos");
-    //    goto fail;
-    //  }
   } else {
     dds_Duration_t timeout;
     timeout.sec = 0;
@@ -293,8 +288,6 @@ rmw_client_t * rmw_create_client(
                                             datawriter_qos,
                                             *client_type_hash))
   {
-    // Error message already set
-    // dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
 
@@ -302,7 +295,6 @@ rmw_client_t * rmw_create_client(
                                                    datawriter_qos, nullptr, 0);
   if (request_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
-    // dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
 
@@ -320,7 +312,6 @@ rmw_client_t * rmw_create_client(
                                             *client_type_hash))
   {
     // error message already set
-    // dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
 
@@ -328,7 +319,6 @@ rmw_client_t * rmw_create_client(
       subscriber, response_topic, datareader_qos, nullptr, 0);
   if (response_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
-    // dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
 
@@ -386,8 +376,6 @@ rmw_client_t * rmw_create_client(
   client_info->service_typesupport = type_support;
   client_info->sequence_number = 0;
   client_info->ctx = ctx;
-  // client_info->request_topic_name = std::move(request_topic_name);
-  // client_info->response_topic_name = std::move(response_topic_name);
 
   // Set GUID
   dds_DataWriter_get_guid(request_writer, client_guid);
@@ -675,12 +663,6 @@ rmw_client_request_publisher_get_actual_qos(
     rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos->liveliness);
   qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos->history);
   qos->depth = static_cast<size_t>(dds_qos->history.depth);
-
-  // ret = dds_DataWriterQos_finalize(&dds_qos);
-  // if (ret != dds_RETCODE_OK) {
-  //   RMW_SET_ERROR_MSG("failed to finalize datawriter qos");
-  //   return RMW_RET_ERROR;
-  // }
 
   return RMW_RET_OK;
 }

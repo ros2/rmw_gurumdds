@@ -8,7 +8,6 @@
 
 namespace rmw_gurumdds_cpp
 {
-
 void BufferEndpointRegistry::register_subscriber_discovery_callback(
   const std::string & topic_name, const rmw_gid_t & publisher_gid,
   BufferEndpointDiscoveryCallback callback)

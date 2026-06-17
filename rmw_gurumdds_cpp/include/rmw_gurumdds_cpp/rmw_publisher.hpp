@@ -57,19 +57,12 @@ struct PublisherInfo : EventInfo
   const rosidl_message_type_support_t *rosidl_message_typesupport;
   const rosidl_message_type_support_t *fastrtps_message_typesupport;
 
-  // 코드 정리할 때 내릴 것.
   const message_type_support_callbacks_t *
-  get_fastrtps_type_support_callbacks() const
-  {
-    if (fastrtps_message_typesupport == nullptr) {
-      return nullptr;
-    }
-    return static_cast<const message_type_support_callbacks_t *>(
-      fastrtps_message_typesupport->data);
-  }
+  get_fastrtps_type_support_callbacks() const;
 
   // fastrtps에서 토픽 이름을 캐싱해두는 것을 모방함.
-  // fastrtps_typesupport로 만든 topic_name이므로 gurumdds단에서 사용하면 안됨.
+  // 문자열에 ros prefix가 포함되어 있음에 주의.
+  // 예시 : "/rr/foobar"
   std::string fastrtps_topic_name_mangled;
 
   // backend_buffer
@@ -139,9 +132,6 @@ struct PublisherInfo : EventInfo
   on_offered_incompatible_qos(const dds_OfferedIncompatibleQosStatus & status);
 
   void on_liveliness_lost(const dds_LivelinessLostStatus & status);
-
-  // void on_publication_matched(const dds_DataWriter * writer, const
-  // dds_PublicationMatchedStatus & status);
 
   void on_publication_matched(const dds_PublicationMatchedStatus & status);
 };

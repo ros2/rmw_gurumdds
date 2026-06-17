@@ -20,6 +20,28 @@
 #include <utility>
 #include <string>
 
+/*
+기존 GurumDDS의 C API 형태를 유지한 채 내부 자원관리를 RAII 방식으로 수행하는 래퍼.
+
+각 래퍼 클래스들은 원본 타입에 대한 변환 연산자가 정의되어있으므로
+기존 C API를 별도의 조치없이 그대로 사용할 수 있다.
+
+예시 :
+#기존 GurumDDS C API#
+void dds_DO_SOMETHING(dds_FOO * foo);
+
+void f() {
+  raii::dds_FOO foo = raii::dds_Foo_create();
+
+  dds_DO_SOMETHING(foo);
+  ㄴ 변환 연산자가 정의되어있으므로 자동으로 원본 dds_FOO * 타입으로 변환됨.
+}
+
+주의 :
+  기존 GurumDDS C API로 자원 해제를 한 경우, 래퍼 클래스 내부 DDS 객체가 nullptr로 지정되지 않아,
+  래퍼 클래스에서 Double-Free가 발생할 수 있음.
+  기존 GurumDDS C API로 자원을 해제한 경우 반드시 클래스 내부 객체를 nullptr로 지정해야함.
+*/
 
 namespace raii
 {
@@ -85,16 +107,24 @@ private: \
     ::seq_type ## _delete(seq.seq); \
     seq.seq = nullptr; \
   }
-
+// RAII Seq 매크로 확장
+// Seq 타입이 필요해지면 추가할 것.
 RAII_SEQUENCE_DEFINE(dds_DataSeq);
 RAII_SEQUENCE_DEFINE(dds_SampleInfoSeq);
 RAII_SEQUENCE_DEFINE(dds_UnsignedLongSeq);
 RAII_SEQUENCE_DEFINE(dds_InstanceHandleSeq);
 RAII_SEQUENCE_DEFINE(dds_ConditionSeq);
+RAII_SEQUENCE_DEFINE(dds_PropertySeq);
 
 #undef RAII_SEQUENCE_DEFINE
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 // QoS Wrapper Type
+// QoS 객체 생성 후 finalize() 없이 리턴해도 안전함.
+// finalize된 객체를 다시 finalize해도 안전함.
 #define RAII_QOS_DEFINE(qos_type) \
   class qos_type { \
 public: \
@@ -148,6 +178,7 @@ private: \
     return ::qos_type ## _copy(dst, src); \
   }
 
+// RAII Qos 매크로 확장
 RAII_QOS_DEFINE(dds_DomainParticipantFactoryQos)
 RAII_QOS_DEFINE(dds_DomainParticipantQos)
 RAII_QOS_DEFINE(dds_TopicQos)
@@ -158,6 +189,8 @@ RAII_QOS_DEFINE(dds_DataReaderQos)
 
 #undef RAII_QOS_DEFINE
 
+//dds_*_get_qos 래퍼 함수 정의 매크로
+//QoS 값을 가져오기 전 finalize()를 호출하여 기존에 들고 있는 자원을 정리함.
 #define RAII_QOS_OUT_API_DEFINE(c_api_name, entity_type, qos_type) \
   inline ::dds_ReturnCode_t c_api_name(::entity_type * self, qos_type & qos) noexcept { \
     (void)::qos_type ## _finalize(qos); \
@@ -213,6 +246,8 @@ RAII_QOS_OUT_API_DEFINE(dds_DataReader_get_qos, dds_DataReader, dds_DataReaderQo
 
 #undef RAII_QOS_OUT_API_DEFINE
 
+// copy_qos 함수 래퍼 정의 매크로
+// QoS 값을 가져오기 전 finalize()를 호출하여 기존에 들고 있는 자원을 정리함.
 inline ::dds_ReturnCode_t dds_Publisher_copy_from_topic_qos(
   ::dds_Publisher * self,
   dds_DataWriterQos & datawriter_qos,
@@ -257,6 +292,12 @@ inline ::dds_ReturnCode_t dds_Subscriber_copy_from_topic_qos(
   return ::dds_Subscriber_copy_from_topic_qos(self, datareader_qos, topic_qos);
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+// RAII dds_TypeSupport 래퍼
+// 기존 GurumDDS C API dds_TypeSupport_create()함수로 자원을 할당함.
 class dds_TypeSupport {
 public:
   dds_TypeSupport() = default;

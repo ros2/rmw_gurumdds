@@ -17,6 +17,10 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <array>
+
+#include "rcutils/filesystem.h"
+#include "rmw_security_common/security.hpp"
 
 #include "rmw/impl/cpp/key_value.hpp"
 #include "rmw_gurumdds_cpp/namespace_prefix.hpp"
@@ -64,6 +68,79 @@ void notify_backend_buffer(
   }
 
   return;
+}
+
+bool
+get_security_file_paths(const char * const security_root_path, dds_PropertySeq * props)
+{
+  static const char * const prop_keys[] {
+    "dds.sec.auth.identity_ca",
+    "dds.sec.auth.identity_certificate",
+    "dds.sec.auth.private_key",
+    "dds.sec.access.permissions_ca",
+    "dds.sec.access.governance",
+    "dds.sec.access.permissions"
+  };
+
+  static const char * const file_names[] {
+    "identity_ca.cert.pem", "cert.pem", "key.pem",
+    "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
+  };
+
+  constexpr size_t file_names_count = sizeof(file_names) / sizeof(*file_names);
+  bool succeed = true;
+  for (size_t i = 0; succeed && i < file_names_count; ++i) {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    char * file_path = rcutils_join_path(security_root_path, file_names[i], allocator);
+    if (file_path == nullptr) {
+      succeed = false;
+      break;
+    }
+
+    dds_Property_t * prop = nullptr;
+    do {
+      if (!rcutils_is_readable(file_path)) {
+        succeed = false;
+        break;
+      }
+
+      char value[256];
+      prop = static_cast<dds_Property_t *>(dds_malloc(sizeof(dds_Property_t)));
+      if (prop == nullptr) {
+        succeed = false;
+        break;
+      }
+
+      snprintf(value, sizeof(value), "file:%s", file_path);
+      prop->propagate = false;
+      prop->name = dds_strdup(prop_keys[i]);
+      prop->value = dds_strdup(value);
+      if (prop->name == nullptr || prop->value == nullptr) {
+        succeed = false;
+        break;
+      }
+
+      dds_PropertySeq_add(props, prop);
+      prop = nullptr;
+    } while (false);
+
+    allocator.deallocate(file_path, allocator.state);
+    if (succeed || prop == nullptr) {
+      continue;
+    }
+
+    if (prop->name != nullptr) {
+      dds_free(prop->name);
+    }
+
+    if (prop->value != nullptr) {
+      dds_free(prop->value);
+    }
+
+    dds_free(prop);
+  }
+
+  return succeed;
 }
 } // namespace
 
@@ -382,6 +459,21 @@ rmw_context_impl_s::initialize_participant(
               sizeof(participant_qos->user_data.value));
   std::memcpy(participant_qos->user_data.value, node_user_data.c_str(),
               node_user_data.size());
+
+  if (base->options.security_options.security_root_path != nullptr) {
+    dds_PropertySeq * props = dds_PropertySeq_create(10);
+    if (!get_security_file_paths(base->options.security_options.security_root_path, props)) {
+      dds_PropertySeq_delete(props);
+      if (base->options.security_options.enforce_security == RMW_SECURITY_ENFORCEMENT_ENFORCE) {
+        RMW_SET_ERROR_MSG("failed to find all security files!");
+
+        return RMW_RET_ERROR;
+      }
+    } else {
+      dds_PropertySeq_delete(participant_qos->property.value);
+      participant_qos->property.value = props;
+    }
+  }
 
   std::string static_discovery_id;
   static_discovery_id += node_namespace;

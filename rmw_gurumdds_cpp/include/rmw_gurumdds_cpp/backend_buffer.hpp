@@ -269,8 +269,8 @@
 namespace rmw_gurumdds_cpp
 {
 
-constexpr const char *LOGGERNAME = "rmw_gurumdds_cpp.buffer_backend_loader";
-constexpr const char *BUFFER_BACKEND_KEY = "bufbe";
+constexpr const char * LOGGERNAME = "rmw_gurumdds_cpp.buffer_backend_loader";
+constexpr const char * BUFFER_BACKEND_KEY = "bufbe";
 
 /// Per-rmw_context bundle of buffer backend state.
 /// Stored as a void* in rmw_context_impl_s::buffer_serialization_context.

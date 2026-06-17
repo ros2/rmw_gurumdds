@@ -201,6 +201,14 @@ inline bool check_message_seq(
 
 namespace rmw_gurumdds_cpp
 {
+const message_type_support_callbacks_t * SubscriberInfo::get_fastrtps_type_support_callbacks() const
+{
+  if (fastrtps_message_typesupport == nullptr) {
+    return nullptr;
+  }
+  return static_cast<const message_type_support_callbacks_t *>(fastrtps_message_typesupport->data);
+}
+
 void SubscriberInfo::on_cpu_channel_data_available()
 {
   if (buffer_data_guard != nullptr) {

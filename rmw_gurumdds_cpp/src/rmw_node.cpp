@@ -33,6 +33,7 @@
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/utils.hpp"
+
 extern "C" {
 rmw_node_t * rmw_create_node(
   rmw_context_t *context, const char *name, const char *namespace_)

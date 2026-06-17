@@ -50,10 +50,7 @@ rmw_ret_t
 rmw_init_options_copy(const rmw_init_options_t *src, rmw_init_options_t *dst)
 {
   CHECK_ALL_PTRS_CODE(src, dst);
-  RMW_CHECK_FOR_NULL_WITH_MSG(
-    src->implementation_identifier,
-    "source init option is not initialized",
-    return RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(src->implementation_identifier);
   CHECK_ID_CODE(src);
   RCUTILS_CHECK_ALLOCATOR(&src->allocator, return RMW_RET_INVALID_ARGUMENT);
 
@@ -62,21 +59,26 @@ rmw_init_options_copy(const rmw_init_options_t *src, rmw_init_options_t *dst)
     return RMW_RET_INVALID_ARGUMENT;
   }
 
+  rcutils_allocator_t allocator = src->allocator;
+  RCUTILS_CHECK_ALLOCATOR(&allocator, return RMW_RET_INVALID_ARGUMENT);
   rmw_init_options_t tmp = *src;
-  tmp.security_options = rmw_get_zero_initialized_security_options();
-  tmp.enclave = rcutils_strdup(src->enclave, src->allocator);
-  if (tmp.enclave == nullptr && src->enclave != nullptr) {
-    RMW_SET_ERROR_MSG("failed to copy init option enclave");
-    return RMW_RET_BAD_ALLOC;
+  rmw_ret_t ret;
+  if (src->enclave != nullptr) {
+    ret = rmw_enclave_options_copy(src->enclave, &allocator, &tmp.enclave);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
   }
-
-  rmw_ret_t ret = rmw_security_options_copy(
-    &src->security_options, &src->allocator, &dst->security_options);
-  if (ret != RMW_RET_OK) {
-    src->allocator.deallocate(tmp.enclave, src->allocator.state);
+  tmp.security_options = rmw_get_zero_initialized_security_options();
+  ret = rmw_security_options_copy(
+    &src->security_options, 
+    &allocator, 
+    &tmp.security_options);
+  if (RMW_RET_OK != ret) {
+    rmw_enclave_options_fini(tmp.enclave, &allocator);
+    // Error already set
     return ret;
   }
-
   *dst = tmp;
   return RMW_RET_OK;
 }

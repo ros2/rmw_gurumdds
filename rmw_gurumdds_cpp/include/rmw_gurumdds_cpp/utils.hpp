@@ -20,19 +20,24 @@
 
 #include <type_traits>
 
+/*
+코드 정리용 utility 매크로, 함수 정의 모음
+*/
+
 namespace rmw_gurumdds_cpp
 {
 
 // ROS2 포맷터가 폴딩식 괄호를 자기 맘대로 삭제시켜서 매크로로 우회함.
-#define RETURN_PTRS ((ptrs != nullptr) && ...)
+#define CHECK_PTRS ((ptrs != nullptr) && ...)
 
+//포인터를 가변 인자로 받아 nullptr인지 체크하는 헬퍼 함수.
 template<typename ... Ptrs> bool check_all_ptrs(Ptrs... ptrs)
 {
   static_assert((std::is_pointer_v<Ptrs>&& ...));
-  return RETURN_PTRS;
+  return CHECK_PTRS;
 }
 
-#undef RETURN_PTRS
+#undef CHECK_PTRS
 
 /*
 함수 인자들을 가변 인자로 받아서 nullptr 체크를 수행하는 매크로
@@ -78,30 +83,29 @@ ID 체크를 수행하는 매크로
 rmw_node_t, rmw_context_t, rmw_publisher_t, rmw_subscription_t, rmw_client_t,
 rmw_service 등, rmw 내부 객체의 imple_mentation_identifier가 RMW_GURUMDDS_ID와
 일치하는지 확인함.
-
-만약, 인자가 nullptr인 경우 null 포인터 참조가 발생할 수 있으므로,
-null 체크 후 사용해야함.
-
-예시 :
-CHECK_ID_NULL(foo);
-ㄴ foo가 nullptr인 경우 null 참조로 런타임 에러 발생.
-
-CHECK_ALL_PTRS_NULL(obj);
-CHECK_ID_NULL(obj);
-ㄴ foo가 nullptr인 경우 맨 위 코드에서 반환하므로 안전함.
 */
 // 반환값 : nullptr
 #define CHECK_ID_NULL(obj) \
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH( \
-    obj, obj->implementation_identifier, RMW_GURUMDDS_ID, return nullptr);
+  do{ \
+    if(obj == nullptr) return nullptr; \
+    RMW_CHECK_TYPE_IDENTIFIERS_MATCH( \
+      obj, \
+      obj->implementation_identifier, \
+      RMW_GURUMDDS_ID, \
+      return nullptr); \
+  } while(0);
 
 // 반환값 : RMW_RET_INCORRECT_RMW_IMPLEMENTATION
 #define CHECK_ID_CODE(obj) \
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH( \
-    obj, \
-    obj->implementation_identifier, \
-    RMW_GURUMDDS_ID, \
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  do{ \
+    if(obj == nullptr) return RMW_RET_INVALID_ARGUMENT; \
+    RMW_CHECK_TYPE_IDENTIFIERS_MATCH( \
+      obj, \
+      obj->implementation_identifier, \
+      RMW_GURUMDDS_ID, \
+      return RMW_RET_INCORRECT_RMW_IMPLEMENTATION); \
+  } while(0);
+
 } // namespace rmw_gurumdds_cpp
 
 #endif

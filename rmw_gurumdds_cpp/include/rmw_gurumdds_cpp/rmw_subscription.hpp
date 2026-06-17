@@ -59,13 +59,8 @@ struct SubscriberInfo : EventInfo
   const rosidl_message_type_support_t * rosidl_message_typesupport;
   const rosidl_message_type_support_t * fastrtps_message_typesupport;
 
-  const message_type_support_callbacks_t * get_fastrtps_type_support_callbacks() const
-  {
-    if (fastrtps_message_typesupport == nullptr) {
-      return nullptr;
-    }
-    return static_cast<const message_type_support_callbacks_t *>(fastrtps_message_typesupport->data);
-  }
+  const message_type_support_callbacks_t *
+  get_fastrtps_type_support_callbacks() const;
 
   // backend_buffer
   bool is_buffer_aware{false};
@@ -84,11 +79,7 @@ struct SubscriberInfo : EventInfo
   dds_DataReader * cpu_channel_reader = nullptr;
   dds_DataReaderListener cpu_channel_listener = {};
   dds_Topic * cpu_topic = nullptr;
-  // 락 넣기 부담스러워 자료구조를 중복 배치함.
   SeqStruct cpu_seq;
-
-  // 이상 없으면 지울 것.
-  // dds_GuardCondition * buffer_listener_guard = nullptr;
 
   // Accelerated shared channel reader (all buffer-aware publishers write here)
   dds_DataReader * accel_data_reader{nullptr};
@@ -104,6 +95,8 @@ struct SubscriberInfo : EventInfo
   event_callback_data_t buffer_event_callback_data;
 
   // fastrtps에서 토픽 이름을 캐싱해두는 것을 모방함.
+  // 문자열에 ros prefix가 포함되어 있음에 주의.
+  // 예시 : "/rr/foobar"
   std::string fastrtps_topic_name_mangled;
 
   bool ignore_local_publications = false;
@@ -133,9 +126,6 @@ struct SubscriberInfo : EventInfo
   dds_ReadCondition * read_condition;
 
   dds_DataReaderListener topic_listener;
-  // dds_DataSeq * data_seq;
-  // dds_SampleInfoSeq * info_seq;
-  // dds_UnsignedLongSeq * raw_data_sizes;
   raii::dds_DataSeq data_seq;
   raii::dds_SampleInfoSeq info_seq;
   raii::dds_UnsignedLongSeq raw_data_sizes;

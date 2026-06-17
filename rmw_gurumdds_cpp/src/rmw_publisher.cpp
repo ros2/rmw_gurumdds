@@ -212,6 +212,16 @@ void init_backend_buffer_callback(
 }
 } // namespace
 
+const message_type_support_callbacks_t *
+PublisherInfo::get_fastrtps_type_support_callbacks() const
+{
+  if (fastrtps_message_typesupport == nullptr) {
+    return nullptr;
+  }
+  return static_cast<const message_type_support_callbacks_t *>(
+    fastrtps_message_typesupport->data);
+}
+
 rmw_publisher_t * create_publisher(
   rmw_context_impl_t *const ctx, const rmw_node_t *node,
   dds_DomainParticipant *const participant, dds_Publisher *const pub,
@@ -317,12 +327,6 @@ rmw_publisher_t * create_publisher(
   if (dds_typesupport == nullptr) {
     return nullptr;
   }
-
-  // auto scope_exit_dds_typesupport_delete = rcpputils::make_scope_exit(
-  //   [&dds_typesupport]() {
-  //     dds_TypeSupport_delete(dds_typesupport);
-  //     dds_typesupport = nullptr;
-  //   });
 
   topic_desc = dds_DomainParticipant_lookup_topicdescription(
       participant, processed_topic_name.c_str());
@@ -871,8 +875,6 @@ void create_pending_buffer_writers(PublisherInfo *info)
     endpoint->target_subscriber_gid = p.target_subscriber_gid;
     endpoint->subscriber_endpoint_info = p.subscriber_endpoint_info;
     endpoint->backend_metadata = std::move(p.backend_metadata);
-
-    // dds_ReturnCode_t ret;
 
     dds_Topic *topic = nullptr;
 
