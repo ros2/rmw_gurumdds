@@ -1,0 +1,85 @@
+# Build outputs
+build/
+install/
+log/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# Colcon / ROS2
+.colcon/
+*.repos
+local_setup.*
+setup.*
+_env.sh
+
+# Object / library / executable files
+*.o
+*.obj
+*.so
+*.so.*
+*.a
+*.lib
+*.dll
+*.dylib
+*.exe
+*.out
+
+# Debug / sanitizer outputs
+core
+core.*
+*.core
+asan.*
+lsan.*
+ubsan.*
+*.log
+
+# Coverage
+*.gcda
+*.gcno
+*.gcov
+coverage/
+lcov.info
+
+# IDE / editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/c_cpp_properties.json
+
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# clangd
+.cache/
+.clangd/
+compile_flags.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated docs
+docs/_build/
+html/
+xml/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+
+*.Identifier

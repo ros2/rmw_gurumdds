@@ -1,0 +1,77 @@
+raii.hpp Manual
+
+This wrapper manages internal resources using RAII while preserving the existing GurumDDS C API style.
+
+Each wrapper class defines a conversion operator to the original DDS type, so it can be passed directly to existing GurumDDS C APIs.
+
+Example:
+
+  void dds_DO_SOMETHING(dds_FOO * foo);
+
+  void f()
+  {
+    raii::dds_FOO foo = raii::dds_FOO_create();
+
+    dds_DO_SOMETHING(foo);
+    // Automatically converted to dds_FOO *.
+  }
+
+  The wrapper automatically releases the internal DDS resource when it goes out of scope.
+
+  void f()
+  {
+    raii::dds_FOO foo = raii::dds_FOO_create();
+
+    dds_DO_SOMETHING(foo);
+  }
+  // The resource is released automatically when the function returns.
+
+  To release a resource explicitly, use the release function in the raii namespace.
+
+  raii::dds_FOO_delete(foo);
+
+Caution:
+
+  If the original GurumDDS C API release function is called directly, the internal pointer in the wrapper is not set to nullptr.
+
+  When the wrapper is later destroyed, it may release the same resource again and cause a double free.
+
+  dds_FOO_delete(foo);        // Use with caution
+  raii::dds_FOO_delete(foo);  // Recommended
+
+  Sequence wrappers manage DDS Sequence resources such as dds_DataSeq and dds_SampleInfoSeq.
+
+  auto data_seq = raii::dds_DataSeq_create(16);
+  auto info_seq = raii::dds_SampleInfoSeq_create(16);
+
+  if (!data_seq || !info_seq) {
+    return;
+  }
+
+  QoS wrappers automatically finalize resources owned by QoS objects.
+
+  raii::dds_DataWriterQos qos;
+
+  raii::dds_DataWriter_get_qos(writer, qos);
+
+  qos->history.depth = 10;
+
+  When retrieving or copying QoS values, using the functions in the raii namespace is recommended.
+
+  raii::dds_DataWriterQos_copy(dst, src);
+
+  The TypeSupport wrapper manages ownership of a dds_TypeSupport object.
+
+  raii::dds_TypeSupport type_support(create_type_support());
+
+  When the object is destroyed, dds_TypeSupport_delete() is called automatically.
+
+General precautions:
+
+  Do not directly release resources managed by a wrapper using the original GurumDDS release functions.
+
+  If early release is required, use the release function in the raii namespace.
+
+  Check whether the result is nullptr before use.
+
+  A native pointer obtained from a wrapper must only be used during the lifetime of the wrapper object.

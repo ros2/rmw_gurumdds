@@ -23,40 +23,31 @@
 namespace rmw_gurumdds_cpp
 {
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DomainParticipant *
-get_participant(rmw_node_t * node);
+dds_DomainParticipant * get_participant(rmw_node_t *node);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_Publisher *
-get_publisher(rmw_publisher_t * publisher);
+dds_Publisher * get_publisher(rmw_publisher_t *publisher);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DataWriter *
-get_data_writer(rmw_publisher_t * publisher);
+dds_DataWriter * get_data_writer(rmw_publisher_t *publisher);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_Subscriber *
-get_subscriber(rmw_subscription_t * subscription);
+dds_Subscriber * get_subscriber(rmw_subscription_t *subscription);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DataReader *
-get_data_reader(rmw_subscription_t * subscription);
+dds_DataReader * get_data_reader(rmw_subscription_t *subscription);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DataWriter *
-get_request_data_writer(rmw_client_t * client);
+dds_DataWriter * get_request_data_writer(rmw_client_t *client);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DataReader *
-get_response_data_reader(rmw_client_t * client);
+dds_DataReader * get_response_data_reader(rmw_client_t *client);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DataReader *
-get_request_data_reader(rmw_service_t * service);
+dds_DataReader * get_request_data_reader(rmw_service_t *service);
 
 RMW_GURUMDDS_CPP_PUBLIC
-dds_DataWriter *
-get_response_data_writer(rmw_service_t * service);
-}  // namespace rmw_gurumdds_cpp
+dds_DataWriter * get_response_data_writer(rmw_service_t *service);
+} // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS_CPP__GET_ENTITIES_HPP_
+#endif // RMW_GURUMDDS_CPP__GET_ENTITIES_HPP_

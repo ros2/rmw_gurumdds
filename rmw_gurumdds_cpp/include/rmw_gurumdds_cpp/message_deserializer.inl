@@ -15,69 +15,82 @@
 #ifndef RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_
 #define RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_
 
-namespace rmw_gurumdds_cpp
-{
-template<typename MessageMembersT>
-inline MessageDeserializer<MessageMembersT>::MessageDeserializer(CdrDeserializationBuffer & buffer)
-  : buffer_(buffer) {
+namespace rmw_gurumdds_cpp {
+template <typename MessageMembersT>
+inline MessageDeserializer<MessageMembersT>::MessageDeserializer(
+    CdrDeserializationBuffer &buffer)
+    : buffer_(buffer) {
   static_assert(LANGUAGE_KIND != LanguageKind::UNKNOWN);
 }
 
-template<typename MessageMembersT>
-inline void MessageDeserializer<MessageMembersT>::deserialize(const MessageMembersT *members, uint8_t *output) {
+template <typename MessageMembersT>
+inline void MessageDeserializer<MessageMembersT>::deserialize(
+    const MessageMembersT *members, uint8_t *output) {
+  if (members == nullptr || output == nullptr) {
+    throw std::runtime_error("CDR bad argument");
+  }
+
   for (uint32_t i = 0; i < members->member_count_; i++) {
     auto member = members->members_ + i;
     switch (member->type_id_) {
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOLEAN:
-        read_boolean(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_CHAR:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_OCTET:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8:
-        read_primitive<uint8_t>(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT16:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16:
-        read_primitive<uint16_t>(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT32:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32:
-        read_primitive<uint32_t>(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT64:
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT64:
-        read_primitive<uint64_t>(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_WCHAR:
-        read_wchar(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_STRING:
-        read_string(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_WSTRING:
-        read_wstring(member, output);
-        break;
-      case rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE:
-        read_struct_arr(member, output);
-        break;
-      default:
-        break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOLEAN:
+      read_boolean(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_CHAR:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_OCTET:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8:
+      read_primitive<uint8_t>(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT16:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16:
+      read_primitive<uint16_t>(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT32:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32:
+      read_primitive<uint32_t>(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT64:
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_INT64:
+      read_primitive<uint64_t>(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_WCHAR:
+      read_wchar(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_STRING:
+      read_string(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_WSTRING:
+      read_wstring(member, output);
+      break;
+    case rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE:
+      read_struct_arr(member, output);
+      break;
+    default:
+      break;
     }
   }
 }
 
-template<typename MessageMembersT>
-inline void MessageDeserializer<MessageMembersT>::read_boolean(const MessageMemberT * member, uint8_t * output) {
+template <typename MessageMembersT>
+inline void
+MessageDeserializer<MessageMembersT>::read_boolean(const MessageMemberT *member,
+                                                   uint8_t *output) {
   if (member->is_array_) {
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       uint32_t size = 0;
       buffer_ >> size;
+
+      if (size > buffer_.get_remaining_size()) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+
       if constexpr (LANGUAGE_KIND == LanguageKind::C) {
-        auto seq_ptr = (reinterpret_cast<rosidl_runtime_c__boolean__Sequence *>(output + member->offset_));
+        auto seq_ptr = (reinterpret_cast<rosidl_runtime_c__boolean__Sequence *>(
+            output + member->offset_));
         if (seq_ptr->data) {
           rosidl_runtime_c__boolean__Sequence__fini(seq_ptr);
         }
@@ -95,7 +108,8 @@ inline void MessageDeserializer<MessageMembersT>::read_boolean(const MessageMemb
       }
 
       if constexpr (LANGUAGE_KIND == LanguageKind::CXX) {
-        auto vec = reinterpret_cast<std::vector<bool> *>(output + member->offset_);
+        auto vec =
+            reinterpret_cast<std::vector<bool> *>(output + member->offset_);
         vec->resize(static_cast<size_t>(size));
         for (uint32_t i = 0; i < size; i++) {
           uint8_t data = 0;
@@ -118,8 +132,8 @@ inline void MessageDeserializer<MessageMembersT>::read_boolean(const MessageMemb
         for (uint32_t i = 0; i < member->array_size_; i++) {
           uint8_t data = 0;
           buffer_ >> data;
-          *(reinterpret_cast<bool *>(member->get_function(output + member->offset_, i))) =
-            static_cast<bool>(data != 0);
+          *(reinterpret_cast<bool *>(member->get_function(
+              output + member->offset_, i))) = static_cast<bool>(data != 0);
         }
       }
     }
@@ -131,8 +145,10 @@ inline void MessageDeserializer<MessageMembersT>::read_boolean(const MessageMemb
   }
 }
 
-template<typename MessageMembersT>
-inline void MessageDeserializer<MessageMembersT>::read_wchar(const MessageMemberT * member, uint8_t * output) {
+template <typename MessageMembersT>
+inline void
+MessageDeserializer<MessageMembersT>::read_wchar(const MessageMemberT *member,
+                                                 uint8_t *output) {
   if (!member->is_array_) {
     auto dst = reinterpret_cast<uint16_t *>(output + member->offset_);
     buffer_ >> *dst;
@@ -141,10 +157,17 @@ inline void MessageDeserializer<MessageMembersT>::read_wchar(const MessageMember
 
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (!member->array_size_ || member->is_upper_bound_) {
+
       // Sequence
       uint32_t size = 0;
       buffer_ >> size;
-      auto seq_ptr = reinterpret_cast<rosidl_runtime_c__wchar__Sequence *>(output + member->offset_);
+
+      if (size > buffer_.get_remaining_size() / sizeof(uint16_t)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+
+      auto seq_ptr = reinterpret_cast<rosidl_runtime_c__wchar__Sequence *>(
+          output + member->offset_);
       if (seq_ptr->data) {
         rosidl_runtime_c__wchar__Sequence__fini(seq_ptr);
       }
@@ -172,29 +195,43 @@ inline void MessageDeserializer<MessageMembersT>::read_wchar(const MessageMember
       // Sequence
       uint32_t size = 0;
       buffer_ >> size;
-      member->resize_function(output + member->offset_, static_cast<size_t>(size));
+
+      if (size > buffer_.get_remaining_size() / sizeof(uint16_t)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+
+      member->resize_function(output + member->offset_,
+                              static_cast<size_t>(size));
     }
 
-    for (uint32_t i = 0; i < member->size_function(output + member->offset_); i++) {
+    for (uint32_t i = 0; i < member->size_function(output + member->offset_);
+         i++) {
       uint16_t data = 0;
       buffer_ >> data;
-      *(reinterpret_cast<uint16_t *>(member->get_function(output + member->offset_, i))) =
-        static_cast<uint16_t>(data);
+      *(reinterpret_cast<uint16_t *>(member->get_function(
+          output + member->offset_, i))) = static_cast<uint16_t>(data);
     }
   }
 }
 
-template<typename MessageMembersT>
-inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMemberT * member, uint8_t * output) {
+template <typename MessageMembersT>
+inline void
+MessageDeserializer<MessageMembersT>::read_string(const MessageMemberT *member,
+                                                  uint8_t *output) {
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (member->is_array_) {
       if (!member->array_size_ || member->is_upper_bound_) {
+
         // Sequence
         uint32_t size = 0;
         buffer_ >> size;
 
-        auto seq_ptr =
-          (reinterpret_cast<rosidl_runtime_c__String__Sequence *>(output + member->offset_));
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
+
+        auto seq_ptr = (reinterpret_cast<rosidl_runtime_c__String__Sequence *>(
+            output + member->offset_));
         if (seq_ptr->data) {
           rosidl_runtime_c__String__Sequence__fini(seq_ptr);
         }
@@ -212,9 +249,10 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
           buffer_ >> seq_ptr->data[i];
         }
       } else {
-        auto arr = reinterpret_cast<rosidl_runtime_c__String *>(output + member->offset_);
+        auto arr = reinterpret_cast<rosidl_runtime_c__String *>(
+            output + member->offset_);
         for (uint32_t i = 0; i < member->array_size_; i++) {
-          if (arr == nullptr) {
+          if (arr[i].data == nullptr) {
             if (!rosidl_runtime_c__String__init(&arr[i])) {
               throw std::runtime_error("Failed to initialize string");
             }
@@ -223,7 +261,8 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
         }
       }
     } else {
-      auto dst = reinterpret_cast<rosidl_runtime_c__String *>(output + member->offset_);
+      auto dst = reinterpret_cast<rosidl_runtime_c__String *>(output +
+                                                              member->offset_);
       if (dst->data == nullptr) {
         if (!rosidl_runtime_c__String__init(dst)) {
           throw std::runtime_error("Failed to initialize string");
@@ -239,12 +278,18 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
       if (!member->array_size_ || member->is_upper_bound_) {
         // Sequence
         buffer_ >> size;
+
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
+
         member->resize_function(output + member->offset_, size);
       }
 
       size = member->size_function(output + member->offset_);
       for (uint32_t i = 0; i < size; i++) {
-        buffer_ >> *(reinterpret_cast<std::string *>(member->get_function(output + member->offset_, i)));
+        buffer_ >> *(reinterpret_cast<std::string *>(
+                       member->get_function(output + member->offset_, i)));
       }
     } else {
       buffer_ >> *(reinterpret_cast<std::string *>(output + member->offset_));
@@ -252,21 +297,29 @@ inline void MessageDeserializer<MessageMembersT>::read_string(const MessageMembe
   }
 }
 
-template<typename MessageMembersT>
-template<typename PrimitiveT>
-inline void MessageDeserializer<MessageMembersT>::read_primitive(const MessageMemberT * member, uint8_t * output) {
+template <typename MessageMembersT>
+template <typename PrimitiveT>
+inline void MessageDeserializer<MessageMembersT>::read_primitive(
+    const MessageMemberT *member, uint8_t *output) {
   if (!member->is_array_) {
-    buffer_ >> *(reinterpret_cast<PrimitiveT*>(output + member->offset_));
+    buffer_ >> *(reinterpret_cast<PrimitiveT *>(output + member->offset_));
     return;
   }
 
   uint32_t size = 0;
-  PrimitiveT* arr = nullptr;
+
+  PrimitiveT *arr = nullptr;
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (!member->array_size_ || member->is_upper_bound_) {
       buffer_ >> size;
-      auto seq_ptr = reinterpret_cast<rmw_gurumdds_cpp::rmw_seq_t<PrimitiveT>*>(output + member->offset_);
-      if(nullptr != seq_ptr->data) {
+
+      if (size > buffer_.get_remaining_size() / sizeof(PrimitiveT)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+      auto seq_ptr =
+          reinterpret_cast<rmw_gurumdds_cpp::rmw_seq_t<PrimitiveT> *>(
+              output + member->offset_);
+      if (nullptr != seq_ptr->data) {
         seq_ptr->fini();
       }
 
@@ -278,26 +331,34 @@ inline void MessageDeserializer<MessageMembersT>::read_primitive(const MessageMe
       arr = seq_ptr->data;
     } else {
       size = member->array_size_;
-      arr = reinterpret_cast<PrimitiveT*>(output + member->offset_);
+      arr = reinterpret_cast<PrimitiveT *>(output + member->offset_);
     }
   }
 
   if constexpr (LANGUAGE_KIND == LanguageKind::CXX) {
     if (!member->array_size_ || member->is_upper_bound_) {
       buffer_ >> size;
-      member->resize_function(output + member->offset_, static_cast<size_t>(size));
+
+      if (size > buffer_.get_remaining_size() / sizeof(PrimitiveT)) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+      member->resize_function(output + member->offset_,
+                              static_cast<size_t>(size));
     } else {
       size = member->array_size_;
     }
 
-    arr = reinterpret_cast<PrimitiveT*>(member->get_function(output + member->offset_, 0));
+    arr = reinterpret_cast<PrimitiveT *>(
+        member->get_function(output + member->offset_, 0));
   }
 
   buffer_.copy_arr(arr, size);
 }
 
-template<typename MessageMembersT>
-inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemberT * member, uint8_t * output) {
+template <typename MessageMembersT>
+inline void
+MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemberT *member,
+                                                   uint8_t *output) {
   if constexpr (LANGUAGE_KIND == LanguageKind::C) {
     if (member->is_array_) {
       if (!member->array_size_ || member->is_upper_bound_) {
@@ -305,9 +366,13 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
         uint32_t size = 0;
         buffer_ >> size;
 
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
+
         auto seq_ptr =
-          (reinterpret_cast<rosidl_runtime_c__U16String__Sequence *>(
-            output + member->offset_));
+            (reinterpret_cast<rosidl_runtime_c__U16String__Sequence *>(
+                output + member->offset_));
         if (seq_ptr->data) {
           rosidl_runtime_c__U16String__Sequence__fini(seq_ptr);
         }
@@ -325,9 +390,10 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
           buffer_ >> seq_ptr->data[i];
         }
       } else {
-        auto arr = reinterpret_cast<rosidl_runtime_c__U16String *>(output + member->offset_);
+        auto arr = reinterpret_cast<rosidl_runtime_c__U16String *>(
+            output + member->offset_);
         for (uint32_t i = 0; i < member->array_size_; i++) {
-          if (arr == nullptr) {
+          if (arr[i].data == nullptr) {
             if (!rosidl_runtime_c__U16String__init(&arr[i])) {
               throw std::runtime_error("Failed to initialize string");
             }
@@ -336,7 +402,8 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
         }
       }
     } else {
-      auto dst = reinterpret_cast<rosidl_runtime_c__U16String *>(output + member->offset_);
+      auto dst = reinterpret_cast<rosidl_runtime_c__U16String *>(
+          output + member->offset_);
       if (dst->data == nullptr) {
         if (!rosidl_runtime_c__U16String__init(dst)) {
           throw std::runtime_error("Failed to initialize string");
@@ -352,47 +419,57 @@ inline void MessageDeserializer<MessageMembersT>::read_wstring(const MessageMemb
       if (!member->array_size_ || member->is_upper_bound_) {
         // Sequence
         buffer_ >> size;
+
+        if (size > buffer_.get_remaining_size() / sizeof(uint32_t)) {
+          throw std::runtime_error("invalid string sequence size");
+        }
         member->resize_function(output + member->offset_, size);
       }
 
       size = member->size_function(output + member->offset_);
       for (uint32_t i = 0; i < size; i++) {
-        buffer_ >>
-          *(reinterpret_cast<std::u16string *>(member->get_function(output + member->offset_, i)));
+        buffer_ >> *(reinterpret_cast<std::u16string *>(
+                       member->get_function(output + member->offset_, i)));
       }
     } else {
-      buffer_ >> *(reinterpret_cast<std::u16string *>(output + member->offset_));
+      buffer_ >>
+          *(reinterpret_cast<std::u16string *>(output + member->offset_));
     }
   }
 }
 
-template<typename MessageMembersT>
-inline void MessageDeserializer<MessageMembersT>::read_struct_arr(const MessageMemberT * member, uint8_t * output) {
+template <typename MessageMembersT>
+inline void MessageDeserializer<MessageMembersT>::read_struct_arr(
+    const MessageMemberT *member, uint8_t *output) {
   if (member->is_array_) {
     uint32_t size = 0;
     if (!member->array_size_ || member->is_upper_bound_) {
       // Sequence
       buffer_ >> size;
-      member->resize_function(output + member->offset_, static_cast<size_t>(size));
+
+      if (size > buffer_.get_remaining_size()) {
+        throw std::runtime_error("invalid string sequence size");
+      }
+      member->resize_function(output + member->offset_,
+                              static_cast<size_t>(size));
     }
 
+    if (size > buffer_.get_remaining_size()) {
+      throw std::runtime_error("invalid string sequence size");
+    }
     size = member->size_function(output + member->offset_);
     for (uint32_t j = 0; j < size; j++) {
       deserialize(
-        reinterpret_cast<const MessageMembersT *>(member->members_->data),
-        reinterpret_cast<uint8_t *>(member->get_function(output + member->offset_, j)));
+          reinterpret_cast<const MessageMembersT *>(member->members_->data),
+          reinterpret_cast<uint8_t *>(
+              member->get_function(output + member->offset_, j)));
     }
   } else {
     deserialize(
-      reinterpret_cast<const MessageMembersT *>(
-        member->members_->data
-        ),
-      reinterpret_cast<uint8_t *>(
-        output + member->offset_
-        )
-    );
+        reinterpret_cast<const MessageMembersT *>(member->members_->data),
+        reinterpret_cast<uint8_t *>(output + member->offset_));
   }
 }
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_
+#endif // RMW_GURUMDDS_CPP__MESSAGE_DESERIALIZER_INL_

@@ -24,17 +24,17 @@
 
 namespace rmw_gurumdds_cpp
 {
-void ros_guid_to_dds_guid(const uint8_t * guid_ros, uint8_t * guid_dds);
+void ros_guid_to_dds_guid(const uint8_t *guid_ros, uint8_t *guid_dds);
 
-void dds_guid_to_ros_guid(const int8_t * guid_dds, int8_t * guid_ros);
+void dds_guid_to_ros_guid(const int8_t *guid_dds, int8_t *guid_ros);
 
 void guid_to_gid(const dds_GUID_t & guid, rmw_gid_t & gid);
 
-void entity_get_gid(dds_Entity * const entity, rmw_gid_t & gid);
+void entity_get_gid(dds_Entity *const entity, rmw_gid_t & gid);
 /**
  * Structure to hold GUID information for DDS instances.
  */
-struct Guid_t: public dds_GUID_t
+struct Guid_t : public dds_GUID_t
 {
   static constexpr uint32_t ENTITYID_PARTICIPANT = 0x000001C1;
 
@@ -42,22 +42,37 @@ struct Guid_t: public dds_GUID_t
 
   explicit Guid_t(const dds_GUID_t & other);
 
-  explicit Guid_t(const dds_ParticipantBuiltinTopicData& builtin_topic_data);
+  explicit Guid_t(const dds_ParticipantBuiltinTopicData & builtin_topic_data);
 
   template<typename TBuiltinTopicData>
-  explicit Guid_t(const TBuiltinTopicData& builtin_topic_data);
+  explicit Guid_t(const TBuiltinTopicData & builtin_topic_data);
 
   template<typename TBuiltinTopicData>
-  static Guid_t for_participant(const TBuiltinTopicData& builtin_topic_data);
+  static Guid_t for_participant(const TBuiltinTopicData & builtin_topic_data);
 
   bool operator==(const dds_GUID_t & other) const;
 
   bool operator!=(const Guid_t & other) const;
 
   bool operator<(const Guid_t & other) const;
-};  // struct Guid_t
-}  // namespace rmw_gurumdds_cpp
+}; // struct Guid_t
+
+template<typename TByte>
+void copy_from_gurumdds_guid_to_byte_array(
+  const dds_GUID_t & guid,
+  TByte *guid_byte_array)
+{
+  static_assert(std::is_same<uint8_t, TByte>::value ||
+                    std::is_same<int8_t, TByte>::value,
+                "TByte should be either int8_t or uint8_t");
+  assert(guid_byte_array);
+  constexpr auto prefix_size = sizeof(guid.prefix);
+  constexpr auto id_size = sizeof(guid.entityId);
+  memcpy(guid_byte_array, &guid.prefix, prefix_size);
+  memcpy(&guid_byte_array[prefix_size], &guid.entityId, id_size);
+}
+} // namespace rmw_gurumdds_cpp
 
 #include "rmw_gurumdds_cpp/gid.inl"
 
-#endif  // RMW_GURUMDDS_CPP__GID_HPP_
+#endif // RMW_GURUMDDS_CPP__GID_HPP_

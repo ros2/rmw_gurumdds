@@ -17,4 +17,4 @@
 
 #include <gurumdds/dcps.h>
 
-#endif  // RMW_GURUMDDS_CPP__DDS_INCLUDE_HPP_
+#endif // RMW_GURUMDDS_CPP__DDS_INCLUDE_HPP_

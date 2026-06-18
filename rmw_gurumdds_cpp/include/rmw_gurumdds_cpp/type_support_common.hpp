@@ -15,13 +15,13 @@
 #ifndef RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_HPP_
 #define RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_HPP_
 
-#include <string>
-#include <sstream>
 #include <cstdint>
+#include <sstream>
+#include <string>
 
 #include "rmw_gurumdds_cpp/message_converter.hpp"
-#include "rmw_gurumdds_cpp/message_serializer.hpp"
 #include "rmw_gurumdds_cpp/message_deserializer.hpp"
+#include "rmw_gurumdds_cpp/message_serializer.hpp"
 
 #include "rmw/error_handling.h"
 #include "rmw/macros.h"
@@ -29,60 +29,47 @@
 namespace rmw_gurumdds_cpp
 {
 template<typename MessageMembersT>
-std::string
-create_type_name(const void * untyped_members);
+std::string create_type_name(const void *untyped_members);
 
 template<typename MessageMembersT>
-void *
-allocate_message(
-  const void * untyped_members,
-  const uint8_t * ros_message,
-  size_t * size);
+void * allocate_message(
+  const void *untyped_members, const uint8_t *ros_message,
+  size_t *size);
 
 template<typename MessageMembersT>
-std::string
-create_metastring(const void * untyped_members);
+std::string create_metastring(const void *untyped_members);
 
 template<typename MessageMembersT>
-std::string
-parse_struct(const MessageMembersT * members, const char * field_name);
+std::string parse_struct(
+  const MessageMembersT *members,
+  const char *field_name);
 
-std::string
-create_type_name(const void * untyped_members, const char * identifier);
+std::string create_type_name(
+  const void *untyped_members,
+  const char *identifier);
 
-std::string
-create_metastring(const void * untyped_members, const char * identifier);
+std::string create_metastring(
+  const void *untyped_members,
+  const char *identifier);
 
-void *
-allocate_message(
-  const void * untyped_members,
-  const char * identifier,
-  const void * ros_message,
-  size_t * size);
+void * allocate_message(
+  const void *untyped_members, const char *identifier,
+  const void *ros_message, size_t *size);
 
-ssize_t
-get_serialized_size(
-  const void * untyped_members,
-  const char * identifier,
-  const void * ros_message);
+ssize_t get_serialized_size(
+  const void *untyped_members, const char *identifier,
+  const void *ros_message);
 
-bool
-serialize_ros_to_cdr(
-  const void * untyped_members,
-  const char * identifier,
-  const void * ros_message,
-  void * dds_message,
+bool serialize_ros_to_cdr(
+  const void *untyped_members, const char *identifier,
+  const void *ros_message, void *dds_message,
   size_t size);
 
-bool
-deserialize_cdr_to_ros(
-  const void * untyped_members,
-  const char * identifier,
-  void * ros_message,
-  void * dds_message,
-  size_t size);
-}  // namespace rmw_gurumdds_cpp
+bool deserialize_cdr_to_ros(
+  const void *untyped_members, const char *identifier,
+  void *ros_message, void *dds_message, size_t size);
+} // namespace rmw_gurumdds_cpp
 
 #include "rmw_gurumdds_cpp/type_support_common.inl"
 
-#endif  // RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_HPP_
+#endif // RMW_GURUMDDS_CPP__TYPE_SUPPORT_COMMON_HPP_

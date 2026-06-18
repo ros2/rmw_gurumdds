@@ -19,10 +19,8 @@
 
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 
-extern "C"
-{
-rmw_ret_t
-rmw_set_log_severity(rmw_log_severity_t severity)
+extern "C" {
+rmw_ret_t rmw_set_log_severity(rmw_log_severity_t severity)
 {
   switch (severity) {
     case RMW_LOG_SEVERITY_DEBUG:
@@ -46,4 +44,4 @@ rmw_set_log_severity(rmw_log_severity_t severity)
   }
   return RMW_RET_OK;
 }
-}  // extern "C"
+} // extern "C"

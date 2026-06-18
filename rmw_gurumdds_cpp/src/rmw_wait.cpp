@@ -16,27 +16,18 @@
 #include "rmw/error_handling.h"
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
-
 #include "rmw_gurumdds_cpp/dds_include.hpp"
-#include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
+#include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/utils.hpp"
 #include "rmw_gurumdds_cpp/wait.hpp"
 
-extern "C"
+extern "C" {
+rmw_wait_set_t * rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 {
-rmw_wait_set_t *
-rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
-  RMW_CHECK_FOR_NULL_WITH_MSG(
-    context->impl,
-    "expected initialized context",
-    return nullptr);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    context,
-    context->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return nullptr);
+  CHECK_ALL_PTRS_NULL(context);
+  RMW_CHECK_FOR_NULL_WITH_MSG(context->impl, "expected initialized context", return nullptr);
+  CHECK_ID_NULL(context);
 
   RCUTILS_UNUSED(max_conditions);
   rmw_wait_set_t * wait_set = rmw_wait_set_allocate();
@@ -57,20 +48,20 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     goto fail;
   }
 
-  new(wait_set_info) rmw_gurumdds_cpp::WaitSetInfo{};
+  new (wait_set_info) rmw_gurumdds_cpp::WaitSetInfo{};
   wait_set_info->wait_set = dds_WaitSet_create();
   if (wait_set_info->wait_set == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate wait set");
     goto fail;
   }
 
-  wait_set_info->active_conditions = dds_ConditionSeq_create(4);
+  wait_set_info->active_conditions = raii::dds_ConditionSeq_create(4);
   if (wait_set_info->active_conditions == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate active_conditions sequence");
     goto fail;
   }
 
-  wait_set_info->attached_conditions = dds_ConditionSeq_create(4);
+  wait_set_info->attached_conditions = raii::dds_ConditionSeq_create(4);
   if (wait_set_info->attached_conditions == nullptr) {
     RMW_SET_ERROR_MSG("failed to allocate attached_conditions sequence");
     goto fail;
@@ -80,13 +71,13 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 
 fail:
   if (wait_set_info != nullptr) {
-    if (wait_set_info->active_conditions != nullptr) {
-      dds_ConditionSeq_delete(wait_set_info->active_conditions);
-    }
+    // if (wait_set_info->active_conditions != nullptr) {
+    //   dds_ConditionSeq_delete(wait_set_info->active_conditions);
+    // }
 
-    if (wait_set_info->attached_conditions != nullptr) {
-      dds_ConditionSeq_delete(wait_set_info->attached_conditions);
-    }
+    // if (wait_set_info->attached_conditions != nullptr) {
+    //   dds_ConditionSeq_delete(wait_set_info->attached_conditions);
+    // }
 
     if (wait_set_info->wait_set != nullptr) {
       dds_WaitSet_delete(wait_set_info->wait_set);
@@ -107,8 +98,7 @@ fail:
   return nullptr;
 }
 
-rmw_ret_t
-rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
+rmw_ret_t rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
@@ -138,8 +128,7 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
   return RMW_RET_OK;
 }
 
-rmw_ret_t
-rmw_wait(
+rmw_ret_t rmw_wait(
   rmw_subscriptions_t * subscriptions,
   rmw_guard_conditions_t * guard_conditions,
   rmw_services_t * services,
@@ -149,7 +138,13 @@ rmw_wait(
   const rmw_time_t * wait_timeout)
 {
   return rmw_gurumdds_cpp::wait(
-    RMW_GURUMDDS_ID, subscriptions, guard_conditions,
-    services, clients, events, wait_set, wait_timeout);
+    RMW_GURUMDDS_ID,
+    subscriptions,
+    guard_conditions,
+    services,
+    clients,
+    events,
+    wait_set,
+    wait_timeout);
 }
 }  // extern "C"

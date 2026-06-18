@@ -28,52 +28,55 @@ namespace rmw_gurumdds_cpp
 {
 struct ClientInfo
 {
-  const rosidl_service_type_support_t * service_typesupport;
-  const char * implementation_identifier;
-  rmw_context_impl_t * ctx;
+  const rosidl_service_type_support_t *service_typesupport;
+  const char *implementation_identifier;
+  rmw_context_impl_t *ctx;
   int64_t sequence_number;
   uint8_t writer_guid[16];
 
   rmw_gid_t publisher_gid;
   rmw_gid_t subscriber_gid;
-  dds_DataWriter * request_writer;
-  dds_DataReader * response_reader;
-  dds_ReadCondition * read_condition;
+  dds_DataWriter *request_writer;
+  dds_DataReader *response_reader;
+  dds_ReadCondition *read_condition;
 
   dds_DataReaderListener response_listener;
-  dds_DataSeq * data_seq;
-  dds_SampleInfoSeq * info_seq;
-  dds_UnsignedLongSeq * raw_data_sizes;
+  dds_DataSeq *data_seq;
+  dds_SampleInfoSeq *info_seq;
+  dds_UnsignedLongSeq *raw_data_sizes;
   event_callback_data_t event_callback_data;
 
   size_t count_unread()
   {
-    return rmw_gurumdds_cpp::count_unread(response_reader, data_seq, info_seq, raw_data_sizes);
+    return rmw_gurumdds_cpp::count_unread(response_reader, data_seq, info_seq,
+                                          raw_data_sizes);
   }
 };
 
-struct ServiceInfo {
-  const rosidl_service_type_support_t * service_typesupport;
-  const char * implementation_identifier;
-  rmw_context_impl_t * ctx;
+struct ServiceInfo
+{
+  const rosidl_service_type_support_t *service_typesupport;
+  const char *implementation_identifier;
+  rmw_context_impl_t *ctx;
 
   rmw_gid_t publisher_gid;
   rmw_gid_t subscriber_gid;
-  dds_DataWriter * response_writer;
-  dds_DataReader * request_reader;
-  dds_ReadCondition * read_condition;
+  dds_DataWriter *response_writer;
+  dds_DataReader *request_reader;
+  dds_ReadCondition *read_condition;
 
   dds_DataReaderListener request_listener;
-  dds_DataSeq * data_seq;
-  dds_SampleInfoSeq * info_seq;
-  dds_UnsignedLongSeq * raw_data_sizes;
+  dds_DataSeq *data_seq;
+  dds_SampleInfoSeq *info_seq;
+  dds_UnsignedLongSeq *raw_data_sizes;
   event_callback_data_t event_callback_data;
 
   size_t count_unread()
   {
-    return rmw_gurumdds_cpp::count_unread(request_reader, data_seq, info_seq, raw_data_sizes);
+    return rmw_gurumdds_cpp::count_unread(request_reader, data_seq, info_seq,
+                                          raw_data_sizes);
   }
 };
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS_CPP__EVENT_INFO_SERVICE_HPP_
+#endif // RMW_GURUMDDS_CPP__EVENT_INFO_SERVICE_HPP_

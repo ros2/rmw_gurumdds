@@ -16,22 +16,19 @@
 #include <set>
 
 #include "rcutils/allocator.h"
-
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/get_topic_names_and_types.h"
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
-
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/demangle.hpp"
+#include "rmw_gurumdds_cpp/fastrtps.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
-extern "C"
-{
-rmw_ret_t
-rmw_get_topic_names_and_types(
+extern "C" {
+rmw_ret_t rmw_get_topic_names_and_types(
   const rmw_node_t * node,
   rcutils_allocator_t * allocator,
   bool no_demangle,
@@ -39,7 +36,9 @@ rmw_get_topic_names_and_types(
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
-    allocator, "allocator argument is invalid", return RMW_RET_INVALID_ARGUMENT);
+    allocator,
+    "allocator argument is invalid",
+    return RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node,
     node->implementation_identifier,
@@ -50,8 +49,9 @@ rmw_get_topic_names_and_types(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  DemangleFunction demangle_topic = rmw_gurumdds_cpp::demangle_ros_topic_from_topic;
-  DemangleFunction demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
+  rmw_gurumdds_cpp::DemangleFunction demangle_topic =
+    rmw_gurumdds_cpp::demangle_ros_topic_from_topic;
+  rmw_gurumdds_cpp::DemangleFunction demangle_type = rmw_gurumdds_cpp::demangle_if_ros_type;
 
   if (no_demangle) {
     demangle_topic = rmw_gurumdds_cpp::identity_demangle;
@@ -59,7 +59,7 @@ rmw_get_topic_names_and_types(
   }
 
   auto common_ctx = &node->context->impl->common_ctx;
-  return common_ctx->graph_cache.get_names_and_types(
-    demangle_topic, demangle_type, allocator, topic_names_and_types);
+  return common_ctx->graph_cache
+         .get_names_and_types(demangle_topic, demangle_type, allocator, topic_names_and_types);
 }
 }  // extern "C"

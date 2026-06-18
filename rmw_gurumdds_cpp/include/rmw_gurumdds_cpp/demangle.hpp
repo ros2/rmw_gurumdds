@@ -40,12 +40,8 @@ demangle_service_reply_from_topic(const std::string & topic_name);
 std::string
 demangle_service_type_only(const std::string & dds_type_name);
 
-// Used when ros names are not mangled.
 std::string
 identity_demangle(const std::string & name);
 }  // namespace rmw_gurumdds_cpp
-
-using DemangleFunction = std::string (*)(const std::string &);
-using MangleFunction = DemangleFunction;
 
 #endif  // RMW_GURUMDDS_CPP__DEMANGLE_HPP_

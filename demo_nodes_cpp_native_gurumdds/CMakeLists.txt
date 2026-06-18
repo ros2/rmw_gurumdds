@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(demo_nodes_cpp_native_gurumdds)
 
 # Default to C++14
@@ -16,12 +16,46 @@ find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rmw_gurumdds_cpp QUIET)
 
+function(target_link_ros_package target package_name)
+  if(TARGET "${package_name}::${package_name}")
+    target_link_libraries(${target}
+      PRIVATE
+        "${package_name}::${package_name}"
+    )
+  elseif(DEFINED ${package_name}_TARGETS)
+    target_link_libraries(${target}
+      PRIVATE
+        ${${package_name}_TARGETS}
+    )
+  elseif(DEFINED ${package_name}_LIBRARIES)
+    target_include_directories(${target}
+      PRIVATE
+        ${${package_name}_INCLUDE_DIRS}
+    )
+    target_link_libraries(${target}
+      PRIVATE
+        ${${package_name}_LIBRARIES}
+    )
+  else()
+    message(FATAL_ERROR
+      "Package '${package_name}' does not provide an imported target, "
+      "\${${package_name}_TARGETS}, or \${${package_name}_LIBRARIES}"
+    )
+  endif()
+endfunction()
+
 function(custom_add_executable target)
   add_executable(${target} src/${target}.cpp)
-  ament_target_dependencies(${target}
-    "rclcpp"
-    "std_msgs"
-    "rmw_gurumdds_cpp")
+
+  target_include_directories(${target}
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/../rmw_gurumdds_cpp/include
+  )
+
+  target_link_ros_package(${target} rclcpp)
+  target_link_ros_package(${target} std_msgs)
+  target_link_ros_package(${target} rmw_gurumdds_cpp)
+
   install(TARGETS ${target}
     DESTINATION lib/${PROJECT_NAME})
 endfunction()

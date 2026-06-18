@@ -1,0 +1,77 @@
+raii.hpp 매뉴얼
+
+기존 GurumDDS의 C API 형태를 유지하면서 내부 자원을 RAII 방식으로 관리하기 위한 래퍼이다.
+
+각 래퍼 클래스에는 원본 DDS 타입으로 변환하는 연산자가 정의되어 있어 기존 GurumDDS C API에 그대로 전달할 수 있다.
+
+예시:
+
+  void dds_DO_SOMETHING(dds_FOO * foo);
+
+  void f()
+  {
+  raii::dds_FOO foo = raii::dds_FOO_create();
+
+  dds_DO_SOMETHING(foo);
+  // 자동으로 dds_FOO * 타입으로 변환된다.
+  }
+
+  래퍼 객체는 스코프가 종료되면 내부 DDS 자원을 자동으로 해제한다.
+
+  void f()
+  {
+  raii::dds_FOO foo = raii::dds_FOO_create();
+
+  dds_DO_SOMETHING(foo);
+  }
+  // 함수 종료 시 자동으로 자원이 해제된다.
+
+  자원을 명시적으로 해제해야 하는 경우 raii 네임스페이스의 해제 함수를 사용한다.
+
+  raii::dds_FOO_delete(foo);
+
+주의:
+
+  기존 GurumDDS C API의 해제 함수를 직접 호출하면 래퍼 내부 포인터가 nullptr로 변경되지 않는다.
+
+  이 상태에서 래퍼 객체가 소멸하면 같은 자원을 다시 해제하여 Double-Free가 발생할 수 있다.
+
+  dds_FOO_delete(foo);        // 사용 주의
+  raii::dds_FOO_delete(foo);  // 권장
+
+  Sequence 래퍼는 dds_DataSeq, dds_SampleInfoSeq 등의 DDS Sequence 자원을 관리한다.
+
+  auto data_seq = raii::dds_DataSeq_create(16);
+  auto info_seq = raii::dds_SampleInfoSeq_create(16);
+
+  if (!data_seq || !info_seq) {
+  return;
+  }
+
+  QoS 래퍼는 QoS 내부 자원을 자동으로 finalize한다.
+
+  raii::dds_DataWriterQos qos;
+
+  raii::dds_DataWriter_get_qos(writer, qos);
+
+  qos->history.depth = 10;
+
+  QoS 값을 조회하거나 복사할 때는 raii 네임스페이스의 함수를 사용하는 것을 권장한다.
+
+  raii::dds_DataWriterQos_copy(dst, src);
+
+  TypeSupport 래퍼는 dds_TypeSupport 객체의 소유권을 관리한다.
+
+  raii::dds_TypeSupport type_support(create_type_support());
+
+  객체가 소멸하면 내부적으로 dds_TypeSupport_delete()가 자동으로 호출된다.
+
+공통 주의사항:
+
+  래퍼가 관리하는 자원을 기존 GurumDDS 해제 함수로 직접 해제하지 않는다.
+
+  조기 해제가 필요한 경우 raii 네임스페이스의 해제 함수를 사용한다.
+
+  생성 결과가 nullptr인지 확인한 후 사용한다.
+
+  래퍼에서 변환된 원본 포인터는 래퍼 객체의 수명 안에서만 사용한다.

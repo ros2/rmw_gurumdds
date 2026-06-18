@@ -37,9 +37,12 @@
 #include "rmw_gurumdds_cpp/gid.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 #include "rmw_gurumdds_cpp/event_info_service.hpp"
+#include "rmw_gurumdds_cpp/qos.hpp"
 
 #include "rmw_gurumdds_cpp/type_support.hpp"
 #include "rmw_gurumdds_cpp/type_support_service.hpp"
+#include "rmw_gurumdds_cpp/utils.hpp"
+#include "rmw_gurumdds_cpp/raii.hpp"
 
 extern "C"
 {
@@ -50,19 +53,29 @@ rmw_create_service(
   const char * service_name,
   const rmw_qos_profile_t * qos_policies)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, nullptr);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return nullptr);
-  RMW_CHECK_ARGUMENT_FOR_NULL(type_supports, nullptr);
-  RMW_CHECK_ARGUMENT_FOR_NULL(service_name, nullptr);
+  CHECK_ALL_PTRS_NULL(node, type_supports, service_name, qos_policies);
+  CHECK_ID_NULL(node);
+
   if (strlen(service_name) == 0) {
     RMW_SET_ERROR_MSG("client topic is empty");
     return nullptr;
   }
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
+  if (!rmw_gurumdds_cpp::is_valid_qos(qos_policies)) {
+    return nullptr;
+  }
+
+  const rosidl_service_type_support_t * type_support =
+    get_service_typesupport_handle(type_supports, rosidl_typesupport_introspection_c__identifier);
+  if (type_support == nullptr) {
+    rcutils_reset_error();
+    type_support = get_service_typesupport_handle(
+      type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+    if (type_support == nullptr) {
+      rcutils_reset_error();
+      RMW_SET_ERROR_MSG("type support not from this implementation");
+      return nullptr;
+    }
+  }
 
   // Adapt any 'best available' QoS options
   rmw_qos_profile_t adapted_qos_policies =
@@ -81,19 +94,6 @@ rmw_create_service(
     }
   }
 
-  const rosidl_service_type_support_t * type_support =
-    get_service_typesupport_handle(type_supports, rosidl_typesupport_introspection_c__identifier);
-  if (type_support == nullptr) {
-    rcutils_reset_error();
-    type_support = get_service_typesupport_handle(
-      type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
-    if (type_support == nullptr) {
-      rcutils_reset_error();
-      RMW_SET_ERROR_MSG("type support not from this implementation");
-      return nullptr;
-    }
-  }
-
   rmw_context_impl_t * ctx = node->context->impl;
   std::lock_guard<std::mutex> guard(ctx->endpoint_mutex);
 
@@ -104,18 +104,16 @@ rmw_create_service(
   dds_Publisher * publisher = ctx->publisher;
   dds_Subscriber * subscriber = ctx->subscriber;
 
-  dds_DataReaderQos datareader_qos{};
-  dds_DataWriterQos datawriter_qos{};
+  raii::dds_DataReaderQos datareader_qos;
+  raii::dds_DataWriterQos datawriter_qos;
 
   dds_DataReader * request_reader = nullptr;
   dds_DataReaderListener request_listener;
-  dds_DataSeq* data_seq = nullptr;
-  dds_SampleInfoSeq* info_seq = nullptr;
-  dds_UnsignedLongSeq* raw_data_sizes = nullptr;
+
   dds_DataWriter * response_writer = nullptr;
   dds_ReadCondition * read_condition = nullptr;
-  dds_TypeSupport * request_typesupport = nullptr;
-  dds_TypeSupport * response_typesupport = nullptr;
+  raii::dds_TypeSupport request_typesupport;
+  raii::dds_TypeSupport response_typesupport;
 
   dds_TopicDescription * topic_desc = nullptr;
   dds_Topic * request_topic = nullptr;
@@ -134,8 +132,17 @@ rmw_create_service(
   std::string writer_profile_name;
   std::string reader_profile_name;
 
-  const rosidl_type_hash_t* type_hash;
-  const rosidl_message_type_support_t* req_typesupport;
+  const rosidl_type_hash_t * type_hash;
+  const rosidl_type_hash_t * service_type_hash;
+  const rosidl_message_type_support_t * req_typesupport;
+
+  raii::dds_DataSeq data_seq;
+  raii::dds_SampleInfoSeq info_seq;
+  raii::dds_UnsignedLongSeq raw_data_sizes;
+
+  service_type_hash =
+    type_supports->get_type_hash_func(type_supports);
+
   // Create topic and type name strings
   service_type_name =
     rmw_gurumdds_cpp::create_service_type_name(type_support->data,
@@ -144,7 +151,7 @@ rmw_create_service(
   response_type_name = service_type_name.second;
   if (request_type_name.empty() || response_type_name.empty()) {
     RMW_SET_ERROR_MSG("failed to create type name");
-    return nullptr;
+    goto fail;
   }
 
   writer_profile_name = service_name;
@@ -168,7 +175,7 @@ rmw_create_service(
   response_metastring = service_metastring.second;
   if (request_metastring.empty() || response_metastring.empty()) {
     RMW_SET_ERROR_MSG("failed to create metastring");
-    return nullptr;
+    goto fail;
   }
 
   request_typesupport = dds_TypeSupport_create(request_metastring.c_str());
@@ -203,26 +210,21 @@ rmw_create_service(
   topic_desc =
     dds_DomainParticipant_lookup_topicdescription(participant, request_topic_name.c_str());
   if (topic_desc == nullptr) {
-    dds_TopicQos topic_qos;
-    ret = dds_DomainParticipant_get_default_topic_qos(participant, &topic_qos);
+    raii::dds_TopicQos topic_qos;
+    ret = raii::dds_DomainParticipant_get_default_topic_qos(participant, topic_qos);
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get default topic qos");
       goto fail;
     }
 
     request_topic = dds_DomainParticipant_create_topic(
-      participant, request_topic_name.c_str(), request_type_name.c_str(), &topic_qos, nullptr, 0);
+      participant, request_topic_name.c_str(), request_type_name.c_str(), topic_qos, nullptr, 0);
     if (request_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
-      dds_TopicQos_finalize(&topic_qos);
+      //dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
-    ret = dds_TopicQos_finalize(&topic_qos);
-    if (ret != dds_RETCODE_OK) {
-      RMW_SET_ERROR_MSG("failed to finalize topic qos");
-      goto fail;
-    }
   } else {
     dds_Duration_t timeout;
     timeout.sec = 0;
@@ -235,31 +237,28 @@ rmw_create_service(
     }
   }
 
+  topic_desc = nullptr;
+
   // Look for response topic
   topic_desc =
     dds_DomainParticipant_lookup_topicdescription(participant, response_topic_name.c_str());
   if (topic_desc == nullptr) {
-    dds_TopicQos topic_qos;
-    ret = dds_DomainParticipant_get_default_topic_qos(participant, &topic_qos);
+    raii::dds_TopicQos topic_qos;
+    ret = raii::dds_DomainParticipant_get_default_topic_qos(participant, topic_qos);
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get default topic qos");
       goto fail;
     }
 
     response_topic = dds_DomainParticipant_create_topic(
-      participant, response_topic_name.c_str(), response_type_name.c_str(), &topic_qos, nullptr,
+      participant, response_topic_name.c_str(), response_type_name.c_str(), topic_qos, nullptr,
       0);
     if (response_topic == nullptr) {
       RMW_SET_ERROR_MSG("failed to create topic");
-      dds_TopicQos_finalize(&topic_qos);
+      //dds_TopicQos_finalize(&topic_qos);
       goto fail;
     }
 
-    ret = dds_TopicQos_finalize(&topic_qos);
-    if (ret != dds_RETCODE_OK) {
-      RMW_SET_ERROR_MSG("failed to finalize topic qos");
-      goto fail;
-    }
   } else {
     dds_Duration_t timeout;
     timeout.sec = 0;
@@ -273,33 +272,32 @@ rmw_create_service(
   }
 
   ret = dds_DomainParticipantFactory_get_datareader_qos_from_profile(reader_profile_name.c_str(),
-                                                                     &datareader_qos);
+                                                                     datareader_qos);
   if(ret != dds_RETCODE_OK) {
-    ret = dds_Subscriber_get_default_datareader_qos(subscriber, &datareader_qos);
+    ret = raii::dds_Subscriber_get_default_datareader_qos(subscriber, datareader_qos);
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to get default datareader qos");
-      return nullptr;
+      goto fail;
     }
   }
 
   req_typesupport = type_support->request_typesupport;
   type_hash = req_typesupport->get_type_hash_func(req_typesupport);
-  if (!rmw_gurumdds_cpp::get_datareader_qos(&adapted_qos_policies, *type_hash, &datareader_qos)) {
+  if (!rmw_gurumdds_cpp::get_datareader_qos(
+    &adapted_qos_policies,
+    *type_hash,
+    datareader_qos,
+    *service_type_hash))
+  {
     // Error message already set
     goto fail;
   }
 
   request_reader = dds_Subscriber_create_datareader(
-    subscriber, request_topic, &datareader_qos, nullptr, 0);
+    subscriber, request_topic, datareader_qos, nullptr, 0);
   if (request_reader == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datareader");
-    dds_DataReaderQos_finalize(&datareader_qos);
-    goto fail;
-  }
-
-  ret = dds_DataReaderQos_finalize(&datareader_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to finalize datareader qos");
+    //dds_DataReaderQos_finalize(&datareader_qos);
     goto fail;
   }
 
@@ -310,40 +308,30 @@ rmw_create_service(
     goto fail;
   }
 
-  ret = dds_Publisher_get_default_datawriter_qos(publisher, &datawriter_qos);
+  ret = raii::dds_Publisher_get_default_datawriter_qos(publisher, datawriter_qos);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("failed to get default datawriter qos");
-    return nullptr;
+    goto fail;
   }
 
-  ret = dds_DomainParticipantFactory_get_datawriter_qos_from_profile(writer_profile_name.c_str(),
-                                                                     &datawriter_qos);
-  if(ret != dds_RETCODE_OK) {
-    ret = dds_Publisher_get_default_datawriter_qos(publisher, &datawriter_qos);
-    if (ret != dds_RETCODE_OK) {
-      RMW_SET_ERROR_MSG("failed to get default datawriter qos");
-      return nullptr;
-    }
-  }
 
   type_hash =
-      type_support->response_typesupport->get_type_hash_func(type_support->response_typesupport);
-  if (!rmw_gurumdds_cpp::get_datawriter_qos(&adapted_qos_policies, *type_hash, &datawriter_qos)) {
+    type_support->response_typesupport->get_type_hash_func(type_support->response_typesupport);
+  if (!rmw_gurumdds_cpp::get_datawriter_qos(
+    &adapted_qos_policies,
+    *type_hash,
+    datawriter_qos,
+    *service_type_hash))
+  {
     // Error message already set
     goto fail;
   }
 
   response_writer = dds_Publisher_create_datawriter(
-    publisher, response_topic, &datawriter_qos, nullptr, 0);
+    publisher, response_topic, datawriter_qos, nullptr, 0);
   if (response_writer == nullptr) {
     RMW_SET_ERROR_MSG("failed to create datawriter");
-    dds_DataWriterQos_finalize(&datawriter_qos);
-    goto fail;
-  }
-
-  ret = dds_DataWriterQos_finalize(&datawriter_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to finalize datawriter qos");
+    //dds_DataWriterQos_finalize(&datawriter_qos);
     goto fail;
   }
 
@@ -353,33 +341,33 @@ rmw_create_service(
     goto fail;
   }
 
-  data_seq = dds_DataSeq_create(1);
+  data_seq = raii::dds_DataSeq_create(1);
   if (nullptr == data_seq) {
     RMW_SET_ERROR_MSG("failed to allocate data_seq");
-    return nullptr;
+    goto fail;
   }
-  info_seq = dds_SampleInfoSeq_create(1);
+  info_seq = raii::dds_SampleInfoSeq_create(1);
   if (nullptr == info_seq) {
     RMW_SET_ERROR_MSG("failed to allocate info_seq");
-    return nullptr;
+    goto fail;
   }
-  raw_data_sizes = dds_UnsignedLongSeq_create(1);
+  raw_data_sizes = raii::dds_UnsignedLongSeq_create(1);
   if (nullptr == raw_data_sizes) {
     RMW_SET_ERROR_MSG("failed to allocate raw_data_sizes");
-    return nullptr;
+    goto fail;
   }
 
   dds_DataReader_set_listener_context(request_reader, service_info);
   request_listener.on_data_available = [](const dds_DataReader * request_reader){
-    auto* reader = const_cast<dds_DataReader*>(request_reader);
-    auto* info =
-        static_cast<rmw_gurumdds_cpp::ServiceInfo*>(dds_DataReader_get_listener_context(reader));
-    std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
-    if(info->event_callback_data.callback) {
-      info->event_callback_data.callback(info->event_callback_data.user_data,
+      auto * reader = const_cast<dds_DataReader *>(request_reader);
+      auto * info =
+        static_cast<rmw_gurumdds_cpp::ServiceInfo *>(dds_DataReader_get_listener_context(reader));
+      std::lock_guard<std::mutex> guard(info->event_callback_data.mutex);
+      if(info->event_callback_data.callback) {
+        info->event_callback_data.callback(info->event_callback_data.user_data,
                                          info->count_unread());
-    }
-  };
+      }
+    };
 
   service_info->response_writer = response_writer;
   service_info->request_reader = request_reader;
@@ -422,11 +410,6 @@ rmw_create_service(
     goto fail;
   }
 
-  dds_TypeSupport_delete(request_typesupport);
-  request_typesupport = nullptr;
-  dds_TypeSupport_delete(response_typesupport);
-  response_typesupport = nullptr;
-
   RCUTILS_LOG_DEBUG_NAMED(
     RMW_GURUMDDS_ID,
     "Created server with service '%s' on node '%s%s%s'",
@@ -436,13 +419,6 @@ rmw_create_service(
   return rmw_service;
 
 fail:
-  if (rmw_service != nullptr) {
-    if (rmw_service->service_name != nullptr) {
-      rmw_free(const_cast<char *>(rmw_service->service_name));
-    }
-    rmw_service_free(rmw_service);
-  }
-
   if (request_reader != nullptr) {
     if (read_condition != nullptr) {
       dds_DataReader_delete_readcondition(request_reader, read_condition);
@@ -462,15 +438,15 @@ fail:
     dds_DomainParticipant_delete_topic(participant, response_topic);
   }
 
-  if (request_typesupport != nullptr) {
-    dds_TypeSupport_delete(request_typesupport);
+  if(service_info != nullptr) {
+    delete service_info;
   }
-
-  if (response_typesupport != nullptr) {
-    dds_TypeSupport_delete(response_typesupport);
+  if (rmw_service != nullptr) {
+    if (rmw_service->service_name != nullptr) {
+      rmw_free(const_cast<char *>(rmw_service->service_name));
+    }
+    rmw_service_free(rmw_service);
   }
-
-  delete service_info;
 
   return nullptr;
 }
@@ -478,18 +454,9 @@ fail:
 rmw_ret_t
 rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    service,
-    service->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  CHECK_ALL_PTRS_CODE(node, service);
+  CHECK_ID_CODE(node);
+  CHECK_ID_CODE(service);
 
   dds_ReturnCode_t ret;
   rmw_context_impl_t * ctx = node->context->impl;
@@ -505,10 +472,6 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
         return RMW_RET_ERROR;
       }
     }
-
-    dds_DataSeq_delete(service_info->data_seq);
-    dds_SampleInfoSeq_delete(service_info->info_seq);
-    dds_UnsignedLongSeq_delete(service_info->raw_data_sizes);
 
     if (service_info->request_reader != nullptr) {
       if (service_info->read_condition != nullptr) {
@@ -544,6 +507,7 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
       node->namespace_[strlen(node->namespace_) - 1] == '/' ? "" : "/", node->name);
     rmw_free(const_cast<char *>(service->service_name));
   }
+
   rmw_service_free(service);
 
   return RMW_RET_OK;
@@ -554,13 +518,8 @@ rmw_service_response_publisher_get_actual_qos(
   const rmw_service_t * service,
   rmw_qos_profile_t * qos)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    service,
-    service->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(service, qos);
+  CHECK_ID_CODE(service);
 
   auto * service_info = static_cast<rmw_gurumdds_cpp::ServiceInfo *>(service->data);
   if (service_info == nullptr) {
@@ -574,28 +533,22 @@ rmw_service_response_publisher_get_actual_qos(
     return RMW_RET_ERROR;
   }
 
-  dds_DataWriterQos dds_qos;
-  dds_ReturnCode_t ret = dds_DataWriter_get_qos(response_writer, &dds_qos);
+  raii::dds_DataWriterQos dds_qos;
+  dds_ReturnCode_t ret = raii::dds_DataWriter_get_qos(response_writer, dds_qos);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("publisher can't get data writer qos policies");
     return RMW_RET_ERROR;
   }
 
-  qos->reliability = rmw_gurumdds_cpp::convert_reliability(&dds_qos.reliability);
-  qos->durability = rmw_gurumdds_cpp::convert_durability(&dds_qos.durability);
-  qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
-  qos->lifespan = rmw_gurumdds_cpp::convert_lifespan(&dds_qos.lifespan);
-  qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
+  qos->reliability = rmw_gurumdds_cpp::convert_reliability(&dds_qos->reliability);
+  qos->durability = rmw_gurumdds_cpp::convert_durability(&dds_qos->durability);
+  qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos->deadline);
+  qos->lifespan = rmw_gurumdds_cpp::convert_lifespan(&dds_qos->lifespan);
+  qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos->liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
-  qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
-  qos->depth = static_cast<size_t>(dds_qos.history.depth);
-
-  ret = dds_DataWriterQos_finalize(&dds_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to finalize datawriter qos");
-    return RMW_RET_ERROR;
-  }
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos->liveliness);
+  qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos->history);
+  qos->depth = static_cast<size_t>(dds_qos->history.depth);
 
   return RMW_RET_OK;
 }
@@ -605,16 +558,11 @@ rmw_service_request_subscription_get_actual_qos(
   const rmw_service_t * service,
   rmw_qos_profile_t * qos)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    service,
-    service->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(service, qos);
+  CHECK_ID_CODE(service);
 
   auto * service_info =
-      static_cast<rmw_gurumdds_cpp::ServiceInfo *>(service->data);
+    static_cast<rmw_gurumdds_cpp::ServiceInfo *>(service->data);
   if (service_info == nullptr) {
     RMW_SET_ERROR_MSG("service info is null");
     return RMW_RET_ERROR;
@@ -626,27 +574,21 @@ rmw_service_request_subscription_get_actual_qos(
     return RMW_RET_ERROR;
   }
 
-  dds_DataReaderQos dds_qos;
-  dds_ReturnCode_t ret = dds_DataReader_get_qos(request_reader, &dds_qos);
+  raii::dds_DataReaderQos dds_qos;
+  dds_ReturnCode_t ret = raii::dds_DataReader_get_qos(request_reader, dds_qos);
   if (ret != dds_RETCODE_OK) {
     RMW_SET_ERROR_MSG("subscription can't get data reader qos policies");
     return RMW_RET_ERROR;
   }
 
-  qos->reliability = rmw_gurumdds_cpp::convert_reliability(&dds_qos.reliability);
-  qos->durability = rmw_gurumdds_cpp::convert_durability(&dds_qos.durability);
-  qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos.deadline);
-  qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos.liveliness);
+  qos->reliability = rmw_gurumdds_cpp::convert_reliability(&dds_qos->reliability);
+  qos->durability = rmw_gurumdds_cpp::convert_durability(&dds_qos->durability);
+  qos->deadline = rmw_gurumdds_cpp::convert_deadline(&dds_qos->deadline);
+  qos->liveliness = rmw_gurumdds_cpp::convert_liveliness(&dds_qos->liveliness);
   qos->liveliness_lease_duration =
-      rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos.liveliness);
-  qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos.history);
-  qos->depth = static_cast<size_t>(dds_qos.history.depth);
-
-  ret = dds_DataReaderQos_finalize(&dds_qos);
-  if (ret != dds_RETCODE_OK) {
-    RMW_SET_ERROR_MSG("failed to finalize datareader qos");
-    return RMW_RET_ERROR;
-  }
+    rmw_gurumdds_cpp::convert_liveliness_lease_duration(&dds_qos->liveliness);
+  qos->history = rmw_gurumdds_cpp::convert_history(&dds_qos->history);
+  qos->depth = static_cast<size_t>(dds_qos->history.depth);
 
   return RMW_RET_OK;
 }
@@ -658,14 +600,8 @@ rmw_take_request(
   void * ros_request,
   bool * taken)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    service,
-    service->implementation_identifier, RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(service, request_header, ros_request, taken);
+  CHECK_ID_CODE(service);
 
   *taken = false;
 
@@ -687,26 +623,32 @@ rmw_take_request(
     return RMW_RET_ERROR;
   }
 
-  dds_DataSeq * data_values = dds_DataSeq_create(1);
+  raii::dds_DataSeq data_values = raii::dds_DataSeq_create(1);
   if (data_values == nullptr) {
     RMW_SET_ERROR_MSG("failed to create data sequence");
     return RMW_RET_ERROR;
   }
 
-  dds_SampleInfoSeq * sample_infos = dds_SampleInfoSeq_create(1);
+  raii::dds_SampleInfoSeq sample_infos = raii::dds_SampleInfoSeq_create(1);
   if (sample_infos == nullptr) {
     RMW_SET_ERROR_MSG("failed to create sample info sequence");
-    dds_DataSeq_delete(data_values);
     return RMW_RET_ERROR;
   }
 
-  dds_UnsignedLongSeq * sample_sizes = dds_UnsignedLongSeq_create(1);
+  raii::dds_UnsignedLongSeq sample_sizes = raii::dds_UnsignedLongSeq_create(1);
   if (sample_sizes == nullptr) {
     RMW_SET_ERROR_MSG("failed to create sample size sequence");
-    dds_DataSeq_delete(data_values);
-    dds_SampleInfoSeq_delete(sample_infos);
     return RMW_RET_ERROR;
   }
+
+  auto ret_loan = rcpputils::make_scope_exit(
+    [&](){
+      dds_DataReader_raw_return_loan(
+        request_reader,
+        data_values,
+        sample_infos,
+        sample_sizes);
+    });
 
   if (service_info->ctx->service_mapping_basic) {
     dds_ReturnCode_t ret = dds_DataReader_raw_take(
@@ -714,19 +656,11 @@ rmw_take_request(
       dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
     if (ret == dds_RETCODE_NO_DATA) {
-      dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_OK;
     }
 
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to take data");
-      dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_ERROR;
     }
 
@@ -734,10 +668,6 @@ rmw_take_request(
     if (sample_info->valid_data) {
       void * sample = dds_DataSeq_get(data_values, 0);
       if (sample == nullptr) {
-        dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
       uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
@@ -759,10 +689,6 @@ rmw_take_request(
 
       if (!res) {
         // Error message already set
-        dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
 
@@ -776,29 +702,17 @@ rmw_take_request(
       std::memcpy(request_header->request_id.writer_guid, client_guid, RMW_GID_STORAGE_SIZE);
     }
 
-    dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-    dds_DataSeq_delete(data_values);
-    dds_SampleInfoSeq_delete(sample_infos);
-    dds_UnsignedLongSeq_delete(sample_sizes);
   } else {
     dds_ReturnCode_t ret = dds_DataReader_raw_take_w_sampleinfoex(
       request_reader, dds_HANDLE_NIL, data_values, sample_infos, sample_sizes, 1,
       dds_ANY_SAMPLE_STATE, dds_ANY_VIEW_STATE, dds_ANY_INSTANCE_STATE);
 
     if (ret == dds_RETCODE_NO_DATA) {
-      dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_OK;
     }
 
     if (ret != dds_RETCODE_OK) {
       RMW_SET_ERROR_MSG("failed to take data");
-      dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-      dds_DataSeq_delete(data_values);
-      dds_SampleInfoSeq_delete(sample_infos);
-      dds_UnsignedLongSeq_delete(sample_sizes);
       return RMW_RET_ERROR;
     }
 
@@ -806,10 +720,6 @@ rmw_take_request(
     if (sample_info->valid_data) {
       void * sample = dds_DataSeq_get(data_values, 0);
       if (sample == nullptr) {
-        dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
       uint32_t size = dds_UnsignedLongSeq_get(sample_sizes, 0);
@@ -830,10 +740,6 @@ rmw_take_request(
 
       if (!res) {
         // Error message already set
-        dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-        dds_DataSeq_delete(data_values);
-        dds_SampleInfoSeq_delete(sample_infos);
-        dds_UnsignedLongSeq_delete(sample_sizes);
         return RMW_RET_ERROR;
       }
 
@@ -846,11 +752,6 @@ rmw_take_request(
       request_header->request_id.sequence_number = sequence_number;
       std::memcpy(request_header->request_id.writer_guid, client_guid, RMW_GID_STORAGE_SIZE);
     }
-
-    dds_DataReader_raw_return_loan(request_reader, data_values, sample_infos, sample_sizes);
-    dds_DataSeq_delete(data_values);
-    dds_SampleInfoSeq_delete(sample_infos);
-    dds_UnsignedLongSeq_delete(sample_sizes);
   }
 
   *taken = true;
@@ -872,13 +773,8 @@ rmw_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    service,
-    service->implementation_identifier, RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_INVALID_ARGUMENT);
+  CHECK_ALL_PTRS_CODE(service, request_header, ros_response);
+  CHECK_ID_CODE(service);
 
   auto * service_info = static_cast<rmw_gurumdds_cpp::ServiceInfo *>(service->data);
   if (service_info == nullptr) {
@@ -967,12 +863,9 @@ rmw_service_set_on_new_request_callback(
   rmw_event_callback_t callback,
   const void * user_data)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(rmw_service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    rmw_service,
-    rmw_service->implementation_identifier,
-    RMW_GURUMDDS_ID,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  CHECK_ALL_PTRS_CODE(rmw_service);
+  CHECK_ID_CODE(rmw_service);
+
   auto service_info = static_cast<rmw_gurumdds_cpp::ServiceInfo *>(rmw_service->data);
   if (service_info == nullptr) {
     RMW_SET_ERROR_MSG("invalid service data");
