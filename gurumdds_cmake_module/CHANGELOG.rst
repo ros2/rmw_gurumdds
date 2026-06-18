@@ -2,6 +2,13 @@
 Changelog for package gurumdds_cmake_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Lyrical Luth update
+* 6.0.1
+* Replace deprecated ament_target_dependencies
+* Contributors: kumazuma, mmminjae
+
 6.0.1 (2025-05-20)
 -----------
 
