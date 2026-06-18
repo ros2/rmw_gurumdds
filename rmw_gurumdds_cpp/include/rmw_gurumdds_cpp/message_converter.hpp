@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/*
+기존 CDR 소스코드 지원 중단.
+Fastrtps 소스코드 이식 진행 예정.
+*/
+
 #ifndef RMW_GURUMDDS_CPP__MESSAGE_CONVERTER_HPP_
 #define RMW_GURUMDDS_CPP__MESSAGE_CONVERTER_HPP_
 
@@ -35,11 +40,15 @@ namespace rmw_gurumdds_cpp
 {
 enum class LanguageKind { UNKNOWN, C, CXX };
 
-template<typename T>
-constexpr LanguageKind get_language_kind() {
-  if constexpr (std::is_same_v<T, rosidl_typesupport_introspection_c__MessageMember>) {
+template<typename T> constexpr LanguageKind get_language_kind()
+{
+  if constexpr (std::is_same_v<
+      T, rosidl_typesupport_introspection_c__MessageMember>)
+  {
     return LanguageKind::C;
-  } else if constexpr (std::is_same_v<T, rosidl_typesupport_introspection_cpp::MessageMember>) {
+  } else if constexpr (std::is_same_v<T, rosidl_typesupport_introspection_cpp::
+    MessageMember>)
+  {
     return LanguageKind::CXX;
   }
 
@@ -47,26 +56,27 @@ constexpr LanguageKind get_language_kind() {
 }
 
 template<typename MessageMembersT>
-using MessageMemberType =
-    std::remove_cv_t<std::remove_pointer_t<decltype(std::declval<MessageMembersT>().members_)>>;
+using MessageMemberType = std::remove_cv_t<
+  std::remove_pointer_t<decltype(std::declval<MessageMembersT>().members_)>>;
 
 template<typename T>
 struct rmw_seq_t {};
 
-#define RMW_GURUMDDS_SEQ_HELPER(HelperItemType, SIZE)                                       \
-template<> struct rmw_seq_t<HelperItemType>: rosidl_runtime_c__uint ## SIZE ## __Sequence { \
-  bool init(size_t size)                                                                    \
-  {                                                                                         \
-    return rosidl_runtime_c__uint ## SIZE ## __Sequence__init(this, size);                  \
-  }                                                                                         \
-                                                                                            \
-  void fini() { rosidl_runtime_c__uint ## SIZE ## __Sequence__fini(this); }                 \
-};
+#define RMW_GURUMDDS_SEQ_HELPER(HelperItemType, SIZE) \
+  template<> \
+  struct rmw_seq_t<HelperItemType> \
+    : rosidl_runtime_c__uint ## SIZE ## __Sequence { \
+    bool init(size_t size) { \
+      return rosidl_runtime_c__uint ## SIZE ## __Sequence__init(this, size); \
+    } \
+ \
+    void fini() {rosidl_runtime_c__uint ## SIZE ## __Sequence__fini(this);} \
+  };
 
 RMW_GURUMDDS_SEQ_HELPER(uint8_t, 8);
 RMW_GURUMDDS_SEQ_HELPER(uint16_t, 16);
 RMW_GURUMDDS_SEQ_HELPER(uint32_t, 32);
 RMW_GURUMDDS_SEQ_HELPER(uint64_t, 64);
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS_CPP__MESSAGE_CONVERTER_HPP_
+#endif // RMW_GURUMDDS_CPP__MESSAGE_CONVERTER_HPP_

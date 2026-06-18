@@ -1,0 +1,242 @@
+# ROS 2 Lyrical rosidl::Buffer Backend Transport Manual
+
+This file implements the structure required to handle the rosidl::Buffer-based
+backend transport introduced in ROS 2 Lyrical at the RMW layer.
+
+The existing ROS 2 C++ message generator generated variable-length primitive
+array fields, such as uint8[] and float32[], as std::vector<T>.
+Starting with Lyrical, these fields can be generated as rosidl::Buffer<T>.
+rosidl::Buffer<T> is a pimpl-based container that provides default CPU storage
+compatible with std::vector<T>, while also allowing other memory backends such
+as CUDA, shared memory, and vendor-native memory.
+
+The purpose is to avoid forcing large binary payloads to be copied into CPU
+memory without changing the message definition (.msg). For example, when
+publishing image or tensor data generated on a GPU, this avoids copying the data
+once into std::vector<uint8_t> and then copying it back to the GPU on the
+subscriber side. Instead, the actual payload remains in backend-native memory,
+and a backend descriptor is placed on the DDS wire in place of the payload.
+
+1. Core abstraction
+
+---
+
+rosidl::Buffer<T>
+
+* A container directly owned by a generated C++ message field.
+* Uses the CPU backend by default.
+* On the CPU backend, it can be implicitly converted to std::vector<T>&, which
+  preserves backward compatibility with existing code.
+* On non-CPU backends, direct element access may be restricted. When required,
+  a CPU copy can be created through conversions such as to_vector() or to_cpu().
+
+rosidl::BufferImplBase<T>
+
+* The abstract base class of the pimpl stored inside Buffer<T>.
+* Provides only common operations such as the backend type name, element count,
+  CPU copy, and deep clone.
+* Backend-specific implementations own the actual memory allocation and release,
+  state required to create descriptors, native handles, and other backend data.
+
+CpuBufferImpl<T>
+
+* The default CPU backend implementation.
+* Internally wraps std::vector<T, Allocator>.
+* This path is used when behavior equivalent to an existing ROS 2 message field
+  is required.
+
+rosidl::BufferBackend
+
+* The plugin interface used by the RMW layer.
+* Provides the backend type name, backend metadata, and descriptor message type
+  support.
+* On the publisher side, it creates a descriptor message from BufferImplBase<T>.
+* On the subscriber side, it restores BufferImplBase<T> from a descriptor
+  message.
+* Uses endpoint discovery hooks to determine whether a specific
+  publisher/subscriber pair can use the backend.
+
+descriptor
+
+* A small ROS message that allows the receiver to access or restore the payload,
+  rather than containing the actual payload itself.
+* With CPU fallback, the descriptor or the normal serialization path may contain
+  the actual bytes.
+* With non-CPU backends, it may contain backend-specific reference information
+  such as a CUDA IPC handle, shared memory key, allocation ID, size, or offset.
+* The serialized descriptor size must have an upper bound. In FastRTPS-based
+  implementations, the serialization buffer size must be computable in advance.
+
+2. RMW integration
+
+---
+
+Buffer backend state is stored per rmw_context.
+A representative structure is shown below.
+
+BufferBackendContext
+- BufferSerializationContext serialization_context
+- BufferBackendRegistry registry
+- unordered_map<string, shared_ptr<BufferBackend>> backend_instances
+
+During initialize_buffer_backends(), installed backends are discovered through
+the plugin registry. Each backend instance is created and stored by backend type
+name. The descriptor type support provided by each backend is also resolved as
+FastRTPS C++ typesupport, and descriptor serialization and deserialization
+callbacks are registered in BufferSerializationContext.
+
+Therefore, when a normal ROS message serialization callback encounters a
+rosidl::Buffer<T> field, it can perform the following operations based on the
+backend type and endpoint information.
+
+publisher:
+BufferImplBase<T>
+-> BufferBackend::create_descriptor_with_endpoint()
+-> descriptor message
+-> FastCDR serialize
+
+subscriber:
+FastCDR deserialize
+-> descriptor message
+-> BufferBackend::from_descriptor_with_endpoint()
+-> BufferImplBase<T>
+-> attach to the rosidl::Buffer<T> field
+
+3. Discovery and backend negotiation
+
+---
+
+A buffer backend is not applied unconditionally to every endpoint.
+The publisher and subscriber must support mutually compatible backends, and
+this information is exchanged during endpoint discovery as user_data or backend
+metadata.
+
+When creating a publisher:
+
+* Check whether the message type support callback reports has_buffer_fields.
+* If the message contains buffer fields, collect metadata for the backends loaded
+  in the current RMW context.
+* CPU serialization must always remain available as a fallback, so the "cpu"
+  backend is implicitly included in the list of supported backends.
+* Encode the backend metadata into DataWriter QoS user_data or equivalent data so
+  that remote subscribers can inspect it during discovery.
+
+When creating a subscriber:
+
+* Check whether the message type support callback reports has_buffer_fields.
+* Parse acceptable_buffer_backends from the subscription options.
+* If the value is empty or contains only "cpu", operate in CPU-only mode.
+* If "any" is specified, allow all installed backends.
+* If specific backend names are specified, include only matching loaded backends
+  in the advertised backend list.
+
+The backend-specific on_creating_endpoint() and on_discovering_endpoint() hooks
+inspect local and remote endpoint information and determine whether transport is
+actually possible. For example, whether both endpoints are on the same host,
+can share the same GPU context, or can transfer a shared memory handle is decided
+by the backend plugin rather than rosidl::Buffer itself.
+
+4. publish path
+
+---
+
+A buffer-aware publisher may have additional channels for buffer transport in
+addition to the main DataWriter.
+
+main DataWriter
+- The normal ROS 2 publish path.
+- Used when legacy subscribers or buffer-unaware endpoints are present.
+- Buffer-aware subscribers also retain the main DataReader for fallback
+  reception.
+
+CPU shared channel
+- Uses a topic in the form topic_name + "/_buf_cpu".
+- Shared by CPU-only subscribers.
+- A single CPU channel DataWriter serves multiple CPU-only subscribers.
+- The payload is handled using CPU memory, similarly to normal ROS message
+  serialization.
+
+accelerated per-subscriber channel
+- Creates a separate buffer endpoint for each subscriber using a non-CPU backend.
+- Uses a unique topic in the form
+  topic_name + "/_buf/" + subscriber_gid_hex.
+- The publisher accumulates pending endpoint information in the discovery
+  callback and lazily creates the required per-subscriber DataWriter at publish
+  time.
+- For each endpoint, subscriber endpoint information is passed to
+  cdr_serialize_with_endpoint().
+- The serialization callback uses the serialization_context in
+  BufferBackendContext to create a backend descriptor and write it to the
+  FastCDR stream.
+
+If the total number of matched subscribers equals the number of buffer-aware
+endpoints, only the buffer channels are used. If legacy subscribers are also
+present, the main DataWriter is used to preserve compatibility with cross-RMW or
+buffer-unaware subscribers.
+
+5. take path
+
+---
+
+A buffer-aware subscriber has a DataReader for the buffer channel in addition to
+the main DataReader.
+
+CPU-only subscriber:
+- First attempts to take from the DataReader on the
+  topic_name + "/_buf_cpu" channel.
+- On success, the sample is deserialized directly into ros_message.
+
+accelerated subscriber:
+- First attempts to take from the DataReader on the
+  topic_name + "/_buf/" + subscriber_gid_hex channel.
+- The received buffer is provided as a CDR buffer.
+- Publisher metadata is found using the writer GID, and publisher endpoint
+  information is constructed.
+- cdr_deserialize_with_endpoint() reads the descriptor, and
+  BufferBackend::from_descriptor_with_endpoint() restores the native
+  BufferImplBase<T>.
+
+If no data is received from a buffer channel, the subscriber falls back to the
+main DataReader. This fallback preserves communication with buffer-unaware
+publishers, other RMW implementations, and endpoints for which backend
+negotiation failed.
+
+6. Guard condition and wait-set integration
+
+---
+
+Because buffer channels use DataReaders separate from the main DataReader,
+rmw_wait() may miss buffer-channel data arrival if it monitors only the main
+DataReader. To prevent this, a buffer-aware subscription owns a separate
+GuardCondition, and the listener for the CPU or accelerated channel triggers the
+guard in on_data_available(). The take() path checks the buffer channel first.
+If unread data remains, it triggers the guard again so that the executor can
+continue processing subsequent samples.
+
+7. Important invariants
+
+---
+
+* Buffer backend state is managed per rmw_context.
+  Mutable descriptor state is not shared globally, even when multiple contexts
+  exist in the same process.
+
+* The "cpu" backend is always treated as the fallback baseline.
+  ROS 2 publisher/subscriber compatibility must not be broken when non-CPU
+  backend negotiation fails.
+
+* Non-CPU backend transport depends on the endpoint pair.
+  If a backend cannot handle a specific remote endpoint, it must abandon
+  descriptor creation and fall back to CPU serialization.
+
+* Buffer-channel DataReaders and DataWriters are separate from the main
+  DataReader and DataWriter. Their creation and destruction order, listener
+  lifetime, and wait-set wakeup handling must therefore be managed separately.
+
+* The writer GID of a sample received on an accelerated channel may belong to an
+  internal per-endpoint DataWriter. It must be remapped so that
+  rmw_message_info_t contains the main publisher GID expected by the user.
+
+* This feature optimizes the topic publish/subscribe path.
+  Unless separately supported, service and action paths continue to use the
+  existing serialization path.

@@ -40,9 +40,11 @@
 #include "rmw_gurumdds_cpp/dds_include.hpp"
 #include "rmw_gurumdds_cpp/graph_cache.hpp"
 #include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/backend_buffer.hpp"
 
 namespace rmw_gurumdds_cpp
 {
+
 void on_participant_changed(
   const dds_DomainParticipant * a_participant,
   const dds_ParticipantBuiltinTopicData * data,
@@ -66,6 +68,7 @@ struct rmw_context_impl_s
 
   dds_DomainId_t domain_id;
   dds_DomainParticipant * participant;
+  dds_DomainParticipantListener participant_listener {};
 
   /* used for all DDS writers/readers created to support
    * rmw_gurumdds_cpp::(Publisher/Subscriber)Info.
@@ -85,6 +88,15 @@ struct rmw_context_impl_s
   bool is_shutdown;
 
   std::mutex endpoint_mutex;
+
+  //backend buffer
+  rmw_gurumdds_cpp::BufferBackendContext * buffer_serialization_context;
+  rmw_gurumdds_cpp::BufferEndpointRegistry * buffer_endpoint_registry;
+
+  //local publisher registry
+  //ignore_local_publish 기능을 위해 추가.
+  std::mutex local_pub_mutex;
+  std::vector<rmw_gid_t> local_publishers;
 
   explicit rmw_context_impl_s(rmw_context_t * const base);
   ~rmw_context_impl_s();

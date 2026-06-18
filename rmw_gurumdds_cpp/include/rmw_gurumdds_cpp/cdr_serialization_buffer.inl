@@ -15,11 +15,11 @@
 #ifndef RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_
 #define RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_
 
-namespace rmw_gurumdds_cpp
-{
-template<>
-inline CdrSerializationBuffer<true>::CdrSerializationBuffer(uint8_t * buf, size_t size)
-  : CdrBuffer{buf, size} {
+namespace rmw_gurumdds_cpp {
+template <>
+inline CdrSerializationBuffer<true>::CdrSerializationBuffer(uint8_t *buf,
+                                                            size_t size)
+    : CdrBuffer{buf, size} {
   if (nullptr == buf) {
     throw std::runtime_error("Buf is null");
   }
@@ -33,12 +33,11 @@ inline CdrSerializationBuffer<true>::CdrSerializationBuffer(uint8_t * buf, size_
   size_ = size - CDR_HEADER_SIZE;
 }
 
-template<>
+template <>
 inline CdrSerializationBuffer<false>::CdrSerializationBuffer(uint8_t *, size_t)
-  : CdrBuffer{nullptr, std::numeric_limits<size_t>::max()} {
-}
+    : CdrBuffer{nullptr, std::numeric_limits<size_t>::max()} {}
 
-template<bool SERIALIZE>
+template <bool SERIALIZE>
 inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint8_t src) {
   roundup(sizeof(uint8_t));
   if constexpr (SERIALIZE) {
@@ -51,7 +50,7 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint8_t src) {
   advance(sizeof(uint8_t));
 }
 
-template<bool SERIALIZE>
+template <bool SERIALIZE>
 inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint16_t src) {
   roundup(sizeof(uint16_t));
   if constexpr (SERIALIZE) {
@@ -64,7 +63,7 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint16_t src) {
   advance(sizeof(uint16_t));
 }
 
-template<bool SERIALIZE>
+template <bool SERIALIZE>
 inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint32_t src) {
   roundup(sizeof(uint32_t));
   if constexpr (SERIALIZE) {
@@ -77,7 +76,7 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint32_t src) {
   advance(sizeof(uint32_t));
 }
 
-template<bool SERIALIZE>
+template <bool SERIALIZE>
 inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint64_t src) {
   roundup(sizeof(uint64_t));
   if constexpr (SERIALIZE) {
@@ -90,11 +89,11 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(uint64_t src) {
   advance(sizeof(uint64_t));
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const std::string & src)
-{
+template <bool SERIALIZE>
+inline void
+CdrSerializationBuffer<SERIALIZE>::operator<<(const std::string &src) {
   *this << static_cast<uint32_t>(src.size() + 1);
-  roundup(sizeof(char));  // align of char
+  roundup(sizeof(char)); // align of char
   if constexpr (SERIALIZE) {
     if (offset_ + src.size() + 1 > size_) {
       throw std::runtime_error("Out of buffer");
@@ -104,11 +103,11 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const std::string & sr
   advance(src.size() + 1);
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const std::u16string & src)
-{
+template <bool SERIALIZE>
+inline void
+CdrSerializationBuffer<SERIALIZE>::operator<<(const std::u16string &src) {
   *this << static_cast<uint32_t>(src.size());
-  roundup(sizeof(char16_t));  // align of char16_t
+  roundup(sizeof(char16_t)); // align of char16_t
   if constexpr (SERIALIZE) {
     if (offset_ + (src.size() * sizeof(char16_t)) > size_) {
       throw std::runtime_error("Out of buffer");
@@ -119,11 +118,11 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const std::u16string &
   advance(src.size() * sizeof(char16_t));
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const rosidl_runtime_c__String & src)
-{
+template <bool SERIALIZE>
+inline void CdrSerializationBuffer<SERIALIZE>::operator<<(
+    const rosidl_runtime_c__String &src) {
   *this << static_cast<uint32_t>(src.size + 1);
-  roundup(sizeof(char));  // align of char
+  roundup(sizeof(char)); // align of char
   if constexpr (SERIALIZE) {
     if (offset_ + src.size + 1 > size_) {
       throw std::runtime_error("Out of buffer");
@@ -133,11 +132,11 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const rosidl_runtime_c
   advance(src.size + 1);
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const rosidl_runtime_c__U16String & src)
-{
+template <bool SERIALIZE>
+inline void CdrSerializationBuffer<SERIALIZE>::operator<<(
+    const rosidl_runtime_c__U16String &src) {
   *this << static_cast<uint32_t>(src.size);
-  roundup(sizeof(char16_t));  // align of char16_t
+  roundup(sizeof(char16_t)); // align of char16_t
   if constexpr (SERIALIZE) {
     if (offset_ + (src.size * sizeof(char16_t)) > size_) {
       throw std::runtime_error("Out of buffer");
@@ -148,9 +147,9 @@ inline void CdrSerializationBuffer<SERIALIZE>::operator<<(const rosidl_runtime_c
   advance(src.size * sizeof(char16_t));
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint8_t * arr, size_t cnt)
-{
+template <bool SERIALIZE>
+inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint8_t *arr,
+                                                        size_t cnt) {
   if (cnt == 0) {
     return;
   }
@@ -165,9 +164,9 @@ inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint8_t * arr, siz
   advance(cnt * sizeof(uint8_t));
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint16_t * arr, size_t cnt)
-{
+template <bool SERIALIZE>
+inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint16_t *arr,
+                                                        size_t cnt) {
   if (cnt == 0) {
     return;
   }
@@ -182,9 +181,9 @@ inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint16_t * arr, si
   advance(cnt * sizeof(uint16_t));
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint32_t * arr, size_t cnt)
-{
+template <bool SERIALIZE>
+inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint32_t *arr,
+                                                        size_t cnt) {
   if (cnt == 0) {
     return;
   }
@@ -199,9 +198,9 @@ inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint32_t * arr, si
   advance(cnt * sizeof(uint32_t));
 }
 
-template<bool SERIALIZE>
-inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint64_t * arr, size_t cnt)
-{
+template <bool SERIALIZE>
+inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint64_t *arr,
+                                                        size_t cnt) {
   if (cnt == 0) {
     return;
   }
@@ -215,6 +214,6 @@ inline void CdrSerializationBuffer<SERIALIZE>::copy_arr(const uint64_t * arr, si
   }
   advance(cnt * sizeof(uint64_t));
 }
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp
 
-#endif  // RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_
+#endif // RMW_GURUMDDS_CPP__CDR_SERIALIZATION_BUFFER_INL_

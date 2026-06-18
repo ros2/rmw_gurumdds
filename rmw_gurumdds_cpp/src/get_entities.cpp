@@ -13,15 +13,14 @@
 // limitations under the License.
 
 #include "rmw_gurumdds_cpp/get_entities.hpp"
-#include "rmw_gurumdds_cpp/identifier.hpp"
-#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/event_info_common.hpp"
 #include "rmw_gurumdds_cpp/event_info_service.hpp"
+#include "rmw_gurumdds_cpp/identifier.hpp"
+#include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 
 namespace rmw_gurumdds_cpp
 {
-dds_DomainParticipant *
-get_participant(rmw_node_t * node)
+dds_DomainParticipant * get_participant(rmw_node_t *node)
 {
   if (node == nullptr) {
     return nullptr;
@@ -34,8 +33,7 @@ get_participant(rmw_node_t * node)
   return node->context->impl->participant;
 }
 
-dds_Publisher *
-get_publisher(rmw_publisher_t * publisher)
+dds_Publisher * get_publisher(rmw_publisher_t *publisher)
 {
   if (publisher == nullptr) {
     return nullptr;
@@ -45,12 +43,11 @@ get_publisher(rmw_publisher_t * publisher)
     return nullptr;
   }
 
-  PublisherInfo * impl = static_cast<PublisherInfo *>(publisher->data);
+  PublisherInfo *impl = static_cast<PublisherInfo *>(publisher->data);
   return dds_DataWriter_get_publisher(impl->topic_writer);
 }
 
-dds_DataWriter *
-get_data_writer(rmw_publisher_t * publisher)
+dds_DataWriter * get_data_writer(rmw_publisher_t *publisher)
 {
   if (publisher == nullptr) {
     return nullptr;
@@ -60,12 +57,11 @@ get_data_writer(rmw_publisher_t * publisher)
     return nullptr;
   }
 
-  PublisherInfo * impl = static_cast<PublisherInfo *>(publisher->data);
+  PublisherInfo *impl = static_cast<PublisherInfo *>(publisher->data);
   return impl->topic_writer;
 }
 
-dds_Subscriber *
-get_subscriber(rmw_subscription_t * subscription)
+dds_Subscriber * get_subscriber(rmw_subscription_t *subscription)
 {
   if (subscription == nullptr) {
     return nullptr;
@@ -75,12 +71,11 @@ get_subscriber(rmw_subscription_t * subscription)
     return nullptr;
   }
 
-  SubscriberInfo * impl = static_cast<SubscriberInfo *>(subscription->data);
+  SubscriberInfo *impl = static_cast<SubscriberInfo *>(subscription->data);
   return dds_DataReader_get_subscriber(impl->topic_reader);
 }
 
-dds_DataReader *
-get_data_reader(rmw_subscription_t * subscription)
+dds_DataReader * get_data_reader(rmw_subscription_t *subscription)
 {
   if (subscription == nullptr) {
     return nullptr;
@@ -90,12 +85,11 @@ get_data_reader(rmw_subscription_t * subscription)
     return nullptr;
   }
 
-  SubscriberInfo * impl = static_cast<SubscriberInfo *>(subscription->data);
+  SubscriberInfo *impl = static_cast<SubscriberInfo *>(subscription->data);
   return impl->topic_reader;
 }
 
-dds_DataWriter *
-get_request_data_writer(rmw_client_t * client)
+dds_DataWriter * get_request_data_writer(rmw_client_t *client)
 {
   if (client == nullptr) {
     return nullptr;
@@ -105,12 +99,11 @@ get_request_data_writer(rmw_client_t * client)
     return nullptr;
   }
 
-  ClientInfo * impl = static_cast<ClientInfo *>(client->data);
+  ClientInfo *impl = static_cast<ClientInfo *>(client->data);
   return impl->request_writer;
 }
 
-dds_DataReader *
-get_response_data_reader(rmw_client_t * client)
+dds_DataReader * get_response_data_reader(rmw_client_t *client)
 {
   if (client == nullptr) {
     return nullptr;
@@ -120,12 +113,11 @@ get_response_data_reader(rmw_client_t * client)
     return nullptr;
   }
 
-  ClientInfo * impl = static_cast<ClientInfo *>(client->data);
+  ClientInfo *impl = static_cast<ClientInfo *>(client->data);
   return impl->response_reader;
 }
 
-dds_DataReader *
-get_request_data_reader(rmw_service_t * service)
+dds_DataReader * get_request_data_reader(rmw_service_t *service)
 {
   if (service == nullptr) {
     return nullptr;
@@ -135,12 +127,11 @@ get_request_data_reader(rmw_service_t * service)
     return nullptr;
   }
 
-  ServiceInfo * impl = static_cast<ServiceInfo *>(service->data);
+  ServiceInfo *impl = static_cast<ServiceInfo *>(service->data);
   return impl->request_reader;
 }
 
-dds_DataWriter *
-get_response_data_writer(rmw_service_t * service)
+dds_DataWriter * get_response_data_writer(rmw_service_t *service)
 {
   if (service == nullptr) {
     return nullptr;
@@ -150,7 +141,7 @@ get_response_data_writer(rmw_service_t * service)
     return nullptr;
   }
 
-  ServiceInfo * impl = static_cast<ServiceInfo *>(service->data);
+  ServiceInfo *impl = static_cast<ServiceInfo *>(service->data);
   return impl->response_writer;
 }
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp

@@ -14,10 +14,9 @@
 
 #include "rmw/features.h"
 
-bool
-rmw_feature_supported(rmw_feature_t feature)
+bool rmw_feature_supported(rmw_feature_t feature)
 {
-  switch(feature) {
+  switch (feature) {
     case RMW_FEATURE_MESSAGE_INFO_RECEPTION_SEQUENCE_NUMBER:
     case RMW_FEATURE_MESSAGE_INFO_PUBLICATION_SEQUENCE_NUMBER:
       return true;

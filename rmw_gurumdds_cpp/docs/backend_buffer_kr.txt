@@ -1,0 +1,238 @@
+# ROS 2 Lyrical rosidl::Buffer backend transport 매뉴얼
+
+이 파일은 ROS 2 Lyrical에서 추가된 rosidl::Buffer 기반 backend transport를
+RMW 계층에서 처리하기 위한 구조를 구현한다.
+
+기존 ROS 2 C++ message generator는 variable-length primitive array field,
+예를 들면 uint8[], float32[] 등을 std::vector<T> 형태로 생성했다.
+Lyrical부터는 해당 필드가 rosidl::Buffer<T> 형태로 생성될 수 있으며,
+rosidl::Buffer<T>는 std::vector<T>와 호환되는 기본 CPU storage를 가지면서도
+CUDA, shared memory, vendor-native memory 등 다른 memory backend를 붙일 수
+있는 pimpl 기반 컨테이너이다.
+
+목적은 메시지 정의(.msg)를 바꾸지 않고도 큰 binary payload를 CPU memory로
+강제로 복사하지 않도록 하는 것이다. 예를 들어 GPU에서 생성된 image/tensor
+data를 publish하기 위해 std::vector<uint8_t>로 한 번 복사하고, subscriber에서
+다시 GPU로 복사하는 비용을 줄이기 위해, 실제 payload는 backend-native
+memory에 유지하고 DDS wire에는 payload 자체 대신 backend descriptor를 실어
+보낸다.
+
+1. Core abstraction
+
+---
+
+rosidl::Buffer<T>
+
+* generated C++ message field가 직접 보유하는 컨테이너이다.
+* 기본 생성 시 CPU backend를 사용한다.
+* CPU backend에서는 std::vector<T>&로 암시 변환이 가능하므로 기존 코드와의
+  backward compatibility를 유지한다.
+* non-CPU backend에서는 direct element access가 제한될 수 있으며, 필요한
+  경우 to_vector() / to_cpu() 계열 변환으로 CPU copy를 만든다.
+
+rosidl::BufferImplBase<T>
+
+* Buffer<T> 내부 pimpl의 abstract base class이다.
+* backend type name, element count, CPU copy, deep clone 정도만 공통으로
+  제공한다.
+* 실제 메모리 할당/해제, descriptor 생성에 필요한 상태, native handle 등은
+  backend-specific 구현체가 보유한다.
+
+CpuBufferImpl<T>
+
+* 기본 CPU backend 구현체이다.
+* 내부적으로 std::vector<T, Allocator>를 감싼다.
+* 기존 ROS 2 message field처럼 동작해야 하는 경우 이 경로를 사용한다.
+
+rosidl::BufferBackend
+
+* RMW 계층이 사용하는 plugin interface이다.
+* backend type name, backend metadata, descriptor message type support를
+  제공한다.
+* publisher 측에서는 BufferImplBase<T>로부터 descriptor message를 생성한다.
+* subscriber 측에서는 descriptor message로부터 BufferImplBase<T>를
+  복원한다.
+* endpoint discovery hook을 통해 특정 publisher/subscriber pair가 해당
+  backend를 사용할 수 있는지 판단한다.
+
+descriptor
+
+* 실제 payload 자체가 아니라 payload를 receiver가 다시 접근하거나 복원하기
+  위한 작은 ROS message이다.
+* CPU fallback에서는 descriptor 또는 일반 serialization 경로가 실제 bytes를
+  담을 수 있다.
+* non-CPU backend에서는 CUDA IPC handle, shared memory key, allocation id,
+  size/offset 같은 backend-specific reference 정보가 들어갈 수 있다.
+* descriptor serialized size는 상한을 가져야 하며, FastRTPS 기준 구현에서는
+  serialization buffer size를 미리 계산할 수 있어야 한다.
+
+2. RMW integration
+
+---
+
+buffer backend 상태는 rmw_context 단위로 보관한다.
+대표 구조는 다음과 같다.
+
+BufferBackendContext
+- BufferSerializationContext serialization_context
+- BufferBackendRegistry registry
+- unordered_map<string, shared_ptr<BufferBackend>> backend_instances
+
+initialize_buffer_backends() 단계에서는 plugin registry를 통해 설치된
+backend들을 찾고, 각 backend instance를 생성한 뒤 backend type name 기준으로
+저장한다. 또한 backend가 제공하는 descriptor type support를 FastRTPS C++
+typesupport로 resolve하고, descriptor serialize/deserialize callback을
+BufferSerializationContext에 등록한다.
+
+즉, 일반 ROS message serialization callback이 rosidl::Buffer<T> field를
+만나면 backend type과 endpoint 정보를 기준으로 다음 동작을 수행할 수 있다.
+
+publisher:
+BufferImplBase<T>
+-> BufferBackend::create_descriptor_with_endpoint()
+-> descriptor message
+-> FastCDR serialize
+
+subscriber:
+FastCDR deserialize
+-> descriptor message
+-> BufferBackend::from_descriptor_with_endpoint()
+-> BufferImplBase<T>
+-> rosidl::Buffer<T> field에 장착
+
+3. Discovery and backend negotiation
+
+---
+
+buffer backend는 모든 endpoint에 무조건 적용되지 않는다.
+publisher와 subscriber가 서로 호환 가능한 backend를 지원해야 하며,
+이 정보는 endpoint discovery 과정에서 user_data / backend metadata 형태로
+교환된다.
+
+publisher 생성 시:
+
+* message type support callback의 has_buffer_fields 여부를 확인한다.
+* buffer field가 있는 message라면 현재 RMW context에 로드된 backend
+  metadata를 수집한다.
+* CPU serialization은 항상 fallback 가능해야 하므로 "cpu" backend는
+  암묵적으로 지원 backend 목록에 포함한다.
+* backend metadata를 DataWriter QoS user_data 등에 encode하여 remote
+  subscriber가 discovery 과정에서 확인할 수 있게 한다.
+
+subscriber 생성 시:
+
+* message type support callback의 has_buffer_fields 여부를 확인한다.
+* subscription option의 acceptable_buffer_backends 값을 파싱한다.
+* 값이 비어 있거나 "cpu"만 지정된 경우 CPU-only mode로 동작한다.
+* "any"가 지정된 경우 설치된 모든 backend를 허용한다.
+* 특정 backend 이름들이 지정된 경우, 현재 로드된 backend 중 일치하는 것만
+  advertised backend 목록에 넣는다.
+
+backend별 on_creating_endpoint() / on_discovering_endpoint() hook은
+local/remote endpoint 정보를 보고 실제 transport 가능 여부를 판단한다. 예를
+들어 같은 host인지, 같은 GPU context를 공유할 수 있는지, shared memory handle
+전달이 가능한지 같은 판단은 rosidl::Buffer 자체가 아니라 backend plugin이
+담당한다.
+
+4. publish path
+
+---
+
+buffer-aware publisher는 기본 DataWriter 외에 buffer transport용 추가
+channel을 가질 수 있다.
+
+main DataWriter
+- 일반 ROS 2 publish 경로이다.
+- legacy subscriber 또는 buffer-unaware endpoint가 있으면 이 경로로
+publish한다.
+- buffer-aware subscriber도 fallback 수신을 위해 main DataReader를
+유지한다.
+
+CPU shared channel
+- topic_name + "/_buf_cpu" 형태의 topic을 사용한다.
+- CPU-only subscriber들이 공유한다.
+- 하나의 CPU channel DataWriter가 여러 CPU-only subscriber를 담당한다.
+- payload는 기존 ROS message serialization과 유사하게 CPU memory 기준으로
+처리된다.
+
+accelerated per-subscriber channel
+- non-CPU backend를 사용하는 subscriber마다 별도의 buffer endpoint를
+만든다.
+- topic_name + "/_buf/" + subscriber_gid_hex 형태의 unique topic을
+사용한다.
+- publisher는 discovery callback에서 pending endpoint 정보를 쌓아두고,
+실제 publish 시점에 필요한 per-subscriber DataWriter를 lazy-create한다.
+- 각 endpoint별로 subscriber endpoint info를 넘겨
+cdr_serialize_with_endpoint()를 호출한다.
+- serialization callback은 BufferBackendContext의 serialization_context를
+통해 backend descriptor를 생성하고 FastCDR stream에 기록한다.
+
+publish 시 전체 matched subscriber가 buffer-aware endpoint 수와 일치하면
+buffer channel만 사용한다. 반대로 legacy subscriber가 섞여 있으면 main
+DataWriter로 publish하여 cross-RMW 또는 buffer-unaware subscriber와의
+호환성을 유지한다.
+
+5. take path
+
+---
+
+buffer-aware subscriber는 기본 DataReader 외에 buffer channel용 DataReader를
+가진다.
+
+CPU-only subscriber:
+- topic_name + "/_buf_cpu" channel의 DataReader에서 먼저 take한다.
+- 수신 성공 시 바로 ros_message에 deserialize한다.
+
+accelerated subscriber:
+- topic_name + "/_buf/" + subscriber_gid_hex channel의 DataReader에서
+먼저 take한다.
+- 수신 buffer는 CDR buffer로 들어온다.
+- writer GID를 기준으로 publisher metadata를 찾고,
+publisher endpoint info를 구성한다.
+- cdr_deserialize_with_endpoint()를 호출하여 descriptor를 읽고,
+BufferBackend::from_descriptor_with_endpoint()를 통해 native
+BufferImplBase<T>를 복원한다.
+
+buffer channel에서 data를 받지 못하면 main DataReader로 fallback한다.
+이 fallback은 non-buffer-aware publisher, 다른 RMW 구현체, 또는 backend
+negotiation에 실패한 endpoint와의 통신을 유지하기 위한 안전장치이다.
+
+6. Guard condition and wait-set integration
+
+---
+
+buffer channel은 main DataReader와 별도의 DataReader를 사용하므로,
+rmw_wait()가 main DataReader만 감시하면 buffer channel data arrival을 놓칠 수
+있다. 이를 막기 위해 buffer-aware subscription은 별도의 GuardCondition을
+가지고, CPU channel 또는 accelerated channel listener가
+on_data_available()에서 guard를 trigger한다. take() 경로는 buffer channel을
+먼저 확인하고, unread data가 남아 있으면 guard를 다시 trigger하여 executor가
+후속 sample을 계속 처리할 수 있게 한다.
+
+7. Important invariants
+
+---
+
+* buffer backend state는 rmw_context 단위로 관리한다.
+  여러 context가 같은 process에 있어도 mutable descriptor state를 전역
+  공유하지 않는다.
+
+* "cpu" backend는 항상 fallback 가능한 baseline으로 취급한다.
+  non-CPU backend negotiation이 실패해도 ROS 2 pub/sub 호환성이 깨지면 안
+  된다.
+
+* non-CPU backend transport는 endpoint-pair dependent이다.
+  backend가 특정 remote endpoint를 처리할 수 없으면 descriptor 생성을
+  포기하고 CPU serialization으로 fallback해야 한다.
+
+* buffer channel DataReader/DataWriter는 main DataReader/DataWriter와
+  별개이므로 creation/destruction 순서, listener lifetime, wait-set wakeup
+  처리를 별도로 관리해야 한다.
+
+* accelerated channel에서 받은 sample의 writer GID는 내부 per-endpoint
+  DataWriter GID일 수 있다. rmw_message_info_t에는 사용자가 기대하는 main
+  publisher GID가 들어가도록 remapping해야 한다.
+
+* 이 기능은 topic publish/subscribe 경로의 최적화이다.
+  service/action path는 별도 지원이 없으면 기존 serialization 경로를 그대로
+  사용한다.

@@ -22,11 +22,14 @@
 
 namespace rmw_gurumdds_cpp
 {
-Guid_t::Guid_t() : dds_GUID_t{} {}
+Guid_t::Guid_t()
+: dds_GUID_t{} {}
 
-Guid_t::Guid_t(const dds_GUID_t & other) : dds_GUID_t{other} {}
+Guid_t::Guid_t(const dds_GUID_t & other)
+: dds_GUID_t{other} {}
 
-Guid_t::Guid_t(const dds_ParticipantBuiltinTopicData& builtin_topic_data) {
+Guid_t::Guid_t(const dds_ParticipantBuiltinTopicData & builtin_topic_data)
+{
   std::memcpy(prefix, &builtin_topic_data.key, sizeof(prefix));
   entityId = ENTITYID_PARTICIPANT;
 }
@@ -45,4 +48,4 @@ bool Guid_t::operator<(const Guid_t & other) const
 {
   return std::memcmp(this, &other, sizeof(dds_GUID_t)) < 0;
 }
-}  // namespace rmw_gurumdds_cpp
+} // namespace rmw_gurumdds_cpp

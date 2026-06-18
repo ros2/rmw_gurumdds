@@ -2,10 +2,16 @@
 Implementation of the ROS 2 middleware interface using [GurumNetworks GurumDDS](https://www.gurum.cc/index_eng).
 Installation guide is available [here](https://docs.ros.org/en/humble/Installation/DDS-Implementations/Working-with-GurumNetworks-GurumDDS.html).
 
+## ROS 2 Lyrical RMW Update
+The GurumDDS RMW implementation has been updated for compatibility with ROS 2 Lyrical.
+
+Added and updated RMW APIs required by ROS 2 Lyrical.
+
 ## Requirements
 Required version of GurumDDS depends on the version of this project.
 | rmw_gurumdds             | GurumDDS                    |
 |--------------------------|-----------------------------|
+| >= 7.0.0                 | >= 3.2.11                   |
 | >= 6.0.0                 | >= 3.2.9                    |
 | >= 5.0.0                 | >= 3.2.0                    |
 | >= 3.6.0, < 5.0.0        | 3.1.x                       |
@@ -59,7 +65,13 @@ DATA:
 This package is disabled by default.
 
 ## Branches
-There are three active branches in this project: `rolling`, `jazzy`, and `humble`.
+active branches in this project: 
+  `rolling`, 
+  `lyrical`, 
+  `kilted`,
+  `jazzy`, 
+  `humble`.
+
 New changes made in [ROS2 repository](https://github.com/ros2) will be applied to the `rolling` branch.
 
 ## Implementation Status
