@@ -2,6 +2,14 @@
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Lyrical Luth update
+* 6.0.1
+* Fix cpplint warnings
+* Replace deprecated ament_target_dependencies
+* Contributors: kumazuma, mmminjae
+
 6.0.1 (2025-05-20)
 -----------
 * Fix cpplint warnings
