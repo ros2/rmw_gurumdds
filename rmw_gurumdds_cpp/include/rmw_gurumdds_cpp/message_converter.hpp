@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/*
+기존 CDR 소스코드 지원 중단.
+Fastrtps 소스코드 이식 진행 예정.
+*/
+
 #ifndef RMW_GURUMDDS_CPP__MESSAGE_CONVERTER_HPP_
 #define RMW_GURUMDDS_CPP__MESSAGE_CONVERTER_HPP_
 
@@ -30,6 +35,11 @@
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
 
 #include "rmw_gurumdds_cpp/cdr_buffer.hpp"
+
+/*
+기존 CDR 소스코드 지원 중단.
+Fastrtps 소스코드 이식 진행 예정.
+*/
 
 namespace rmw_gurumdds_cpp
 {

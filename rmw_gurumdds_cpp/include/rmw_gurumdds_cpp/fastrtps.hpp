@@ -25,6 +25,7 @@
 /*
   fastrtps 소스코드에서 include로 노출되지 않은 부분들을 가져옴.
 */
+
 #define RMW_FASTRTPS_CPP_TYPESUPPORT_C rosidl_typesupport_fastrtps_c__identifier
 #define RMW_FASTRTPS_CPP_TYPESUPPORT_CPP \
   rosidl_typesupport_fastrtps_cpp::typesupport_identifier
