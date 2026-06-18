@@ -25,6 +25,8 @@
 #include "rmw_gurumdds_cpp/rmw_context_impl.hpp"
 #include "rmw_gurumdds_cpp/utils.hpp"
 
+// discovery_option 초기화가 빠져있음.
+// 추가해야하는지 검토 필요함.
 extern "C" {
 rmw_ret_t rmw_init_options_init(
   rmw_init_options_t *init_options, rcutils_allocator_t allocator)
@@ -79,6 +81,7 @@ rmw_init_options_copy(const rmw_init_options_t *src, rmw_init_options_t *dst)
     // Error already set
     return ret;
   }
+
   *dst = tmp;
   return RMW_RET_OK;
 }

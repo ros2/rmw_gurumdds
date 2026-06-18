@@ -1,6 +1,23 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rmw_gurumdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7.0.0 (2026-06-18)
+-----------
+(KR)
+* Lyrical 신규 API 지원.
+* Backend Buffer(rosidl::Buffer) 지원 추가.
+* Fastrtps CDR 소스코드 이식.
+  * 기존 CDR 소스코드 지원 중단.
+* GurumDDS RAII API 추가.
+* 메모리 누수, 버그 수정
+(EN)
+* Added support for new Lyrical APIs.
+* Added Backend Buffer (rosidl::Buffer) support.
+* Ported the Fast RTPS CDR implementation.
+* Discontinued support for the previous CDR implementation.
+* Added the GurumDDS RAII API.
+* Fixed memory leaks and other bugs.
+* Contributors: mmminjae
 
 6.0.1 (2025-05-20)
 -----------
