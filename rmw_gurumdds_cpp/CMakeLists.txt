@@ -166,6 +166,7 @@ ament_export_dependencies(
 
   #fastrtps dependencies
   rmw_fastrtps_shared_cpp
+  rosidl_dynamic_typesupport_fastrtps
   fastcdr
 )
 
